@@ -110,6 +110,31 @@
   width: 140px;
 }
 
+.attacks-container,
+.damage-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attacks-input-row {
+  display: flex;
+  align-items: center;
+}
+
+.torrent-checkbox {
+  margin-left: 15px;
+  align-self: center;
+}
+
+.num-attacks-row .form-group label {
+  display: none;
+}
+
+.num-attacks-row .form-group.damage-field label {
+  display: block;
+}
+
 .form-group--reroll {
   min-width: 200px;
   margin-left: auto;
@@ -152,7 +177,7 @@
   font-size: 12px;
   font-family: inherit;
   text-align: center;
-  height: 32px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,6 +194,11 @@
 .sustained-hit-input:focus {
   outline: none;
   border-color: #fbbf24;
+}
+
+.sustained-hit-input.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .sustained-hit-input.hidden {
@@ -286,6 +316,11 @@
   flex-shrink: 0;
 }
 
+.anti-wounds-select.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .anti-wounds-select.hidden {
   display: none;
 }
@@ -303,6 +338,20 @@
   font-weight: 500;
   cursor: pointer;
   margin: 0;
+}
+
+.torrent-checkbox {
+  white-space: nowrap;
+}
+
+.form-checkbox input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-checkbox input[type="checkbox"]:disabled + label {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .calculate-button {
@@ -379,6 +428,70 @@
   color: #fff;
   font-size: 14px;
   margin-bottom: 16px;
+}
+
+.kill-probability-container {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.form-section-header {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.form-section-header h3 {
+  color: #fbbf24;
+  font-size: 14px;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #4a4a4a;
+  text-transform: uppercase;
+}
+
+.defense-section {
+  width: 100%;
+}
+
+.defense-section h3 {
+  color: #fbbf24;
+  font-size: 14px;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #4a4a4a;
+  text-transform: uppercase;
+}
+
+.defense-checkbox-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.defense-checkbox-group .form-checkbox {
+  flex-shrink: 0;
+}
+
+.defense-checkbox-group .form-checkbox label {
+  font-size: 13px;
+}
+
+.defense-checkbox-group .select-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.defense-select {
+  min-width: 70px;
+  width: 70px;
+  flex: 0;
+}
+
+.defense-select.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 /* Responsive */
