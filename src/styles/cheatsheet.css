@@ -1,0 +1,129 @@
+@import './tabs.css';
+
+.tab-content h2 {
+  color: #fff;
+  font-size: 28px;
+  margin: 0 0 24px 0;
+}
+
+.probability-table {
+  width: 100%;
+  max-width: 600px;
+  border-collapse: collapse;
+  background: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  table-layout: fixed;
+}
+
+.probability-table thead {
+  background: #1a1a1a;
+}
+
+.probability-table th {
+  padding: 12px 14px;
+  text-align: left;
+  color: #d0d0d0;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.probability-table th.col-result {
+  text-align: center;
+  width: 30%;
+}
+
+.probability-table th.col-count {
+  text-align: center;
+  width: 40%;
+}
+
+.probability-table th.col-probability {
+  text-align: center;
+  width: 40%;
+}
+
+.probability-table th.col-probability-reroll {
+  text-align: center;
+  width: 40%;
+}
+
+.probability-table td {
+  padding: 12px 14px;
+  color: #ddd;
+  font-size: 15px;
+  border-bottom: 1px solid #444;
+}
+
+.probability-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.probability-table tbody tr:hover {
+  background: #333;
+}
+
+.probability-table td.result {
+  color: #d0d0d0;
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center;
+}
+
+.probability-table td.count {
+  color: #aaa;
+  text-align: center;
+}
+
+.probability-table td.probability {
+  color: #aaa;
+  font-weight: 500;
+  text-align: center;
+}
+
+.probability-table td.probability.healthy {
+  color: #66ff99;
+}
+
+.probability-table td.probability.medium {
+  color: #ffc107;
+}
+
+.probability-table td.probability.risky {
+  color: #ff7043;
+}
+
+.probability-table td.probability.extremely-risky {
+  color: #d32f2f;
+}
+
+.probability-table td.probability.suicide {
+  color: #000;
+}
+
+.probability-table td.probability-reroll {
+  color: #aaa;
+  font-weight: 500;
+  text-align: center;
+}
+
+.probability-table td.probability-reroll.healthy {
+  color: #66ff99;
+}
+
+.probability-table td.probability-reroll.medium {
+  color: #ffc107;
+}
+
+.probability-table td.probability-reroll.risky {
+  color: #ff7043;
+}
+
+.probability-table td.probability-reroll.extremely-risky {
+  color: #d32f2f;
+}
+
+.probability-table td.probability-reroll.suicide {
+  color: #000;
+}

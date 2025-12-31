@@ -1,0 +1,308 @@
+@import './tabs.css';
+
+.tab-content {
+  margin-top: 24px;
+}
+
+.wound-success-container {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.form-side {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 350px;
+}
+
+.result-side {
+  flex: 1;
+  min-width: 0;
+}
+
+.calculator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  background: #3a3a3a;
+  border-radius: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  min-height: 50px;
+  border: 1px solid red;
+}
+
+.attacks-input-row {
+  gap: 16px;
+}
+
+.hit-section {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+}
+
+.hit-buff-section {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.wound-buff-section {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+
+.checkbox-group .form-group {
+  flex-direction: row;
+  gap: 8px;
+  max-width: none;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid blue;
+}
+
+.attacks-input-row {
+  display: flex;
+  align-items: center;
+}
+
+.torrent-checkbox {
+  margin-left: 15px;
+  align-self: center;
+}
+
+.num-attacks-row .form-group label {
+  display: none;
+}
+
+.num-attacks-row .form-group.damage-field label {
+  display: block;
+}
+
+.form-group--reroll {
+  min-width: 200px;
+  margin-left: auto;
+}
+
+.sustained-hit-input.hidden {
+  display: none;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.sustained-hits-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.anti-wounds-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.anti-wounds-select {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.anti-wounds-select.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.anti-wounds-select.hidden {
+  display: none;
+}
+
+.torrent-checkbox {
+  white-space: nowrap;
+}
+
+.calculate-button {
+  padding: 12px 24px;
+  background: #fbbf24;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  align-self: flex-start;
+}
+
+.calculate-button:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  padding: 16px;
+  background: #3a3a3a;
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+  border-left-color: #fbbf24;
+}
+
+.stat-label {
+  display: block;
+  color: #d0d0d0;
+  font-size: 12px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.stat-value {
+  display: block;
+  color: #fbbf24;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stat-range {
+  display: block;
+  color: #a0a0a0;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.chart-container {
+  padding: 20px;
+  background: #3a3a3a;
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+}
+
+.chart-container:hover {
+  border-left-color: #fbbf24;
+}
+
+.chart-container h2 {
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.kill-probability-container {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.form-section-header {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.form-section-header h3 {
+  color: #fbbf24;
+  font-size: 17px;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #4a4a4a;
+  text-transform: uppercase;
+}
+
+.defense-section {
+  width: 100%;
+}
+
+.defense-section h3 {
+  color: #fbbf24;
+  font-size: 14px;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #4a4a4a;
+  text-transform: uppercase;
+}
+
+.defense-checkbox-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.defense-checkbox-group .form-checkbox {
+  flex-shrink: 0;
+}
+
+.defense-checkbox-group .form-checkbox label {
+  font-size: 13px;
+}
+
+.defense-checkbox-group .select-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.defense-select.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-group {
+    min-width: 100%;
+  }
+
+  .result-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .chart-container {
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,198 @@
+.about-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  max-width: 100%;
+  margin: 20px 0;
+  padding: 0 20px;
+}
+
+.fishpond-logo {
+  flex-shrink: 0;
+  text-align: center;
+  max-width: 350px;
+}
+
+.fishpond-logo img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.about-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.about-text h2 {
+  color: #fff;
+  font-size: 36px;
+  margin: 0 0 16px 0;
+}
+
+.about-text h3 {
+  color: #d0d0d0;
+  font-size: 18px;
+  margin: 20px 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.about-text p {
+  color: #ccc;
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0 0 14px 0;
+}
+
+.about-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+}
+
+.contact-info {
+  flex: 1;
+  text-align: left;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #444;
+}
+
+.contact-info h4 {
+  color: #d0d0d0;
+  font-size: 16px;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.contact-info p {
+  color: #aaa;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+}
+
+.support-info {
+  flex: 1;
+  text-align: left;
+  padding-top: 20px;
+}
+
+.support-info h4 {
+  color: #d0d0d0;
+  font-size: 16px;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.contact-section {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 30px;
+  text-align: center;
+  background: #3a3a3a;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.contact-section h3 {
+  color: #fff;
+  font-size: 18px;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.contact-section p {
+  color: #ccc;
+  font-size: 16px;
+  margin: 0 0 20px 0;
+}
+
+.action-section {
+  max-width: 500px;
+  margin: 20px auto 30px;
+  padding: 30px;
+  text-align: center;
+  background: #3a3a3a;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.action-section h3 {
+  color: #fff;
+  font-size: 18px;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.action-section p {
+  color: #ccc;
+  font-size: 16px;
+  margin: 0 0 20px 0;
+}
+
+.coffee-button {
+  display: inline-block;
+  padding: 12px 32px;
+  background: #fbbf24;
+  color: #1a1a1a;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s;
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+}
+
+.coffee-button:hover {
+  background: #fbbf24;
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.8), 0 0 20px rgba(251, 191, 36, 0.4), 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.email-link {
+  display: inline-block;
+  color: #fbbf24;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.email-link:hover {
+  color: #f59e0b;
+  border-bottom-color: #f59e0b;
+}
+
+@media (max-width: 768px) {
+  .about-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .fishpond-logo img {
+    max-width: 150px;
+  }
+  
+  .about-text {
+    text-align: center;
+  }
+  
+  .action-section {
+    margin: 20px 20px;
+    padding: 25px 20px;
+  }
+}
