@@ -13,7 +13,7 @@
 .form-side {
   flex: 0 0 auto;
   width: 100%;
-  max-width: 350px;
+  max-width: 342px;
 }
 
 .result-side {
@@ -36,7 +36,6 @@
   flex-wrap: wrap;
   align-items: center;
   min-height: 50px;
-  border: 1px solid red;
 }
 
 .attacks-input-row {
@@ -82,7 +81,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid blue;
 }
 
 .attacks-input-row {
