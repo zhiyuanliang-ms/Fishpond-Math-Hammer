@@ -88,11 +88,6 @@
   align-items: center;
 }
 
-.torrent-checkbox {
-  margin-left: 15px;
-  align-self: center;
-}
-
 .num-attacks-row .form-group label {
   display: none;
 }
@@ -102,7 +97,7 @@
 }
 
 .form-group--reroll {
-  min-width: 200px;
+  min-width: 203px;
   margin-left: auto;
 }
 
@@ -115,6 +110,10 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
+}
+
+.form-checkbox label {
+  font-size: 13px;
 }
 
 .sustained-hits-container {
@@ -141,10 +140,6 @@
 
 .anti-wounds-select.hidden {
   display: none;
-}
-
-.torrent-checkbox {
-  white-space: nowrap;
 }
 
 .calculate-button {
@@ -267,10 +262,6 @@
   flex-shrink: 0;
 }
 
-.defense-checkbox-group .form-checkbox label {
-  font-size: 13px;
-}
-
 .defense-checkbox-group .select-container {
   flex: 1;
   min-width: 0;
@@ -280,6 +271,15 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+.simulation-note {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 10px;
+  text-align: center;
+  font-style: italic;
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

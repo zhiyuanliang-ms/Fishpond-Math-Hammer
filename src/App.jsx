@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import './App.css'
+import './styles/app.css'
 import Sidebar from './components/Sidebar'
 import DiceCalculator from './components/DiceCalculator'
 import Cheatsheet from './components/Cheatsheet'

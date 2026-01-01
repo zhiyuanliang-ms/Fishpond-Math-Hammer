@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ComposedChart, Line } from 'recharts'
 import Select from 'react-select'
 import { calculateHitProbability, calculateWoundProbability, binomialProbability } from './calculationUtils'
+import { toHitOptions, toWoundOptions, antiOptions, rerollOptions, critOptions } from './dropdownOptions'
+import { selectStyles, buffSelectStyles } from './selectStyles'
 
 function WoundSuccessCalculator() {
   // Hit Roll State
@@ -17,41 +19,11 @@ function WoundSuccessCalculator() {
   const [toWound, setToWound] = useState({ value: '4', label: '4+' })
   const [woundReroll, setWoundReroll] = useState({ value: 'no-reroll', label: 'No Reroll' })
   const [devastatingWounds, setDevastatingWounds] = useState(false)
+  const [crit, setCrit] = useState({ value: '6', label: '6+' })
   const [antiEnabled, setAntiEnabled] = useState(false)
   const [antiValue, setAntiValue] = useState({ value: '4', label: '4+' })
 
   const [result, setResult] = useState(null)
-
-  // Options for dropdowns
-  const toHitOptions = [
-    { value: '2', label: '2+' },
-    { value: '3', label: '3+' },
-    { value: '4', label: '4+' },
-    { value: '5', label: '5+' },
-    { value: '6', label: '6+' }
-  ]
-
-  const toWoundOptions = [
-    { value: '2', label: '2+' },
-    { value: '3', label: '3+' },
-    { value: '4', label: '4+' },
-    { value: '5', label: '5+' },
-    { value: '6', label: '6+' }
-  ]
-
-  const antiOptions = [
-    { value: '2', label: '2+' },
-    { value: '3', label: '3+' },
-    { value: '4', label: '4+' },
-    { value: '5', label: '5+' }
-  ]
-
-  const rerollOptions = [
-    { value: 'no-reroll', label: 'No Reroll' },
-    { value: 'reroll-one', label: 'Reroll Ones' },
-    { value: 'reroll-fail', label: 'Reroll Fails' },
-    { value: 'reroll-non-critical', label: 'Reroll Non-Critical' }
-  ]
 
   // Main calculation function
   const handleCalculate = (e) => {
@@ -65,7 +37,7 @@ function WoundSuccessCalculator() {
       return
     }
 
-    const { hitChance: baseHitChance, criticalChance: baseCriticalChance } = calculateHitProbability(toHit.value, hitReroll.value)
+    const { hitChance: baseHitChance, criticalChance: baseCriticalChance } = calculateHitProbability(toHit.value, hitReroll.value, crit.value)
     
     // If torrent is enabled, all attacks auto-hit
     const hitChance = torrent ? 1 : baseHitChance
@@ -104,9 +76,15 @@ function WoundSuccessCalculator() {
 
     // Calculate expected devastating wounds if devastating wounds is enabled
     if (devastatingWounds) {
-      // Devastating wounds: each hit rolls to wound, critical wound (6 or ANTI) is devastating
-      // criticalWoundChance already accounts for reroll modifiers and ANTI buff
-      expectedDevastatingWounds = expectedHits * criticalWoundChance
+      if (lethalHit) {
+        // With Lethal Hits: only non-critical hits roll for devastating wounds
+        // Critical hits auto-wound and skip the wound roll
+        const nonCriticalHits = expectedHits - expectedCrits
+        expectedDevastatingWounds = nonCriticalHits * criticalWoundChance
+      } else {
+        // Without Lethal Hits: all hits roll for devastating wounds
+        expectedDevastatingWounds = expectedHits * criticalWoundChance
+      }
     }
 
     // Calculate standard deviation first
@@ -212,12 +190,13 @@ function WoundSuccessCalculator() {
     <div className="wound-success-container">
       <div className="form-side">
         <form onSubmit={handleCalculate} className="calculator-form">
-          <div className="attacks-container">
+          <div className="form-section-header">
+            <h3>Attack Stats</h3>
+          </div>
+          <div className="form-row">
             <div className="form-group">
-              <label htmlFor="numDice">Number of Attacks:</label>
-            </div>
-            <div className="attacks-input-row">
-              <div className="form-group num-attacks-input">
+              <label htmlFor="numDice">Number of Attacks</label>
+              <div className="attacks-input-row">
                 <input
                   type="number"
                   id="numDice"
@@ -226,41 +205,41 @@ function WoundSuccessCalculator() {
                   value={numDice}
                   onChange={(e) => setNumDice(e.target.value)}
                 />
-              </div>
-              <div className="form-checkbox torrent-checkbox">
-                <input
-                  type="checkbox"
-                  id="torrent"
-                  checked={torrent}
-                  onChange={(e) => setTorrent(e.target.checked)}
-                />
-                <label htmlFor="torrent">TORRENT</label>
+                <div className="form-checkbox">
+                  <input
+                    type="checkbox"
+                    id="torrent"
+                    checked={torrent}
+                    onChange={(e) => setTorrent(e.target.checked)}
+                  />
+                  <label htmlFor="torrent">TORRENT</label>
+                </div>
               </div>
             </div>
           </div>
 
           {!torrent && (
-          <div className="form-row hit-section">
+          <div className="form-row">
             <div className="form-group">
-              <label htmlFor="toHit">To Hit:</label>
+              <label htmlFor="toHit">To Hit</label>
               <Select
                 inputId="toHit"
                 options={toHitOptions}
                 value={toHit}
                 onChange={setToHit}
-                classNamePrefix="select"
+                styles={selectStyles}
                 isSearchable={false}
               />
             </div>
 
             <div className="form-group form-group--reroll">
-              <label htmlFor="hitReroll">Reroll:</label>
+              <label htmlFor="hitReroll">Reroll</label>
               <Select
                 inputId="hitReroll"
                 options={rerollOptions}
                 value={hitReroll}
                 onChange={setHitReroll}
-                classNamePrefix="select"
+                styles={selectStyles}
                 isSearchable={false}
               />
             </div>
@@ -268,39 +247,53 @@ function WoundSuccessCalculator() {
           )}
 
           {!torrent && (
-          <div className="form-row hit-buff-section">
-            <div className="checkbox-group">
-              <div className="form-checkbox">
-                <input
-                  type="checkbox"
-                  id="lethalHit"
-                  checked={lethalHit}
-                  onChange={(e) => setLethalHit(e.target.checked)}
-                />
-                <label htmlFor="lethalHit">LETHAL HITS</label>
-              </div>
-
-              <div className="sustained-hits-container">
+          <div>
+            <div className="form-row">
+              <label htmlFor="crit">Critical Hit On</label>
+              <Select
+                inputId="crit"
+                options={critOptions}
+                value={crit}
+                onChange={setCrit}
+                styles={selectStyles}
+                isSearchable={false}
+              />
+            </div>
+          
+            <div className="form-row hit-buff-section">
+              <div className="checkbox-group">
                 <div className="form-checkbox">
                   <input
                     type="checkbox"
-                    id="sustainedHit"
-                    checked={sustainedHit}
-                    onChange={(e) => setSustainedHit(e.target.checked)}
+                    id="lethalHit"
+                    checked={lethalHit}
+                    onChange={(e) => setLethalHit(e.target.checked)}
                   />
-                  <label htmlFor="sustainedHit">SUSTAINED HITS</label>
+                  <label htmlFor="lethalHit">LETHAL HITS</label>
                 </div>
 
-                <input
-                  type="number"
-                  id="sustainedHitValue"
-                  min="1"
-                  max="3"
-                  value={sustainedHitValue}
-                  onChange={(e) => setSustainedHitValue(e.target.value)}
-                  disabled={!sustainedHit}
-                  className={`sustained-hit-input ${!sustainedHit ? 'disabled' : ''}`}
-                />
+                <div className="sustained-hits-container">
+                  <div className="form-checkbox">
+                    <input
+                      type="checkbox"
+                      id="sustainedHit"
+                      checked={sustainedHit}
+                      onChange={(e) => setSustainedHit(e.target.checked)}
+                    />
+                    <label htmlFor="sustainedHit">SUSTAINED HITS</label>
+                  </div>
+
+                  <input
+                    type="number"
+                    id="sustainedHitValue"
+                    min="1"
+                    max="3"
+                    value={sustainedHitValue}
+                    onChange={(e) => setSustainedHitValue(e.target.value)}
+                    disabled={!sustainedHit}
+                    className={`small-input ${!sustainedHit ? 'disabled' : ''}`}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -308,25 +301,25 @@ function WoundSuccessCalculator() {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="toWound">To Wound:</label>
+              <label htmlFor="toWound">To Wound</label>
               <Select
                 inputId="toWound"
                 options={toWoundOptions}
                 value={toWound}
                 onChange={setToWound}
-                classNamePrefix="select"
+                styles={selectStyles}
                 isSearchable={false}
               />
             </div>
 
             <div className="form-group form-group--reroll">
-              <label htmlFor="woundReroll">Reroll:</label>
+              <label htmlFor="woundReroll">Reroll</label>
               <Select
                 inputId="woundReroll"
                 options={rerollOptions}
                 value={woundReroll}
                 onChange={setWoundReroll}
-                classNamePrefix="select"
+                styles={selectStyles}
                 isSearchable={false}
               />
             </div>
@@ -360,7 +353,7 @@ function WoundSuccessCalculator() {
                   options={antiOptions}
                   value={antiValue}
                   onChange={setAntiValue}
-                  classNamePrefix="select"
+                  styles={buffSelectStyles}
                   isSearchable={false}
                   isDisabled={!antiEnabled}
                   className={`anti-wounds-select ${!antiEnabled ? 'disabled' : ''}`}

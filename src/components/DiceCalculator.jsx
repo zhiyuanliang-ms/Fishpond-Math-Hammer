@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import WoundSuccessCalculator from './WoundSuccessCalculator'
 import KillProbabilityCalculator from './KillProbabilityCalculator'
-import './DiceCalculator.css'
+import '../styles/diceCalculator.css'
 
 function DiceCalculator() {
   const [activeTab, setActiveTab] = useState('wound-success')

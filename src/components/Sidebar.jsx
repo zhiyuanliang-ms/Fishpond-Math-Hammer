@@ -1,4 +1,4 @@
-import './Sidebar.css'
+import '../styles/sidebar.css'
 
 function Sidebar({ currentPage, onPageChange }) {
   return (

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { InlineMath } from 'react-katex'
 import 'katex/dist/katex.min.css'
-import './Cheatsheet.css'
+import '../styles/cheatsheet.css'
 
 function Cheatsheet() {
   const [activeTab, setActiveTab] = useState('d6')
@@ -82,7 +82,7 @@ function Cheatsheet() {
         </button>
       </div>
 
-      <div className="cheatsheet-content">
+      <div>
         {activeTab === 'd6' && (
           <div className="tab-content">
             <table className="probability-table">

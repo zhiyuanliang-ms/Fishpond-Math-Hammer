@@ -1,4 +1,4 @@
-import './About.css'
+import '../styles/about.css'
 
 function About() {
   const handleCoffeeClick = () => {

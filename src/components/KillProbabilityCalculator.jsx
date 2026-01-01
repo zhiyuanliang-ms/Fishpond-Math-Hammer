@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ComposedChart, Line } from 'recharts'
 import Select from 'react-select'
 import { calculateKillProbability } from './calculationUtils'
+import { fnpOptions, saveRerollOptions } from './dropdownOptions'
+import { selectStyles, buffSelectStyles } from './selectStyles'
 
 function KillProbabilityCalculator() {
   // Kill Probability State
@@ -12,16 +14,8 @@ function KillProbabilityCalculator() {
   const [toSave, setToSave] = useState({ value: '4', label: '4+' })
   const [fnp, setFnp] = useState({ value: '5', label: '5+' })
   const [fnpEnabled, setFnpEnabled] = useState(false)
+  const [saveReroll, setSaveReroll] = useState({ value: 'no-reroll', label: 'No Reroll' })
   const [killResult, setKillResult] = useState(null)
-
-  // Options for dropdowns
-  const toHitOptions = [
-    { value: '2', label: '2+' },
-    { value: '3', label: '3+' },
-    { value: '4', label: '4+' },
-    { value: '5', label: '5+' },
-    { value: '6', label: '6+' }
-  ]
 
   // Kill probability calculation handler
   const handleCalculate = (e) => {
@@ -30,14 +24,21 @@ function KillProbabilityCalculator() {
     const result = calculateKillProbability(
       woundedAttacks,
       damagePerAttack,
+      numModels,
       modelWounds,
       toSave.value,
-      fnpEnabled ? fnp.value : null
+      fnpEnabled ? fnp.value : null,
+      saveReroll.value
     )
+
+    const numTargets = parseInt(numModels) || 1
+    const killAllProbability = result.distributionData.find(d => d.kills === numTargets)?.probability || 0
 
     setKillResult({
       expectedKills: result.expectedKills,
       distributionData: result.distributionData,
+      numTargets: numTargets,
+      killAllProbability: killAllProbability,
       maxKills: Math.max(...result.distributionData.map(d => d.kills)),
       calculationId: Date.now()
     })
@@ -47,48 +48,41 @@ function KillProbabilityCalculator() {
     <div className="kill-probability-container">
       <div className="form-side">
         <form onSubmit={handleCalculate} className="calculator-form">
+          <div className="form-section-header">
+            <h3>Attack Stats</h3>
+          </div>
           <div className="form-row">
-            <div className="attacks-container">
-              <div className="form-group">
-                <label htmlFor="woundedAttacks">Number of Attacks:</label>
-              </div>
-              <div className="form-group num-attacks-input">
-                <input
-                  type="number"
-                  id="woundedAttacks"
-                  min="1"
-                  max="100"
-                  value={woundedAttacks}
-                  onChange={(e) => setWoundedAttacks(e.target.value)}
-                />
-              </div>
+            <div className="form-group">
+              <label htmlFor="woundedAttacks">Number of Attacks</label>
+              <input
+                type="number"
+                id="woundedAttacks"
+                min="1"
+                max="100"
+                value={woundedAttacks}
+                onChange={(e) => setWoundedAttacks(e.target.value)}
+              />
             </div>
-
-            <div className="damage-container">
-              <div className="form-group">
-                <label htmlFor="damagePerAttack">Damage:</label>
-              </div>
-              <div className="form-group">
-                <input
-                  type="number"
-                  id="damagePerAttack"
-                  min="1"
-                  max="10"
-                  value={damagePerAttack}
-                  onChange={(e) => setDamagePerAttack(e.target.value)}
-                />
-              </div>
+            <div className="form-group" style={{ marginLeft: 'auto', marginRight: '50px' }}>
+              <label htmlFor="damagePerAttack">Damage</label>
+              <input
+                type="number"
+                id="damagePerAttack"
+                min="1"
+                max="10"
+                value={damagePerAttack}
+                onChange={(e) => setDamagePerAttack(e.target.value)}
+              />
             </div>
           </div>
 
-          {/* Target Information Section */}
           <div className="form-section-header">
             <h3>Target Stats</h3>
           </div>
 
           <div className="form-row">
             <div className="form-group num-attacks-input">
-              <label htmlFor="numModels">Number of Models:</label>
+              <label htmlFor="numModels">Number of Models</label>
               <input
                 type="number"
                 id="numModels"
@@ -99,8 +93,8 @@ function KillProbabilityCalculator() {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="modelWounds">Wound:</label>
+            <div className="form-group" style={{ marginLeft: 'auto', marginRight: '52px' }}>
+              <label htmlFor="modelWounds">Wound</label>
               <input
                 type="number"
                 id="modelWounds"
@@ -117,10 +111,22 @@ function KillProbabilityCalculator() {
               <label htmlFor="toSave">To Save:</label>
               <Select
                 inputId="toSave"
-                options={toHitOptions}
+                options={fnpOptions}
                 value={toSave}
                 onChange={setToSave}
-                classNamePrefix="select"
+                styles={selectStyles}
+                isSearchable={false}
+              />
+            </div>
+
+            <div className="form-group form-group--reroll">
+              <label htmlFor="saveReroll">Reroll</label>
+              <Select
+                inputId="saveReroll"
+                options={saveRerollOptions}
+                value={saveReroll}
+                onChange={setSaveReroll}
+                styles={selectStyles}
                 isSearchable={false}
               />
             </div>
@@ -135,14 +141,14 @@ function KillProbabilityCalculator() {
                   checked={fnpEnabled}
                   onChange={(e) => setFnpEnabled(e.target.checked)}
                 />
-                <label htmlFor="fnpEnabled">Feel No Pain:</label>
+                <label htmlFor="fnpEnabled">FEEL NO PAIN</label>
               </div>
               <Select
                 inputId="fnp"
-                options={toHitOptions}
+                options={fnpOptions}
                 value={fnp}
                 onChange={setFnp}
-                classNamePrefix="select"
+                styles={buffSelectStyles}
                 isSearchable={false}
                 isDisabled={!fnpEnabled}
                 className={`defense-select ${!fnpEnabled ? 'disabled' : ''}`}
@@ -162,6 +168,10 @@ function KillProbabilityCalculator() {
             <div className="stat-card">
               <div className="stat-label">Expected Models Killed</div>
               <div className="stat-value">{killResult.expectedKills}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Chance to Kill All</div>
+              <div className="stat-value">{killResult.killAllProbability.toFixed(2)}%</div>
             </div>
           </div>
 
@@ -205,6 +215,9 @@ function KillProbabilityCalculator() {
                 />
               </ComposedChart>
             </ResponsiveContainer>
+            <p className="simulation-note">
+              * Results estimated using Monte Carlo simulation (10,000 iterations)
+            </p>
           </div>
         </div>
       )}

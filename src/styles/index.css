@@ -44,7 +44,7 @@ input {
 
 /* Number input styles */
 input[type="number"] {
-  width: 96px;
+  width: 102px;
 }
 
 /* Hide number input spinner */

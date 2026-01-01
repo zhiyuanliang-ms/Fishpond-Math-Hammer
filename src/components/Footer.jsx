@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import './Footer.css'
+import '../styles/footer.css'
 
 function Footer({ onCopyrightClick }) {
   return (
