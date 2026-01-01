@@ -266,18 +266,20 @@ function WoundSuccessCalculator() {
 
           {!torrent && (
           <div>
-            <div className="form-row">
+            <div className="form-row crit-row">
               <label htmlFor="crit">Critical Hit On</label>
-              <Select
-                inputId="crit"
-                options={critOptions}
-                value={crit}
-                onChange={setCrit}
-                styles={selectStyles}
-                isSearchable={false}
-              />
+              <div className="crit-select">
+                <Select
+                  inputId="crit"
+                  options={critOptions}
+                  value={crit}
+                  onChange={setCrit}
+                  styles={selectStyles}
+                  isSearchable={false}
+                />
+              </div>
             </div>
-          
+
             <div className="form-row hit-buff-section">
               <div className="checkbox-group">
                 <div className="form-checkbox">
@@ -413,7 +415,7 @@ function WoundSuccessCalculator() {
               <div className="stat-card">
                 <div className="stat-label">Devastating Wounds</div>
                 <div className="stat-value">{result.expectedDevastatingWounds}</div>
-                <div className="stat-range"><InlineMath math="\sigma" /> ±{result.devastatingWoundsStdDev}</div>
+                <div className="stat-range"><InlineMath math="\sigma" />: ±{result.devastatingWoundsStdDev}</div>
                 <div className="stat-range">95% CI [{result.devastatingCILow}, {result.devastatingCIHigh}]</div>
               </div>
             )}
