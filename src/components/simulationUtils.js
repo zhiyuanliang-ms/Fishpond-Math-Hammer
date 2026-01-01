@@ -52,6 +52,11 @@ const simulateKills = (
             if (currentModelIndex >= modelsRemaining.length) {
               break
             }
+
+            // Excess damage from this attack does NOT spill to the next model
+            // (Warhammer damage is capped per model). Stop processing remaining
+            // damage points for this attack.
+            break
           }
         }
       }
@@ -67,7 +72,7 @@ const simulateKills = (
     killCounts.push(killCount)
   }
 
-  return killCounts
+  return { killCounts }
 }
 
 // Main function to simulate kill probability and generate distribution
@@ -80,6 +85,11 @@ export const simulateKillProbability = (
   fnp,
   saveRerollValue
 ) => {
+  // Hard cap: if the number of attacks and damage chunks simply cannot kill all models,
+  // force the upper tail of the distribution to zero to avoid tiny simulated noise.
+  const attacksNeededPerModel = Math.ceil(modelWounds / damage)
+  const maxAchievableKills = Math.min(numTargetModels, Math.floor(numAttacks / attacksNeededPerModel))
+
   // Calculate Save Chance
   let saveChance = 0
   if (armorSave) {
@@ -98,7 +108,7 @@ export const simulateKillProbability = (
   }
 
   // Run Monte Carlo simulation
-  const killCounts = simulateKills(
+  const { killCounts } = simulateKills(
     numAttacks,
     damage,
     numTargetModels,
@@ -119,14 +129,46 @@ export const simulateKillProbability = (
 
   for (let k = 0; k <= numTargetModels; k++) {
     const count = killCountMap[k] || 0
-    const probability = (count / killCounts.length) * 100
-    totalKills += k * count
+    // If k exceeds what is mathematically achievable (given attack count & damage chunks),
+    // clamp its probability to zero to remove any Monte Carlo noise.
+    const probability = k > maxAchievableKills ? 0 : (count / killCounts.length) * 100
+    totalKills += (probability === 0 ? 0 : k * count)
     distributionData.push({
       kills: k,
       probability: probability,
       cumulative: 0
     })
   }
+
+  // Closed-form expected unsaved (armor-penetrating) attacks and dispersion
+  const unsavedProb = 1 - saveChance
+  const meanUnsaved = numAttacks * unsavedProb
+  const varianceUnsaved = numAttacks * unsavedProb * (1 - unsavedProb)
+  const stdDevUnsaved = Math.sqrt(Math.max(0, varianceUnsaved))
+  // Std dev describes spread of simulated outcomes; CI uses std error (std dev / sqrt(n)) to bound the estimator.
+  const z = 1.96 // 1.96 is the two-tailed z-score for a 95% normal-approximation confidence interval
+  const unsavedLow = Math.max(0, meanUnsaved - z * stdDevUnsaved)
+  const unsavedHigh = Math.min(numAttacks, meanUnsaved + z * stdDevUnsaved)
+
+  // Kill-all probability and 95% CI (normal approximation)
+  const killAllCount = killCounts.filter(k => k === numTargetModels).length
+  const pKillAll = killAllCount / killCounts.length
+  // For proportions, std dev of outcomes is sqrt(p*(1-p)); std error for the estimator divides by sqrt(n)
+  const seKillAll = Math.sqrt(Math.max(0, pKillAll * (1 - pKillAll) / killCounts.length))
+  const killAllLow = Math.max(0, pKillAll - z * seKillAll)
+  const killAllHigh = Math.min(1, pKillAll + z * seKillAll)
+
+  // CI for expected kills (mean over simulations)
+  let sumSqKills = 0
+  for (const k of killCounts) {
+    sumSqKills += k * k
+  }
+  const meanKills = totalKills / killCounts.length
+  const varianceKills = Math.max(0, sumSqKills / killCounts.length - meanKills * meanKills)
+  const stdKills = Math.sqrt(varianceKills)
+  // Std error for the mean is std dev / sqrt(n); CI = mean +/- z * std error
+  const killMeanLow = Math.max(0, meanKills - z * stdKills)
+  const killMeanHigh = Math.min(numTargetModels, meanKills + z * stdKills)
 
   // Calculate cumulative probability
   let cumulativeProbability = 0
@@ -139,6 +181,17 @@ export const simulateKillProbability = (
 
   return {
     expectedKills: expectedKills.toFixed(2),
-    distributionData
+    distributionData,
+    expectedUnsavedAttacks: meanUnsaved.toFixed(2),
+    unsavedAttackStdDev: stdDevUnsaved.toFixed(2),
+    unsavedCILow: unsavedLow.toFixed(2),
+    unsavedCIHigh: unsavedHigh.toFixed(2),
+    killAllProbability: (pKillAll * 100).toFixed(2),
+    killAllCILow: (killAllLow * 100).toFixed(2),
+    killAllCIHigh: (killAllHigh * 100).toFixed(2),
+    killAllStdDev: (seKillAll * 100).toFixed(2),
+    expectedKillsCILow: killMeanLow.toFixed(2),
+    expectedKillsCIHigh: killMeanHigh.toFixed(2),
+    expectedKillsStdDev: stdKills.toFixed(2)
   }
 }

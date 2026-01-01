@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ComposedChart, Line } from 'recharts'
 import Select from 'react-select'
+import { InlineMath } from 'react-katex'
 import { calculateKillProbability } from './calculationUtils'
 import { fnpOptions, saveRerollOptions } from './dropdownOptions'
 import { selectStyles, buffSelectStyles } from './selectStyles'
@@ -32,13 +33,22 @@ function KillProbabilityCalculator() {
     )
 
     const numTargets = parseInt(numModels) || 1
-    const killAllProbability = result.distributionData.find(d => d.kills === numTargets)?.probability || 0
 
     setKillResult({
       expectedKills: result.expectedKills,
+      expectedKillsCILow: parseFloat(result.expectedKillsCILow),
+      expectedKillsCIHigh: parseFloat(result.expectedKillsCIHigh),
+      expectedKillsStdDev: parseFloat(result.expectedKillsStdDev),
+      expectedUnsavedAttacks: result.expectedUnsavedAttacks,
+      unsavedCILow: parseFloat(result.unsavedCILow),
+      unsavedCIHigh: parseFloat(result.unsavedCIHigh),
+      unsavedAttackStdDev: parseFloat(result.unsavedAttackStdDev),
       distributionData: result.distributionData,
       numTargets: numTargets,
-      killAllProbability: killAllProbability,
+      killAllProbability: parseFloat(result.killAllProbability),
+      killAllCILow: parseFloat(result.killAllCILow),
+      killAllCIHigh: parseFloat(result.killAllCIHigh),
+      killAllStdDev: parseFloat(result.killAllStdDev),
       maxKills: Math.max(...result.distributionData.map(d => d.kills)),
       calculationId: Date.now()
     })
@@ -166,12 +176,22 @@ function KillProbabilityCalculator() {
         <div className="result-side">
           <div className="result-stats">
             <div className="stat-card">
+              <div className="stat-label">Expected Unsaved Attacks</div>
+              <div className="stat-value">{killResult.expectedUnsavedAttacks}</div>
+              <div className="stat-range"><InlineMath math="\sigma" />: ±{killResult.unsavedAttackStdDev.toFixed(2)}</div>
+              <div className="stat-range">95% CI [{killResult.unsavedCILow.toFixed(2)}, {killResult.unsavedCIHigh.toFixed(2)}]</div>
+            </div>
+            <div className="stat-card">
               <div className="stat-label">Expected Models Killed</div>
               <div className="stat-value">{killResult.expectedKills}</div>
+              <div className="stat-range"><InlineMath math="\sigma" />: ±{killResult.expectedKillsStdDev.toFixed(2)}</div>
+              <div className="stat-range">95% CI [{killResult.expectedKillsCILow.toFixed(2)}, {killResult.expectedKillsCIHigh.toFixed(2)}]</div>
             </div>
             <div className="stat-card">
               <div className="stat-label">Chance to Kill All</div>
               <div className="stat-value">{killResult.killAllProbability.toFixed(2)}%</div>
+              <div className="stat-range"><InlineMath math="\sigma" />: ±{killResult.killAllStdDev.toFixed(2)}%</div>
+              <div className="stat-range">95% CI [{killResult.killAllCILow.toFixed(2)}%, {killResult.killAllCIHigh.toFixed(2)}%]</div>
             </div>
           </div>
 

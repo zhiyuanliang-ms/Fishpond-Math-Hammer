@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ComposedChart, Line } from 'recharts'
 import Select from 'react-select'
+import { InlineMath } from 'react-katex'
 import { calculateHitProbability, calculateWoundProbability, binomialProbability } from './calculationUtils'
 import { toHitOptions, toWoundOptions, antiOptions, rerollOptions, critOptions } from './dropdownOptions'
 import { selectStyles, buffSelectStyles } from './selectStyles'
@@ -98,6 +99,7 @@ function WoundSuccessCalculator() {
       variance = expectedHits * woundChance * (1 - woundChance)
     }
     const stdDev = Math.sqrt(variance)
+    const z = 1.96 // 1.96 is the two-tailed z-score for a 95% normal-approximation confidence interval
 
     // Calculate standard deviation for hits
     let hitVariance = diceCount * hitChance * (1 - hitChance)
@@ -107,17 +109,25 @@ function WoundSuccessCalculator() {
       hitVariance += sustainedVariance
     }
     const hitsStdDev = Math.sqrt(hitVariance)
+    const hitsCILow = Math.max(0, expectedHits - z * hitsStdDev)
+    const hitsCIHigh = Math.min(diceCount + expectedCrits * (sustainedHit ? sustainedValue : 0), expectedHits + z * hitsStdDev)
 
     // Calculate standard deviation for critical hits
     const criticalVariance = diceCount * criticalChance * (1 - criticalChance)
     const criticalStdDev = Math.sqrt(criticalVariance)
+    const criticalCILow = Math.max(0, expectedCrits - z * criticalStdDev)
+    const criticalCIHigh = Math.min(diceCount, expectedCrits + z * criticalStdDev)
 
     // Calculate standard deviation for devastating wounds
     let devastatingWoundsStdDev = 0
+    let devastatingCILow = 0
+    let devastatingCIHigh = 0
     if (devastatingWounds) {
       // Use criticalWoundChance which accounts for reroll modifiers and ANTI buff
       const devVariance = expectedHits * criticalWoundChance * (1 - criticalWoundChance)
       devastatingWoundsStdDev = Math.sqrt(devVariance)
+      devastatingCILow = Math.max(0, expectedDevastatingWounds - z * devastatingWoundsStdDev)
+      devastatingCIHigh = expectedDevastatingWounds + z * devastatingWoundsStdDev
     }
 
     // Generate probability distribution with cumulative probability
@@ -176,6 +186,14 @@ function WoundSuccessCalculator() {
       woundChance: (woundChance * 100).toFixed(1),
       expectedDevastatingWounds: expectedDevastatingWounds.toFixed(2),
       devastatingWoundsStdDev: devastatingWoundsStdDev.toFixed(2),
+      hitsCILow: hitsCILow.toFixed(2),
+      hitsCIHigh: hitsCIHigh.toFixed(2),
+      criticalCILow: criticalCILow.toFixed(2),
+      criticalCIHigh: criticalCIHigh.toFixed(2),
+      woundsCILow: Math.max(0, expectedWounds - z * stdDev).toFixed(2),
+      woundsCIHigh: (expectedWounds + z * stdDev).toFixed(2),
+      devastatingCILow: devastatingWounds ? devastatingCILow.toFixed(2) : null,
+      devastatingCIHigh: devastatingWounds ? devastatingCIHigh.toFixed(2) : null,
       distributionData,
       maxWounds: maxPossibleWounds,
       hasLethalHit: lethalHit,
@@ -374,25 +392,29 @@ function WoundSuccessCalculator() {
             <div className="stat-card">
               <div className="stat-label">Expected Hits</div>
               <div className="stat-value">{result.expectedHits}</div>
-              <div className="stat-range">±{result.hitsStdDev}</div>
+              <div className="stat-range"><InlineMath math="\sigma" />: ±{result.hitsStdDev}</div>
+              <div className="stat-range">95% CI [{result.hitsCILow}, {result.hitsCIHigh}]</div>
             </div>
             {result && (result.hasLethalHit || result.hasSustainedHit) && (
               <div className="stat-card">
                 <div className="stat-label">Critical Hits</div>
                 <div className="stat-value">{result.criticalHits}</div>
-                <div className="stat-range">±{result.criticalStdDev}</div>
+                <div className="stat-range"><InlineMath math="\sigma" />: ±{result.criticalStdDev}</div>
+                <div className="stat-range">95% CI [{result.criticalCILow}, {result.criticalCIHigh}]</div>
               </div>
             )}
             <div className="stat-card">
               <div className="stat-label">Expected Wounds</div>
               <div className="stat-value">{result.expectedWounds}</div>
-              <div className="stat-range">±{result.stdDev}</div>
+              <div className="stat-range"><InlineMath math="\sigma" />: ±{result.stdDev}</div>
+              <div className="stat-range">95% CI [{result.woundsCILow}, {result.woundsCIHigh}]</div>
             </div>
             {result && result.hasDevastatingWounds && (
               <div className="stat-card">
                 <div className="stat-label">Devastating Wounds</div>
                 <div className="stat-value">{result.expectedDevastatingWounds}</div>
-                <div className="stat-range">±{result.devastatingWoundsStdDev}</div>
+                <div className="stat-range"><InlineMath math="\sigma" /> ±{result.devastatingWoundsStdDev}</div>
+                <div className="stat-range">95% CI [{result.devastatingCILow}, {result.devastatingCIHigh}]</div>
               </div>
             )}
           </div>
