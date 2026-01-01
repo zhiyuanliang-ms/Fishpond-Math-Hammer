@@ -34,3 +34,16 @@
   color: #fbbf24;
   border-bottom-color: #fbbf24;
 }
+
+@media (max-width: 768px) {
+  .tabs,
+  .tabs.calculator-tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tab-button {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+}

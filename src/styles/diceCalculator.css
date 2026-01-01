@@ -280,9 +280,41 @@
   font-style: italic;
 }
 
+@media (max-width: 1024px) {
+  .wound-success-container,
+  .kill-probability-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-side,
+  .result-side {
+    max-width: none;
+    width: 100%;
+  }
+
+  .form-group--reroll {
+    min-width: 0;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {
+  .wound-success-container,
+  .kill-probability-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-side,
+  .result-side {
+    max-width: none;
+    width: 100%;
+  }
+
   .form-row {
     flex-direction: column;
     gap: 12px;
@@ -302,5 +334,16 @@
 
   .chart-container {
     overflow-x: auto;
+  }
+
+  .form-group {
+    width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .calculate-button {
+    width: 100%;
+    text-align: center;
   }
 }
