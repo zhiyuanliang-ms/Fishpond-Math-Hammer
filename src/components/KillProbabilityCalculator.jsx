@@ -79,7 +79,7 @@ function KillProbabilityCalculator() {
                 type="number"
                 id="damagePerAttack"
                 min="1"
-                max="10"
+                max="50"
                 value={damagePerAttack}
                 onChange={(e) => setDamagePerAttack(e.target.value)}
               />
