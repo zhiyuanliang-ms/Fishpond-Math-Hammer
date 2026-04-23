@@ -1,0 +1,232 @@
+/* Dice Roller page — visually consistent with diceCalculator.css.
+   Reuses .calculator-form, .form-row, .form-group, .calculate-button. */
+
+.dice-roller {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dice-roller-form {
+  max-width: 420px;
+}
+
+.dice-roller-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dice-roller-hint {
+  color: #a0a0a0;
+  font-size: 13px;
+  margin: 0;
+}
+
+.dice-roller-hint.warn {
+  color: #f87171;
+}
+
+.secondary-button {
+  padding: 10px 18px;
+  background: transparent;
+  color: #d0d0d0;
+  border: 1px solid #4a4a4a;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.secondary-button:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.calculate-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Result panels share the stat-card / chart-container look. */
+.dice-result-section {
+  padding: 20px;
+  background: #3a3a3a;
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dice-result-section:hover {
+  border-left-color: #fbbf24;
+}
+
+.dice-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dice-section-header h3 {
+  color: #fff;
+  font-size: 16px;
+  margin: 0;
+}
+
+.dice-roll-summary {
+  color: #a0a0a0;
+  font-size: 13px;
+}
+
+.dice-roll-summary em {
+  color: #fbbf24;
+  font-style: normal;
+}
+
+/* The actual dice tray. 20 dice per row, scaled to fit container width. */
+.dice-tray {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 8px;
+  /* fade-in when key changes (after a roll) */
+  animation: dice-fade-in 220ms ease-out;
+}
+
+@keyframes dice-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.die {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  /* Glyph scales with cell size; clamp keeps it readable on small/large screens. */
+  font-size: clamp(18px, 2.4vw, 36px);
+  line-height: 1;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  color: #fbbf24;
+  user-select: none;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.die:hover {
+  transform: translateY(-2px);
+}
+
+/* Visually mark dice whose face is selected for reroll.
+   Reuses the app-wide amber hover accent for visual consistency. */
+.die.die-selected {
+  border-color: #fbbf24;
+}
+
+/* Face counts list */
+.face-count-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.face-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.face-count-row.selected {
+  border-color: #fbbf24;
+  background: #3a3a3a;
+}
+
+.face-count-row.empty {
+  opacity: 0.45;
+}
+
+.face-count-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #d0d0d0;
+}
+
+.face-count-row.empty .face-count-label {
+  cursor: not-allowed;
+}
+
+.face-count-label input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #fbbf24;
+  cursor: inherit;
+}
+
+.face-glyph {
+  font-size: 28px;
+  line-height: 1;
+  color: #fbbf24;
+}
+
+.face-name {
+  display: none;
+}
+
+.face-count-value {
+  color: #fbbf24;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dice-roller-form {
+    max-width: none;
+  }
+
+  .dice-tray {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .face-glyph {
+    font-size: 24px;
+  }
+
+  .face-count-value {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dice-tray {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .dice-result-section {
+    padding: 14px;
+  }
+
+  .face-count-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}

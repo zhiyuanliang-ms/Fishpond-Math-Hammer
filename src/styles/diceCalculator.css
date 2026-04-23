@@ -38,6 +38,18 @@
   min-height: 50px;
 }
 
+/* Split row: left and right form-groups separated.
+   Used by KillProbabilityCalculator's attack/target stats rows so the
+   spacing works fluidly on both desktop and mobile. */
+.form-row--split {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.form-row--split > .form-group {
+  flex: 0 1 auto;
+}
+
 .attacks-input-row {
   gap: 16px;
 }
@@ -333,31 +345,60 @@
     width: 100%;
   }
 
+  .calculator-form {
+    padding: 14px;
+    gap: 14px;
+  }
+
   .form-row {
     flex-direction: column;
+    align-items: stretch;
     gap: 12px;
   }
 
+  /* Split rows stay side-by-side on phones — they only contain two small
+     numeric inputs and look better paired than stacked. */
+  .form-row.form-row--split {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 12px;
+  }
+
+  .form-row.form-row--split > .form-group {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .form-row.form-row--split input[type="number"] {
+    width: 100%;
+  }
+
   .form-group {
-    min-width: 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .attacks-input-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .checkbox-group {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .result-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .stat-value {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .chart-container {
-    overflow-x: auto;
-  }
-
-  .form-group {
-    width: 100%;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    padding: 14px;
+    overflow-x: hidden;
   }
 
   .calculate-button {
@@ -368,9 +409,30 @@
   .crit-row {
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .crit-row label {
+    min-width: 0;
   }
 
   .crit-select {
-    width: 100%;
+    flex: 1;
+    min-width: 140px;
+    width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .result-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .form-section-header h3 {
+    font-size: 15px;
   }
 }

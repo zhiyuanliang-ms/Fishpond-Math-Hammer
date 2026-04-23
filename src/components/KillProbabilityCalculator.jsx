@@ -61,7 +61,7 @@ function KillProbabilityCalculator() {
       <div className="form-section-header">
         <h3>Attack Stats</h3>
       </div>
-      <div className="form-row">
+      <div className="form-row form-row--split">
         <div className="form-group">
           <label htmlFor="woundedAttacks">Number of Attacks</label>
           <input
@@ -73,7 +73,7 @@ function KillProbabilityCalculator() {
             onChange={(e) => setWoundedAttacks(e.target.value)}
           />
         </div>
-        <div className="form-group" style={{ marginLeft: 'auto', marginRight: '50px' }}>
+        <div className="form-group">
           <label htmlFor="damagePerAttack">Damage</label>
           <input
             type="number"
@@ -90,7 +90,7 @@ function KillProbabilityCalculator() {
         <h3>Target Stats</h3>
       </div>
 
-      <div className="form-row">
+      <div className="form-row form-row--split">
         <div className="form-group num-attacks-input">
           <label htmlFor="numModels">Number of Models</label>
           <input
@@ -103,7 +103,7 @@ function KillProbabilityCalculator() {
           />
         </div>
 
-        <div className="form-group" style={{ marginLeft: 'auto', marginRight: '52px' }}>
+        <div className="form-group">
           <label htmlFor="modelWounds">Wound</label>
           <input
             type="number"

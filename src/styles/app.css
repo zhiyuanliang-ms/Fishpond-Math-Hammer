@@ -51,3 +51,13 @@
     padding: 24px 16px;
   }
 }
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 16px 12px;
+  }
+
+  .page h1 {
+    font-size: 24px;
+  }
+}

@@ -127,3 +127,27 @@
 .probability-table td.probability-reroll.suicide {
   color: #000;
 }
+
+@media (max-width: 768px) {
+  .probability-table {
+    font-size: 14px;
+  }
+
+  .probability-table th,
+  .probability-table td {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .probability-table th,
+  .probability-table td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+
+  .probability-table td.result {
+    font-size: 14px;
+  }
+}

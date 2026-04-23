@@ -16,4 +16,13 @@ export { buildWoundDistribution } from './woundDistribution'
 export { simulateKillProbability } from './simulation'
 export { calculateKillProbability } from './killProbability'
 
+export {
+  DICE_FACES,
+  DIE_GLYPHS,
+  rollD6,
+  rollD6s,
+  rerollFaces,
+  countFaces
+} from './roll'
+
 export * from './options'

@@ -18,6 +18,14 @@ function Sidebar({ currentPage, onPageChange }) {
         </li>
         <li>
           <button
+            className={`nav-button ${currentPage === 'dice-roller' ? 'active' : ''}`}
+            onClick={() => onPageChange('dice-roller')}
+          >
+            Dice Roller
+          </button>
+        </li>
+        <li>
+          <button
             className={`nav-button ${currentPage === 'cheat-sheet' ? 'active' : ''}`}
             onClick={() => onPageChange('cheat-sheet')}
           >
