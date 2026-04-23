@@ -25,7 +25,6 @@ function DiceRoller() {
     parsedCount <= MAX_DICE
 
   const counts = countFaces(rolls)
-  const total = rolls.reduce((sum, n) => sum + n, 0)
 
   const handleRoll = () => {
     if (!isValidCount) return
@@ -68,9 +67,7 @@ function DiceRoller() {
         <div className="calculator-form dice-roller-form">
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="dice-count">
-                Number of dice (max {MAX_DICE})
-              </label>
+              <label htmlFor="dice-count">Number of dice</label>
               <input
                 id="dice-count"
                 type="number"
@@ -112,12 +109,6 @@ function DiceRoller() {
         {rolls.length > 0 && (
           <>
             <section className="dice-result-section">
-              <div className="dice-section-header">
-                <h3>Roll #{rollNumber}</h3>
-                <span className="dice-roll-summary">
-                  {rolls.length} dice &middot; total {total}
-                </span>
-              </div>
               <div className="dice-tray" key={rollNumber}>
                 {rolls.map((face, idx) => (
                   <span
@@ -136,9 +127,6 @@ function DiceRoller() {
             <section className="dice-result-section">
               <div className="dice-section-header">
                 <h3>Counts</h3>
-                <span className="dice-roll-summary">
-                  Tick faces to reroll, then press <em>Reroll Selected</em>.
-                </span>
               </div>
 
               <ul className="face-count-list">
@@ -179,15 +167,6 @@ function DiceRoller() {
                 >
                   Reroll Selected
                 </button>
-                {selectedFaces.size > 0 && (
-                  <span className="dice-roller-hint">
-                    Will reroll{' '}
-                    {DICE_FACES
-                      .filter((f) => selectedFaces.has(f) && counts[f] > 0)
-                      .reduce((sum, f) => sum + counts[f], 0)}{' '}
-                    dice.
-                  </span>
-                )}
               </div>
             </section>
           </>
