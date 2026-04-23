@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { calculateKillProbability } from '../lib/dice'
-import { fnpOptions, saveRerollOptions } from '../lib/dice/options'
+import { fnpOptions, saveOptions, saveRerollOptions } from '../lib/dice/options'
 import {
   CalculatorLayout,
   DistributionChart,
@@ -121,7 +121,7 @@ function KillProbabilityCalculator() {
           <label htmlFor="toSave">To Save:</label>
           <FormSelect
             inputId="toSave"
-            options={fnpOptions}
+            options={saveOptions}
             value={toSave}
             onChange={setToSave}
           />
