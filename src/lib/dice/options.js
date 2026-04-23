@@ -1,4 +1,4 @@
-// Dropdown options for calculator components
+// Dropdown option lists for dice-related selects.
 
 export const toHitOptions = [
   { value: '2', label: '2+' },

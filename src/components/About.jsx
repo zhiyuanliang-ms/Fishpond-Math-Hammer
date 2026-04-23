@@ -1,3 +1,4 @@
+import { Page } from './ui'
 import '../styles/about.css'
 
 function About() {
@@ -6,7 +7,7 @@ function About() {
   }
 
   return (
-    <div className="page">      
+    <Page>
       <div className="about-container">
         <div className="fishpond-logo">
           <img src="/the-fishpond.png" alt="The Fishpond" />
@@ -48,7 +49,7 @@ function About() {
           </div>
         </div>
       </div>
-    </div>
+    </Page>
   )
 }
 

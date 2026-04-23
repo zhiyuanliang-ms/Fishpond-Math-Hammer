@@ -1,10 +1,26 @@
 import { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ComposedChart, Line } from 'recharts'
-import Select from 'react-select'
-import { InlineMath } from 'react-katex'
-import { calculateHitProbability, calculateWoundProbability, binomialProbability } from './calculationUtils'
-import { toHitOptions, toWoundOptions, antiOptions, rerollOptions, critOptions } from './dropdownOptions'
-import { selectStyles, buffSelectStyles } from './selectStyles'
+import {
+  calculateHitProbability,
+  calculateWoundProbability,
+  buildWoundDistribution
+} from '../lib/dice'
+import {
+  toHitOptions,
+  toWoundOptions,
+  antiOptions,
+  rerollOptions,
+  critOptions
+} from '../lib/dice/options'
+import {
+  CalculatorLayout,
+  DistributionChart,
+  FormSelect,
+  LabeledCheckbox,
+  StatCard,
+  StatGrid
+} from './ui'
+
+const Z_95 = 1.96
 
 function WoundSuccessCalculator() {
   // Hit Roll State
@@ -26,7 +42,6 @@ function WoundSuccessCalculator() {
 
   const [result, setResult] = useState(null)
 
-  // Main calculation function
   const handleCalculate = (e) => {
     e.preventDefault()
 
@@ -38,12 +53,13 @@ function WoundSuccessCalculator() {
       return
     }
 
-    const { hitChance: baseHitChance, criticalChance: baseCriticalChance } = calculateHitProbability(toHit.value, hitReroll.value, crit.value)
-    
+    const { hitChance: baseHitChance, criticalChance: baseCriticalChance } =
+      calculateHitProbability(toHit.value, hitReroll.value, crit.value)
+
     // If torrent is enabled, all attacks auto-hit
     const hitChance = torrent ? 1 : baseHitChance
     const criticalChance = torrent ? 0 : baseCriticalChance
-    
+
     const { woundChance, criticalWoundChance } = calculateWoundProbability(
       toWound.value,
       woundReroll.value,
@@ -51,130 +67,82 @@ function WoundSuccessCalculator() {
       antiValue.value
     )
 
-    // Calculate expected hits
+    // Expected hits (with optional sustained hits adding extra successful hits per crit)
     let expectedHits = diceCount * hitChance
-    let expectedCrits = diceCount * criticalChance
-
-    // Add sustained hits (each critical hit generates extra guaranteed successful hits)
+    const expectedCrits = diceCount * criticalChance
     if (sustainedHit) {
-      // Each critical hit generates sustainedValue additional successful hits
       expectedHits += expectedCrits * sustainedValue
     }
 
-    // Lethal hit: critical hits automatically wound
-    let expectedWounds = 0
+    // Expected wounds (lethal hits => crits auto-wound)
+    let expectedWounds
     let expectedDevastatingWounds = 0
-    
     if (lethalHit) {
-      // Critical hits wound automatically
-      // Non-critical hits need to wound normally
       const nonCriticalHits = expectedHits - expectedCrits
-      expectedWounds = expectedCrits + (nonCriticalHits * woundChance)
+      expectedWounds = expectedCrits + nonCriticalHits * woundChance
     } else {
-      // Without lethal hits, all hits need to wound
       expectedWounds = expectedHits * woundChance
     }
 
-    // Calculate expected devastating wounds if devastating wounds is enabled
     if (devastatingWounds) {
       if (lethalHit) {
-        // With Lethal Hits: only non-critical hits roll for devastating wounds
-        // Critical hits auto-wound and skip the wound roll
         const nonCriticalHits = expectedHits - expectedCrits
         expectedDevastatingWounds = nonCriticalHits * criticalWoundChance
       } else {
-        // Without Lethal Hits: all hits roll for devastating wounds
         expectedDevastatingWounds = expectedHits * criticalWoundChance
       }
     }
 
-    // Calculate standard deviation first
-    let variance = 0
+    // Variance / std dev for expected wounds
+    let variance
     if (lethalHit) {
-      // Variance when lethal hits is enabled
       const nonCriticalHits = expectedHits - expectedCrits
       variance = nonCriticalHits * woundChance * (1 - woundChance)
     } else {
-      // Standard variance
       variance = expectedHits * woundChance * (1 - woundChance)
     }
     const stdDev = Math.sqrt(variance)
-    const z = 1.96 // 1.96 is the two-tailed z-score for a 95% normal-approximation confidence interval
 
-    // Calculate standard deviation for hits
+    // Std dev for hits (with sustained-hit contribution)
     let hitVariance = diceCount * hitChance * (1 - hitChance)
     if (sustainedHit) {
-      // Add variance from sustained hits (each crit generates sustainedValue guaranteed hits)
-      const sustainedVariance = (sustainedValue * sustainedValue) * diceCount * criticalChance * (1 - criticalChance)
+      const sustainedVariance =
+        sustainedValue * sustainedValue * diceCount * criticalChance * (1 - criticalChance)
       hitVariance += sustainedVariance
     }
     const hitsStdDev = Math.sqrt(hitVariance)
-    const hitsCILow = Math.max(0, expectedHits - z * hitsStdDev)
-    const hitsCIHigh = Math.min(diceCount + expectedCrits * (sustainedHit ? sustainedValue : 0), expectedHits + z * hitsStdDev)
+    const hitsCILow = Math.max(0, expectedHits - Z_95 * hitsStdDev)
+    const hitsCIHigh = Math.min(
+      diceCount + expectedCrits * (sustainedHit ? sustainedValue : 0),
+      expectedHits + Z_95 * hitsStdDev
+    )
 
-    // Calculate standard deviation for critical hits
+    // Std dev for critical hits
     const criticalVariance = diceCount * criticalChance * (1 - criticalChance)
     const criticalStdDev = Math.sqrt(criticalVariance)
-    const criticalCILow = Math.max(0, expectedCrits - z * criticalStdDev)
-    const criticalCIHigh = Math.min(diceCount, expectedCrits + z * criticalStdDev)
+    const criticalCILow = Math.max(0, expectedCrits - Z_95 * criticalStdDev)
+    const criticalCIHigh = Math.min(diceCount, expectedCrits + Z_95 * criticalStdDev)
 
-    // Calculate standard deviation for devastating wounds
+    // Std dev for devastating wounds
     let devastatingWoundsStdDev = 0
     let devastatingCILow = 0
     let devastatingCIHigh = 0
     if (devastatingWounds) {
-      // Use criticalWoundChance which accounts for reroll modifiers and ANTI buff
       const devVariance = expectedHits * criticalWoundChance * (1 - criticalWoundChance)
       devastatingWoundsStdDev = Math.sqrt(devVariance)
-      devastatingCILow = Math.max(0, expectedDevastatingWounds - z * devastatingWoundsStdDev)
-      devastatingCIHigh = expectedDevastatingWounds + z * devastatingWoundsStdDev
+      devastatingCILow = Math.max(0, expectedDevastatingWounds - Z_95 * devastatingWoundsStdDev)
+      devastatingCIHigh = expectedDevastatingWounds + Z_95 * devastatingWoundsStdDev
     }
 
-    // Generate probability distribution with cumulative probability
-    // Use 3 standard deviations to capture ~99.7% of the distribution
-    const maxPossibleWounds = Math.ceil(expectedWounds + stdDev * 3)
-    // Calculate minimum wounds to display - start from where meaningful probability begins
-    const minPossibleWounds = Math.max(0, Math.floor(expectedWounds - stdDev * 3))
-    const distributionData = []
-    let cumulativeProbability = 0
-
-    // For lethal hits, we need a different probability calculation
-    if (lethalHit) {
-      // Distribution is based on critical hits (always wound) + non-critical wounds
-      const nonCriticalHits = expectedHits - expectedCrits
-      for (let wounds = 0; wounds <= maxPossibleWounds; wounds++) {
-        // Probability that we get 'wounds - expectedCrits' non-critical wounds
-        const nonCriticalWounds = Math.max(0, wounds - Math.ceil(expectedCrits))
-        const probability = binomialProbability(Math.ceil(nonCriticalHits), nonCriticalWounds, woundChance)
-        cumulativeProbability += probability * 100
-        // Clamp cumulative probability to 100% to avoid floating point errors
-        const clampedCumulative = Math.min(cumulativeProbability, 100)
-        // Only add to distribution if within display range
-        if (wounds >= minPossibleWounds) {
-          distributionData.push({
-            wounds,
-            probability: probability * 100,
-            cumulative: clampedCumulative
-          })
-        }
-      }
-    } else {
-      // Standard binomial distribution
-      for (let wounds = 0; wounds <= maxPossibleWounds; wounds++) {
-        const probability = binomialProbability(Math.ceil(expectedHits), wounds, woundChance)
-        cumulativeProbability += probability * 100
-        // Clamp cumulative probability to 100% to avoid floating point errors
-        const clampedCumulative = Math.min(cumulativeProbability, 100)
-        // Only add to distribution if within display range
-        if (wounds >= minPossibleWounds) {
-          distributionData.push({
-            wounds,
-            probability: probability * 100,
-            cumulative: clampedCumulative
-          })
-        }
-      }
-    }
+    // Build distribution via shared helper
+    const { distributionData, maxWounds } = buildWoundDistribution({
+      expectedHits,
+      expectedCrits,
+      woundChance,
+      stdDev,
+      lethalHit,
+      expectedWounds
+    })
 
     setResult({
       expectedHits: expectedHits.toFixed(2),
@@ -190,12 +158,12 @@ function WoundSuccessCalculator() {
       hitsCIHigh: hitsCIHigh.toFixed(2),
       criticalCILow: criticalCILow.toFixed(2),
       criticalCIHigh: criticalCIHigh.toFixed(2),
-      woundsCILow: Math.max(0, expectedWounds - z * stdDev).toFixed(2),
-      woundsCIHigh: (expectedWounds + z * stdDev).toFixed(2),
+      woundsCILow: Math.max(0, expectedWounds - Z_95 * stdDev).toFixed(2),
+      woundsCIHigh: (expectedWounds + Z_95 * stdDev).toFixed(2),
       devastatingCILow: devastatingWounds ? devastatingCILow.toFixed(2) : null,
       devastatingCIHigh: devastatingWounds ? devastatingCIHigh.toFixed(2) : null,
       distributionData,
-      maxWounds: maxPossibleWounds,
+      maxWounds,
       hasLethalHit: lethalHit,
       hasSustainedHit: sustainedHit,
       hasDevastatingWounds: devastatingWounds,
@@ -204,268 +172,213 @@ function WoundSuccessCalculator() {
     })
   }
 
-  return (
-    <div className="wound-success-container">
-      <div className="form-side">
-        <form onSubmit={handleCalculate} className="calculator-form">
-          <div className="form-section-header">
-            <h3>Attack Stats</h3>
+  const form = (
+    <form onSubmit={handleCalculate} className="calculator-form">
+      <div className="form-section-header">
+        <h3>Attack Stats</h3>
+      </div>
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="numDice">Number of Attacks</label>
+          <div className="attacks-input-row">
+            <input
+              type="number"
+              id="numDice"
+              min="1"
+              max="100"
+              value={numDice}
+              onChange={(e) => setNumDice(e.target.value)}
+            />
+            <LabeledCheckbox
+              id="torrent"
+              label="TORRENT"
+              checked={torrent}
+              onChange={setTorrent}
+            />
           </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="numDice">Number of Attacks</label>
-              <div className="attacks-input-row">
-                <input
-                  type="number"
-                  id="numDice"
-                  min="1"
-                  max="100"
-                  value={numDice}
-                  onChange={(e) => setNumDice(e.target.value)}
-                />
-                <div className="form-checkbox">
-                  <input
-                    type="checkbox"
-                    id="torrent"
-                    checked={torrent}
-                    onChange={(e) => setTorrent(e.target.checked)}
-                  />
-                  <label htmlFor="torrent">TORRENT</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {!torrent && (
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="toHit">To Hit</label>
-              <Select
-                inputId="toHit"
-                options={toHitOptions}
-                value={toHit}
-                onChange={setToHit}
-                styles={selectStyles}
-                isSearchable={false}
-              />
-            </div>
-
-            <div className="form-group form-group--reroll">
-              <label htmlFor="hitReroll">Reroll</label>
-              <Select
-                inputId="hitReroll"
-                options={rerollOptions}
-                value={hitReroll}
-                onChange={setHitReroll}
-                styles={selectStyles}
-                isSearchable={false}
-              />
-            </div>
-          </div>
-          )}
-
-          {!torrent && (
-          <div>
-            <div className="form-row crit-row">
-              <label htmlFor="crit">Critical Hit On</label>
-              <div className="crit-select">
-                <Select
-                  inputId="crit"
-                  options={critOptions}
-                  value={crit}
-                  onChange={setCrit}
-                  styles={selectStyles}
-                  isSearchable={false}
-                />
-              </div>
-            </div>
-
-            <div className="form-row hit-buff-section">
-              <div className="checkbox-group">
-                <div className="form-checkbox">
-                  <input
-                    type="checkbox"
-                    id="lethalHit"
-                    checked={lethalHit}
-                    onChange={(e) => setLethalHit(e.target.checked)}
-                  />
-                  <label htmlFor="lethalHit">LETHAL HITS</label>
-                </div>
-
-                <div className="sustained-hits-container">
-                  <div className="form-checkbox">
-                    <input
-                      type="checkbox"
-                      id="sustainedHit"
-                      checked={sustainedHit}
-                      onChange={(e) => setSustainedHit(e.target.checked)}
-                    />
-                    <label htmlFor="sustainedHit">SUSTAINED HITS</label>
-                  </div>
-
-                  <input
-                    type="number"
-                    id="sustainedHitValue"
-                    min="1"
-                    max="3"
-                    value={sustainedHitValue}
-                    onChange={(e) => setSustainedHitValue(e.target.value)}
-                    disabled={!sustainedHit}
-                    className={`small-input ${!sustainedHit ? 'disabled' : ''}`}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          )}
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="toWound">To Wound</label>
-              <Select
-                inputId="toWound"
-                options={toWoundOptions}
-                value={toWound}
-                onChange={setToWound}
-                styles={selectStyles}
-                isSearchable={false}
-              />
-            </div>
-
-            <div className="form-group form-group--reroll">
-              <label htmlFor="woundReroll">Reroll</label>
-              <Select
-                inputId="woundReroll"
-                options={rerollOptions}
-                value={woundReroll}
-                onChange={setWoundReroll}
-                styles={selectStyles}
-                isSearchable={false}
-              />
-            </div>
-          </div>
-
-          <div className="form-row wound-buff-section">
-            <div className="checkbox-group">
-              <div className="form-checkbox">
-                <input
-                  type="checkbox"
-                  id="devastatingWounds"
-                  checked={devastatingWounds}
-                  onChange={(e) => setDevastatingWounds(e.target.checked)}
-                />
-                <label htmlFor="devastatingWounds">DEVASTATING WOUNDS</label>
-              </div>
-
-              <div className="anti-wounds-container">
-                <div className="form-checkbox">
-                  <input
-                    type="checkbox"
-                    id="antiWounds"
-                    checked={antiEnabled}
-                    onChange={(e) => setAntiEnabled(e.target.checked)}
-                  />
-                  <label htmlFor="antiWounds">ANTI</label>
-                </div>
-
-                <Select
-                  inputId="antiValue"
-                  options={antiOptions}
-                  value={antiValue}
-                  onChange={setAntiValue}
-                  styles={buffSelectStyles}
-                  isSearchable={false}
-                  isDisabled={!antiEnabled}
-                  className={`anti-wounds-select ${!antiEnabled ? 'disabled' : ''}`}
-                />
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" className="calculate-button">
-            Calculate
-          </button>
-        </form>
+        </div>
       </div>
 
-      {result && (
-        <div className="result-side">
-          <div className="result-stats">
-            <div className="stat-card">
-              <div className="stat-label">Expected Hits</div>
-              <div className="stat-value">{result.expectedHits}</div>
-              <div className="stat-range"><InlineMath math="\sigma" />: ±{result.hitsStdDev}</div>
-              <div className="stat-range">95% CI [{result.hitsCILow}, {result.hitsCIHigh}]</div>
-            </div>
-            {result && (result.hasLethalHit || result.hasSustainedHit) && (
-              <div className="stat-card">
-                <div className="stat-label">Critical Hits</div>
-                <div className="stat-value">{result.criticalHits}</div>
-                <div className="stat-range"><InlineMath math="\sigma" />: ±{result.criticalStdDev}</div>
-                <div className="stat-range">95% CI [{result.criticalCILow}, {result.criticalCIHigh}]</div>
-              </div>
-            )}
-            <div className="stat-card">
-              <div className="stat-label">Expected Wounds</div>
-              <div className="stat-value">{result.expectedWounds}</div>
-              <div className="stat-range"><InlineMath math="\sigma" />: ±{result.stdDev}</div>
-              <div className="stat-range">95% CI [{result.woundsCILow}, {result.woundsCIHigh}]</div>
-            </div>
-            {result && result.hasDevastatingWounds && (
-              <div className="stat-card">
-                <div className="stat-label">Devastating Wounds</div>
-                <div className="stat-value">{result.expectedDevastatingWounds}</div>
-                <div className="stat-range"><InlineMath math="\sigma" />: ±{result.devastatingWoundsStdDev}</div>
-                <div className="stat-range">95% CI [{result.devastatingCILow}, {result.devastatingCIHigh}]</div>
-              </div>
-            )}
+      {!torrent && (
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="toHit">To Hit</label>
+            <FormSelect
+              inputId="toHit"
+              options={toHitOptions}
+              value={toHit}
+              onChange={setToHit}
+            />
           </div>
 
-          <div className="chart-container">
-            <h2>Wound Probability Distribution</h2>
-            <ResponsiveContainer width="100%" height={250} key={result.calculationId}>
-              <ComposedChart data={result.distributionData} key={result.calculationId}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4a4a4a" />
-                <XAxis 
-                  dataKey="wounds" 
-                  stroke="#d0d0d0"
-                  interval={result.maxWounds > 50 ? Math.floor(result.maxWounds / 10) : 0}
-                  allowDecimals={false}
-                />
-                <YAxis stroke="#d0d0d0" yAxisId="left" label={{ value: 'Probability (%)', angle: -90, position: 'insideLeft' }} />
-                <YAxis stroke="#a0a0a0" yAxisId="right" orientation="right" label={{ value: 'Cumulative (%)', angle: 90, position: 'insideRight' }} />
-                <Tooltip
-                  contentStyle={{ background: '#3a3a3a', border: '1px solid #fbbf24', borderRadius: '4px' }}
-                  labelStyle={{ color: '#fbbf24' }}
-                  formatter={(value, name) => {
-                    if (name === 'probability') {
-                      return [value.toFixed(2) + '%', 'Probability']
-                    } else if (name === 'cumulative') {
-                      return [value.toFixed(1) + '%', 'Cumulative']
-                    }
-                    return value
-                  }}
-                />
-                <Bar dataKey="probability" yAxisId="left" fill="#fbbf24">
-                  {result.distributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill="#fbbf24" />
-                  ))}
-                </Bar>
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="#60a5fa"
-                  strokeWidth={2}
-                  dot={false}
-                  isAnimationActive={false}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
+          <div className="form-group form-group--reroll">
+            <label htmlFor="hitReroll">Reroll</label>
+            <FormSelect
+              inputId="hitReroll"
+              options={rerollOptions}
+              value={hitReroll}
+              onChange={setHitReroll}
+            />
           </div>
         </div>
       )}
-    </div>
+
+      {!torrent && (
+        <div>
+          <div className="form-row crit-row">
+            <label htmlFor="crit">Critical Hit On</label>
+            <div className="crit-select">
+              <FormSelect
+                inputId="crit"
+                options={critOptions}
+                value={crit}
+                onChange={setCrit}
+              />
+            </div>
+          </div>
+
+          <div className="form-row hit-buff-section">
+            <div className="checkbox-group">
+              <LabeledCheckbox
+                id="lethalHit"
+                label="LETHAL HITS"
+                checked={lethalHit}
+                onChange={setLethalHit}
+              />
+
+              <div className="sustained-hits-container">
+                <LabeledCheckbox
+                  id="sustainedHit"
+                  label="SUSTAINED HITS"
+                  checked={sustainedHit}
+                  onChange={setSustainedHit}
+                />
+                <input
+                  type="number"
+                  id="sustainedHitValue"
+                  min="1"
+                  max="3"
+                  value={sustainedHitValue}
+                  onChange={(e) => setSustainedHitValue(e.target.value)}
+                  disabled={!sustainedHit}
+                  className={`small-input ${!sustainedHit ? 'disabled' : ''}`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="toWound">To Wound</label>
+          <FormSelect
+            inputId="toWound"
+            options={toWoundOptions}
+            value={toWound}
+            onChange={setToWound}
+          />
+        </div>
+
+        <div className="form-group form-group--reroll">
+          <label htmlFor="woundReroll">Reroll</label>
+          <FormSelect
+            inputId="woundReroll"
+            options={rerollOptions}
+            value={woundReroll}
+            onChange={setWoundReroll}
+          />
+        </div>
+      </div>
+
+      <div className="form-row wound-buff-section">
+        <div className="checkbox-group">
+          <LabeledCheckbox
+            id="devastatingWounds"
+            label="DEVASTATING WOUNDS"
+            checked={devastatingWounds}
+            onChange={setDevastatingWounds}
+          />
+
+          <div className="anti-wounds-container">
+            <LabeledCheckbox
+              id="antiWounds"
+              label="ANTI"
+              checked={antiEnabled}
+              onChange={setAntiEnabled}
+            />
+            <FormSelect
+              variant="buff"
+              inputId="antiValue"
+              options={antiOptions}
+              value={antiValue}
+              onChange={setAntiValue}
+              isDisabled={!antiEnabled}
+              className={`anti-wounds-select ${!antiEnabled ? 'disabled' : ''}`}
+            />
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" className="calculate-button">
+        Calculate
+      </button>
+    </form>
+  )
+
+  const resultPanel = result && (
+    <>
+      <StatGrid>
+        <StatCard
+          label="Expected Hits"
+          value={result.expectedHits}
+          stdDev={result.hitsStdDev}
+          ciLow={result.hitsCILow}
+          ciHigh={result.hitsCIHigh}
+        />
+        {(result.hasLethalHit || result.hasSustainedHit) && (
+          <StatCard
+            label="Critical Hits"
+            value={result.criticalHits}
+            stdDev={result.criticalStdDev}
+            ciLow={result.criticalCILow}
+            ciHigh={result.criticalCIHigh}
+          />
+        )}
+        <StatCard
+          label="Expected Wounds"
+          value={result.expectedWounds}
+          stdDev={result.stdDev}
+          ciLow={result.woundsCILow}
+          ciHigh={result.woundsCIHigh}
+        />
+        {result.hasDevastatingWounds && (
+          <StatCard
+            label="Devastating Wounds"
+            value={result.expectedDevastatingWounds}
+            stdDev={result.devastatingWoundsStdDev}
+            ciLow={result.devastatingCILow}
+            ciHigh={result.devastatingCIHigh}
+          />
+        )}
+      </StatGrid>
+
+      <DistributionChart
+        title="Wound Probability Distribution"
+        data={result.distributionData}
+        xKey="wounds"
+        xInterval={result.maxWounds > 50 ? Math.floor(result.maxWounds / 10) : 0}
+        chartKey={result.calculationId}
+      />
+    </>
+  )
+
+  return (
+    <CalculatorLayout
+      className="wound-success-container"
+      form={form}
+      result={resultPanel}
+    />
   )
 }
 

@@ -1,4 +1,6 @@
-// React-Select custom styles configuration
+// React-Select custom styles configuration shared across the app.
+// Centralizes the dark theme + amber-accent look used by every form select.
+
 export const selectStyles = {
   control: (baseStyles, state) => ({
     ...baseStyles,
@@ -21,7 +23,7 @@ export const selectStyles = {
   }),
   menuList: (baseStyles) => ({
     ...baseStyles,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#2a2a2a'
   }),
   option: (baseStyles, state) => ({
     ...baseStyles,
@@ -47,6 +49,7 @@ export const selectStyles = {
   })
 }
 
+// Compact variant used for small inline buff selects (ANTI, FNP).
 export const buffSelectStyles = {
   ...selectStyles,
   container: (baseStyles) => ({
