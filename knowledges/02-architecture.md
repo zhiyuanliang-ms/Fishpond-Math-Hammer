@@ -30,12 +30,15 @@ src/
 ├── App.jsx                     # Router shell
 ├── main.jsx                    # ReactDOM.createRoot entry
 ├── lib/
+│   ├── attackSimStorage.js      # localStorage helpers for Attack Simulator
 │   └── dice/                   # PURE LOGIC — see 03-dice-library.md
 │       ├── index.js            # Barrel export
 │       ├── probability.js      # D6 success / crit math
 │       ├── binomial.js         # binomialProbability + buildDistribution
 │       ├── woundDistribution.js# WoundSuccessCalculator-specific dist
-│       ├── simulation.js       # Monte Carlo kill simulation
+│       ├── simulation.js       # Monte Carlo kill simulation (single-weapon)
+│       ├── attackSimulation.js # Full unit-vs-unit Monte Carlo (Attack Simulator)
+│       ├── diceExpression.js   # Parse/evaluate "4", "D6", "2D6+1", etc.
 │       ├── killProbability.js  # Thin wrapper that parses form strings
 │       └── options.js          # react-select option arrays
 ├── components/
@@ -50,9 +53,14 @@ src/
 │   │   ├── FormSelect.jsx
 │   │   ├── LabeledCheckbox.jsx
 │   │   └── selectStyles.js
+│   ├── attackSim/              # Attack-Simulator-only sub-components
+│   │   ├── WeaponProfileCard.jsx
+│   │   ├── TargetProfileCard.jsx
+│   │   └── BuffChipGroup.jsx
 │   ├── DiceCalculator.jsx      # Hosts the two calculator tabs
 │   ├── WoundSuccessCalculator.jsx
 │   ├── KillProbabilityCalculator.jsx
+│   ├── AttackSimulator.jsx     # Top-level Attack Simulator page
 │   ├── Cheatsheet.jsx
 │   ├── About.jsx
 │   ├── Sidebar.jsx
@@ -62,6 +70,7 @@ src/
     ├── index.css
     ├── sidebar.css
     ├── diceCalculator.css
+    ├── attackSimulator.css
     ├── cheatsheet.css
     ├── about.css
     ├── footer.css
@@ -87,3 +96,11 @@ src/
 - The `ui/` layer keeps the dark theme, react-select wiring, and chart config
   in one place. Adding a new calculator should mostly mean wiring existing
   primitives, not reinventing them.
+
+## Page-specific sub-component folders
+`src/components/attackSim/` is the first example of a **page-private**
+sub-component folder — sub-components used only by `AttackSimulator.jsx`.
+The rule: if a sub-component is only used by one page and is not generic
+enough for `ui/`, put it in a same-named subfolder (`<page>Sim/`,
+`<page>/`, etc.). This keeps `components/` from getting flat-cluttered
+while staying out of the shared `ui/` namespace.

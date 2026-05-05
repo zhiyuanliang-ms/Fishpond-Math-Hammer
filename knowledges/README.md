@@ -15,12 +15,16 @@ over this project. Read these in order:
 ## Golden rules (read first)
 
 - **Pure logic stays in `src/lib/dice/`** — no React, no DOM, no CSS. Everything
-  there must be unit-testable in isolation.
+  there must be unit-testable in isolation. The one non-`dice/` library file
+  is `src/lib/attackSimStorage.js`, which intentionally touches
+  `localStorage` and stays out of `dice/` for that reason.
 - **Reusable presentational components live in `src/components/ui/`** — they
   must not import anything from `src/lib/dice/` and must not own business
   state. They take props and render.
 - **Page-level components in `src/components/`** are thin glue: they call
   `lib/dice` for math, hold form state, and compose `ui/` primitives.
+  Page-private sub-components live in a same-named subfolder
+  (e.g. `components/attackSim/` for the Attack Simulator's cards).
 - **Always run `npm run lint` and `npm run build` before declaring done.**
   Both must pass with zero errors.
 - **Do not add features the user did not ask for.** This codebase is

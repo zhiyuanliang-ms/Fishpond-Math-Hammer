@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-ro
 import './styles/app.css'
 import Sidebar from './components/Sidebar'
 import DiceCalculator from './components/DiceCalculator'
+import AttackSimulator from './components/AttackSimulator'
 import DiceRoller from './components/DiceRoller'
 import Cheatsheet from './components/Cheatsheet'
 import About from './components/About'
@@ -15,6 +16,8 @@ function AppContent() {
     switch (location.pathname) {
       case '/dice-calculator':
         return 'dice-calculator'
+      case '/attack-simulator':
+        return 'attack-simulator'
       case '/dice-roller':
         return 'dice-roller'
       case '/cheat-sheet':
@@ -30,6 +33,9 @@ function AppContent() {
     switch (page) {
       case 'dice-calculator':
         navigate('/dice-calculator')
+        break
+      case 'attack-simulator':
+        navigate('/attack-simulator')
         break
       case 'dice-roller':
         navigate('/dice-roller')
@@ -52,6 +58,7 @@ function AppContent() {
         <main className="main-content">
           <Routes>
             <Route path="/dice-calculator" element={<DiceCalculator />} />
+            <Route path="/attack-simulator" element={<AttackSimulator />} />
             <Route path="/dice-roller" element={<DiceRoller />} />
             <Route path="/cheat-sheet" element={<Cheatsheet />} />
             <Route path="/about" element={<About />} />

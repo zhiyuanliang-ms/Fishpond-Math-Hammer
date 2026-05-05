@@ -54,7 +54,7 @@ export const buffSelectStyles = {
   ...selectStyles,
   container: (baseStyles) => ({
     ...baseStyles,
-    width: '55px'
+    width: '70px'
   }),
   control: (baseStyles, state) => ({
     ...selectStyles.control(baseStyles, state),
@@ -67,7 +67,10 @@ export const buffSelectStyles = {
   }),
   singleValue: (baseStyles) => ({
     ...selectStyles.singleValue(baseStyles),
-    fontSize: '13px'
+    fontSize: '13px',
+    overflow: 'visible',
+    textOverflow: 'clip',
+    maxWidth: '100%'
   }),
   option: (baseStyles, state) => ({
     ...selectStyles.option(baseStyles, state),

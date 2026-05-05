@@ -63,3 +63,15 @@ ANTI-X overrides this when the buff is better.
 - `WoundSuccessCalculator` is **fully closed-form** — no RNG.
 - `KillProbabilityCalculator` is **Monte Carlo**, default 10 000 trials in
   `simulateKillProbability`. Increasing trials tightens the CI.
+- `AttackSimulator` is **Monte Carlo** via `simulateAttack`. Defaults to
+  1 000 trials for snappy iteration; the "High precision" toggle bumps it
+  to 10 000.
+
+## Dice expressions (Attack Simulator only)
+Weapons use string-typed dice expressions for Attacks and Damage. Parsed by
+`diceExpression.js`. Supported forms:
+- Plain integer: `"4"`, `"12"`
+- Plain die: `"D3"`, `"D6"`
+- Multi-die: `"2D6"`, `"3D3"`
+- With flat modifier: `"D6+1"`, `"2D6-1"`
+Validate with `isValidDiceExpression(str)` before passing to the simulator.

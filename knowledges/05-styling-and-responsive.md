@@ -16,6 +16,7 @@
 | `sidebar.css` | Sidebar nav. |
 | `tabs.css` | `.tabs`, `.tab-button`. |
 | `diceCalculator.css` | Both calculators (`.wound-success-container`, `.kill-probability-container`, `.form-row`, `.form-row--split`, `.result-stats`, `.stat-value`, `.chart-container`, etc.). |
+| `attackSimulator.css` | Attack Simulator: `.attack-sim-toolbar`, `.toolbar-button`, `.toolbar-select`, `.profile-card`, `.stat-line`, `.precision-toggle`, etc. Same dark/amber palette as the rest. |
 | `cheatsheet.css` | Probability table. |
 | `about.css`, `footer.css` | Self-explanatory. |
 
