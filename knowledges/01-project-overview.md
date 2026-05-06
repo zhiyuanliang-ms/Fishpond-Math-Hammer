@@ -49,7 +49,7 @@ the Kill Probability Calculator (which models a single weapon vs a single
 target profile with fixed damage), this one supports:
 - **Multiple weapon profiles** that fire in user-defined order, each with
   its own attacks/S/AP/D dice expressions and full buff set
-  (TORRENT, LETHAL HITS, SUSTAINED 1/2/D3, DEVASTATING WOUNDS, ANTI-X+).
+  (TORRENT, LETHAL HITS, SUSTAINED 1/2, DEVASTATING WOUNDS, ANTI-X+).
 - **Multiple target profiles** (e.g. squad + leader), each with its own
   T/W/Sv/Inv and defensive buffs (FNP, FNP vs MORTAL, −1 to hit, −1 to
   wound, conditional −1 wound when S>T, HALF DAMAGE, DAMAGE −1, DAMAGE = 1).

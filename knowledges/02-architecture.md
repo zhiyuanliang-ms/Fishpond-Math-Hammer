@@ -38,7 +38,6 @@ src/
 │       ├── woundDistribution.js# WoundSuccessCalculator-specific dist
 │       ├── simulation.js       # Monte Carlo kill simulation (single-weapon)
 │       ├── attackSimulation.js # Full unit-vs-unit Monte Carlo (Attack Simulator)
-│       ├── diceExpression.js   # Parse/evaluate "4", "D6", "2D6+1", etc.
 │       ├── killProbability.js  # Thin wrapper that parses form strings
 │       └── options.js          # react-select option arrays
 ├── components/

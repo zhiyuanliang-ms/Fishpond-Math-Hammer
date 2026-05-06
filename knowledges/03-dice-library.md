@@ -79,18 +79,6 @@ Used by the Dice Roller page. Pure (apart from `Math.random`).
 | `rerollFaces(rolls, faces)` | Returns a new array; rerolls only dice whose face is in the set. |
 | `countFaces(rolls)` | `{1:n,2:n,...,6:n}` count map. |
 
-### `diceExpression.js`
-Parser/evaluator for the dice expressions used by the Attack Simulator
-(e.g. "4", "D6", "2D6+1", "D3-1").
-
-| Export | Signature | Returns |
-|---|---|---|
-| `parseDiceExpression(str)` | parser | `{ count, sides, flat }` or `null` |
-| `rollDiceExpr(parsed)` | roller | number |
-| `rollExprStr(str)` | convenience | number (parses + rolls in one go) |
-| `expectedDiceExpr(parsed)` | math | expected value of the parsed expression |
-| `isValidDiceExpression(str)` | validator | boolean |
-
 ### `attackSimulation.js`
 Full-attack-sequence Monte Carlo engine for the Attack Simulator.
 
@@ -111,7 +99,7 @@ Key rules implemented (see 08-glossary.md for vocabulary):
 - Roll modifiers (±1) are clamped per the 10e cap (defense in depth: the
   UI also enforces mutual exclusion among the wound-penalty toggles).
 - Lethal Hits: original critical hit auto-wounds (skips wound roll).
-- Sustained Hits 1 / 2 / D3: each crit hit produces N extra hits.
+- Sustained Hits 1 / 2: each crit hit produces N extra hits.
 - Devastating Wounds: each crit wound deals damage as mortal wounds
   (skips save; FNP-vs-mortal applies if defined, else regular FNP).
 - ANTI-X+: critical wound on natural X+; wound threshold is also lowered

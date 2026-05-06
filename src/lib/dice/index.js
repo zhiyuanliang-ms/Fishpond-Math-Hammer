@@ -17,13 +17,6 @@ export { simulateKillProbability } from './simulation'
 export { calculateKillProbability } from './killProbability'
 
 export { simulateAttack } from './attackSimulation'
-export {
-  parseDiceExpression,
-  rollDiceExpr,
-  rollExprStr,
-  expectedDiceExpr,
-  isValidDiceExpression
-} from './diceExpression'
 
 export {
   DICE_FACES,

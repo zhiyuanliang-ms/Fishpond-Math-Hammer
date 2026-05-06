@@ -12,7 +12,6 @@
 // Excess damage from a single attack does NOT spill across models (40k rule).
 
 import { DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES } from './constants'
-import { parseDiceExpression, rollDiceExpr } from './diceExpression'
 
 // ---- helpers ---------------------------------------------------------------
 
@@ -124,18 +123,15 @@ const modifyDamage = (rawDamage, halfDamage, minusOneDamage, damageOne) => {
 // ---- single-trial attack resolution ----------------------------------------
 
 const resolveWeaponAgainstUnit = (weapon, unitState) => {
-  const attacksParsed = parseDiceExpression(weapon.attacks)
-  const damageParsed = parseDiceExpression(weapon.damage)
-  if (!attacksParsed || !damageParsed) return 0
+  const attacksPer = Math.max(0, parseInt(weapon.attacks, 10) || 0)
+  const damagePer = Math.max(1, parseInt(weapon.damage, 10) || 1)
+  if (attacksPer <= 0) return 0
   let damageDealt = 0
 
   // Total attacks for this weapon profile this trial. We support a "models
   // firing" multiplier so a unit's worth of identical weapons fires together.
   const modelsFiring = Math.max(1, weapon.modelsFiring || 1)
-  let totalAttacks = 0
-  for (let i = 0; i < modelsFiring; i++) {
-    totalAttacks += rollDiceExpr(attacksParsed)
-  }
+  const totalAttacks = attacksPer * modelsFiring
 
   for (let a = 0; a < totalAttacks; a++) {
     if (unitState.activeProfile >= unitState.profiles.length) return damageDealt
@@ -197,7 +193,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
       // 2b. Devastating Wounds: critical wound deals damage as mortal wounds,
       // skipping the save. FNP-vs-mortal applies if defined; otherwise normal FNP.
       if (woundIsCrit && weapon.devastatingWounds) {
-        const dmg = modifyDamage(rollDiceExpr(damageParsed), t.halfDamage, t.minusOneDamage, t.damageOne)
+        const dmg = modifyDamage(damagePer, t.halfDamage, t.minusOneDamage, t.damageOne)
         damageDealt += applyDamageToUnit(unitState, dmg, true)
         continue
       }
@@ -212,7 +208,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
       }
 
       // 4. Damage
-      const dmg = modifyDamage(rollDiceExpr(damageParsed), t.halfDamage, t.minusOneDamage, t.damageOne)
+      const dmg = modifyDamage(damagePer, t.halfDamage, t.minusOneDamage, t.damageOne)
       damageDealt += applyDamageToUnit(unitState, dmg, false)
     }
   }
@@ -220,7 +216,6 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
 }
 
 const parseSustained = (val) => {
-  if (val === 'D3') return Math.floor(Math.random() * 3) + 1
   const n = parseInt(val, 10)
   return Number.isFinite(n) ? n : 0
 }

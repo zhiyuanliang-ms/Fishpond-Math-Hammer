@@ -6,6 +6,7 @@ import {
   saveRerollOptions
 } from '../../lib/dice/options'
 import BuffChipGroup from './BuffChipGroup'
+import IntInput from './IntInput'
 
 const invulnOptions = [
   { value: '0', label: '—' },
@@ -143,32 +144,31 @@ function TargetProfileCard({
       <div className="stat-line">
         <div className="stat-cell">
           <label>Models</label>
-          <input
-            type="number"
-            min="1"
-            max="50"
+          <IntInput
+            min={1}
+            max={50}
+            fallback={1}
             value={profile.models}
-            onChange={(e) => update({ models: parseInt(e.target.value, 10) || 1 })}
+            onChange={(n) => update({ models: n })}
           />
         </div>
         <div className="stat-cell">
           <label>Toughness</label>
-          <input
-            type="number"
-            min="1"
-            max="20"
+          <IntInput
+            min={1}
+            fallback={1}
             value={profile.toughness}
-            onChange={(e) => update({ toughness: parseInt(e.target.value, 10) || 1 })}
+            onChange={(n) => update({ toughness: n })}
           />
         </div>
         <div className="stat-cell">
           <label>Wounds</label>
-          <input
-            type="number"
-            min="1"
-            max="50"
+          <IntInput
+            min={1}
+            max={50}
+            fallback={1}
             value={profile.wounds}
-            onChange={(e) => update({ wounds: parseInt(e.target.value, 10) || 1 })}
+            onChange={(n) => update({ wounds: n })}
           />
         </div>
         <div className="stat-cell">

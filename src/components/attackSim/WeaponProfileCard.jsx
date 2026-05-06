@@ -5,13 +5,11 @@ import {
   rerollOptions,
   antiOptions
 } from '../../lib/dice/options'
-import { isValidDiceExpression } from '../../lib/dice'
 import BuffChipGroup from './BuffChipGroup'
-
+import IntInput from './IntInput'
 const sustainedOptions = [
   { value: '1', label: '1' },
-  { value: '2', label: '2' },
-  { value: 'D3', label: 'D3' }
+  { value: '2', label: '2' }
 ]
 
 const toHitWithTorrentOptions = [
@@ -33,8 +31,6 @@ function WeaponProfileCard({
 }) {
   const update = (patch) => onChange({ ...profile, ...patch })
 
-  const attacksValid = isValidDiceExpression(profile.attacks)
-  const damageValid = isValidDiceExpression(profile.damage)
 
   const buffs = [
     {
@@ -101,12 +97,11 @@ function WeaponProfileCard({
       <div className="stat-line">
         <div className="stat-cell">
           <label>Attacks</label>
-          <input
-            type="text"
-            className={attacksValid ? '' : 'invalid'}
+          <IntInput
+            min={1}
+            fallback={1}
             value={profile.attacks}
-            onChange={(e) => update({ attacks: e.target.value })}
-            placeholder="e.g. 4 or D6+1"
+            onChange={(n) => update({ attacks: n })}
           />
         </div>
         <div className="stat-cell">
@@ -130,32 +125,30 @@ function WeaponProfileCard({
         </div>
         <div className="stat-cell">
           <label>Strength</label>
-          <input
-            type="number"
-            min="1"
-            max="20"
+          <IntInput
+            min={1}
+            fallback={1}
             value={profile.strength}
-            onChange={(e) => update({ strength: parseInt(e.target.value, 10) || 1 })}
+            onChange={(n) => update({ strength: n })}
           />
         </div>
         <div className="stat-cell">
           <label>AP</label>
-          <input
-            type="number"
-            min="0"
-            max="6"
+          <IntInput
+            min={0}
+            max={6}
+            fallback={0}
             value={profile.ap}
-            onChange={(e) => update({ ap: parseInt(e.target.value, 10) || 0 })}
+            onChange={(n) => update({ ap: n })}
           />
         </div>
         <div className="stat-cell">
           <label>Damage</label>
-          <input
-            type="text"
-            className={damageValid ? '' : 'invalid'}
+          <IntInput
+            min={1}
+            fallback={1}
             value={profile.damage}
-            onChange={(e) => update({ damage: e.target.value })}
-            placeholder="e.g. 2 or D6"
+            onChange={(n) => update({ damage: n })}
           />
         </div>
       </div>

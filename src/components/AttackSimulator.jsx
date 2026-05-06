@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Download, Upload, Save, Trash2 } from 'lucide-react'
-import { simulateAttack, isValidDiceExpression } from '../lib/dice'
+import { simulateAttack } from '../lib/dice'
 import {
   loadScenario,
   saveScenario,
@@ -28,11 +28,11 @@ const makeWeapon = (overrides = {}) => ({
   id: uid(),
   name: '',
   modelsFiring: 1,
-  attacks: '4',
+  attacks: 4,
   strength: 4,
   toHit: 3,
   ap: 1,
-  damage: '1',
+  damage: 1,
   hitReroll: 'no-reroll',
   woundReroll: 'no-reroll',
   critHit: 6,
@@ -83,6 +83,43 @@ const rehydrateTarget = ({ id: _oldId, ...rest } = {}) => makeTarget(rest)
 
 // Strip runtime-only fields (React keys) when serializing for storage / export.
 const stripId = ({ id: _id, ...rest }) => rest
+
+// ---- import validators -----------------------------------------------------
+// Return null if the shape is acceptable, otherwise a short reason string.
+// We only check fields that would break the simulation if malformed; unknown
+// extra fields are ignored, and missing optional booleans default to false.
+
+const isPosInt = (v) => Number.isInteger(v) && v > 0
+const isNonNegInt = (v) => Number.isInteger(v) && v >= 0
+const isThreshold = (v) => Number.isInteger(v) && v >= 2 && v <= 6
+
+const validateWeaponShape = (w) => {
+  if (!w || typeof w !== 'object') return 'not an object'
+  if (!isPosInt(w.attacks)) return `invalid attacks ${JSON.stringify(w.attacks)}`
+  if (typeof w.damage !== 'number' || !Number.isInteger(w.damage) || w.damage < 1)
+    return `invalid damage ${JSON.stringify(w.damage)}`
+  if (!isPosInt(w.strength)) return `invalid strength ${w.strength}`
+  if (!isThreshold(w.toHit)) return `invalid toHit ${w.toHit}`
+  if (!isNonNegInt(w.ap)) return `invalid ap ${w.ap}`
+  if (w.modelsFiring != null && !isPosInt(w.modelsFiring))
+    return `invalid modelsFiring ${w.modelsFiring}`
+  return null
+}
+
+const validateTargetShape = (t) => {
+  if (!t || typeof t !== 'object') return 'not an object'
+  if (!isPosInt(t.models)) return `invalid models ${t.models}`
+  if (!isPosInt(t.toughness)) return `invalid toughness ${t.toughness}`
+  if (!isPosInt(t.wounds)) return `invalid wounds ${t.wounds}`
+  if (!isThreshold(t.save)) return `invalid save ${t.save}`
+  if (t.invulnSave != null && t.invulnSave !== 0 && !isThreshold(t.invulnSave))
+    return `invalid invulnSave ${t.invulnSave}`
+  if (t.fnp != null && t.fnp !== 0 && !isThreshold(t.fnp))
+    return `invalid fnp ${t.fnp}`
+  if (t.fnpMortal != null && t.fnpMortal !== 0 && !isThreshold(t.fnpMortal))
+    return `invalid fnpMortal ${t.fnpMortal}`
+  return null
+}
 
 // Detect a mobile device. File picker / blob download work poorly on most
 // mobile browsers, so we hide Import/Export there.
@@ -265,10 +302,31 @@ function AttackSimulator() {
     if (!file) return
     try {
       const text = await file.text()
-      const data = JSON.parse(text)
-      if (!Array.isArray(data.weapons) || !Array.isArray(data.targets)) {
-        throw new Error('File does not contain weapons/targets.')
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error('not valid JSON')
       }
+      if (!data || typeof data !== 'object') {
+        throw new Error('top-level value is not an object')
+      }
+      if (!Array.isArray(data.weapons) || data.weapons.length === 0) {
+        throw new Error('"weapons" must be a non-empty array')
+      }
+      if (!Array.isArray(data.targets) || data.targets.length === 0) {
+        throw new Error('"targets" must be a non-empty array')
+      }
+      data.weapons.forEach((w, i) => {
+        const err = validateWeaponShape(w)
+        if (err) throw new Error(`weapons[${i}]: ${err}`)
+      })
+      data.targets.forEach((t, i) => {
+        const err = validateTargetShape(t)
+        if (err) throw new Error(`targets[${i}]: ${err}`)
+      })
+
+      // All validation passed — now mutate state.
       setWeapons(data.weapons.map(rehydrateWeapon))
       setTargets(data.targets.map(rehydrateTarget))
       if (typeof data.highPrecision === 'boolean') setHighPrecision(data.highPrecision)
@@ -290,11 +348,11 @@ function AttackSimulator() {
 
     // basic validation
     for (const w of weapons) {
-      if (!isValidDiceExpression(w.attacks)) {
+      if (!Number.isInteger(w.attacks) || w.attacks < 1) {
         setError(`Weapon "${w.name || 'unnamed'}" has invalid Attacks "${w.attacks}".`)
         return
       }
-      if (!isValidDiceExpression(w.damage)) {
+      if (!Number.isInteger(w.damage) || w.damage < 1) {
         setError(`Weapon "${w.name || 'unnamed'}" has invalid Damage "${w.damage}".`)
         return
       }
