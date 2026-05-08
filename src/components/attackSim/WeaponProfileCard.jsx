@@ -137,7 +137,7 @@ function WeaponProfileCard({
           className="stat-cell"
           title="Number of weapons firing this profile (e.g. 5 bolters in a squad). Each weapon rolls its Attacks separately."
         >
-          <label># of Weapons</label>
+          <label>Weapons</label>
           <IntInput
             min={1}
             fallback={1}

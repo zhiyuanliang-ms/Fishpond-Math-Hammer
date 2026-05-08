@@ -152,7 +152,7 @@ function TargetProfileCard({
           className="stat-cell"
           title="Number of models in the target unit with this profile (used for Blast and to decide when the unit is wiped)."
         >
-          <label># of Models</label>
+          <label>Models</label>
           <IntInput
             min={1}
             max={50}
