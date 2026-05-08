@@ -12,6 +12,7 @@
 // Excess damage from a single attack does NOT spill across models (40k rule).
 
 import { DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES } from './constants'
+import { parseDiceExpression, rollDiceExpr } from './diceExpression'
 
 // ---- helpers ---------------------------------------------------------------
 
@@ -122,16 +123,26 @@ const modifyDamage = (rawDamage, halfDamage, minusOneDamage, damageOne) => {
 
 // ---- single-trial attack resolution ----------------------------------------
 
-const resolveWeaponAgainstUnit = (weapon, unitState) => {
-  const attacksPer = Math.max(0, parseInt(weapon.attacks, 10) || 0)
-  const damagePer = Math.max(1, parseInt(weapon.damage, 10) || 1)
-  if (attacksPer <= 0) return 0
+const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels) => {
+  const attacksParsed = parseDiceExpression(weapon.attacks)
+  const damageParsed = parseDiceExpression(weapon.damage)
+  if (!attacksParsed || !damageParsed) return 0
   let damageDealt = 0
 
-  // Total attacks for this weapon profile this trial. We support a "models
-  // firing" multiplier so a unit's worth of identical weapons fires together.
-  const modelsFiring = Math.max(1, weapon.modelsFiring || 1)
-  const totalAttacks = attacksPer * modelsFiring
+  // Blast: "every five models that were in the target unit when you selected
+  // it as the target". The shooting unit selects all of its targets BEFORE
+  // any of its weapons resolve, so use the unit's size from the start of
+  // this trial — not the live count after earlier weapons have killed models.
+  const blastBonus = weapon.blast ? Math.floor(blastBaseModels / 5) : 0
+
+  // Each weapon instance rolls its attack dice independently (so D3+1 with
+  // weaponCount 2 gives two separate rolls), and Blast adds its bonus to
+  // every roll.
+  const weaponCount = Math.max(1, weapon.modelsFiring || 1)
+  let totalAttacks = 0
+  for (let i = 0; i < weaponCount; i++) {
+    totalAttacks += Math.max(0, rollDiceExpr(attacksParsed) + blastBonus)
+  }
 
   for (let a = 0; a < totalAttacks; a++) {
     if (unitState.activeProfile >= unitState.profiles.length) return damageDealt
@@ -142,9 +153,14 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
     if (weapon.torrent) {
       hitIsCrit = false
     } else {
-      const hitMod = (target.minusOneToHit ? 1 : 0)
+      let hitMod = (target.minusOneToHit ? 1 : 0)
+      // +1 to Hit: subtract from threshold (lower is better).
+      if (weapon.plusOneHit) hitMod -= 1
+      // 10e rule: roll modifiers cap at ±1.
+      if (hitMod > 1) hitMod = 1
+      if (hitMod < -1) hitMod = -1
       const hitThr = clampThreshold(weapon.toHit + hitMod)
-      const critHitThr = weapon.critHit || 6
+      const critHitThr = weapon.critHitEnabled && weapon.critHit ? weapon.critHit : 6
       const hr = rollD6WithReroll(hitThr, weapon.hitReroll, critHitThr)
       if (!hr.success) continue
       hitIsCrit = hr.isCrit
@@ -175,8 +191,13 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
         let mod = 0
         if (t.minusOneToWound) mod += 1
         if (t.minusOneToWoundIfStronger && weapon.strength > t.toughness) mod += 1
+        // Lance: +1 to the Wound roll if the bearer charged. In this app
+        // we treat the Lance buff as the player asserting the bearer
+        // charged this turn. +1 to roll == -1 to threshold.
+        if (weapon.lance) mod -= 1
         // 10e rule: roll modifiers cap at ±1.
         if (mod > 1) mod = 1
+        if (mod < -1) mod = -1
         let critWoundThr = weapon.critWound || 6
         // Anti-X+: critical wound on natural X+. Successful wounds also count
         // at X+ if that's better than the base threshold (per 10e rules).
@@ -193,13 +214,23 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
       // 2b. Devastating Wounds: critical wound deals damage as mortal wounds,
       // skipping the save. FNP-vs-mortal applies if defined; otherwise normal FNP.
       if (woundIsCrit && weapon.devastatingWounds) {
-        const dmg = modifyDamage(damagePer, t.halfDamage, t.minusOneDamage, t.damageOne)
+        const dmg = modifyDamage(rollDiceExpr(damageParsed), t.halfDamage, t.minusOneDamage, t.damageOne)
         damageDealt += applyDamageToUnit(unitState, dmg, true)
         continue
       }
 
       // 3. Save roll. Pick the better (lower) of modified armor save or invuln.
-      const armorMod = clampThreshold((t.save || 7) + (weapon.ap || 0))
+      // Benefit of Cover: +1 to armor save (not invuln). Does not apply to
+      // Sv 3+ or better vs AP 0 attacks. Negated by Ignores Cover. The 10e
+      // "save can never be improved by more than +1" cap is implicit because
+      // BoC is the only save modifier we model.
+      const ap = weapon.ap || 0
+      const baseSave = t.save || 7
+      const coverApplies =
+        t.benefitOfCover &&
+        !weapon.ignoresCover &&
+        !(baseSave <= 3 && ap === 0)
+      const armorMod = clampThreshold(baseSave + ap - (coverApplies ? 1 : 0))
       const invuln = (t.invulnSave && t.invulnSave >= 2 && t.invulnSave <= 6) ? t.invulnSave : 7
       const effSave = Math.min(armorMod, invuln)
       if (effSave <= 6) {
@@ -208,7 +239,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState) => {
       }
 
       // 4. Damage
-      const dmg = modifyDamage(damagePer, t.halfDamage, t.minusOneDamage, t.damageOne)
+      const dmg = modifyDamage(rollDiceExpr(damageParsed), t.halfDamage, t.minusOneDamage, t.damageOne)
       damageDealt += applyDamageToUnit(unitState, dmg, false)
     }
   }
@@ -241,11 +272,14 @@ export const simulateAttack = (weapons, targetProfiles, numSimulations = DEFAULT
 
   for (let sim = 0; sim < numSimulations; sim++) {
     const state = buildUnitState(targetProfiles)
+    // Snapshot of the target unit's size at "target selection" — used by
+    // Blast for every weapon this trial regardless of resolution order.
+    const blastBaseModels = totalModels
 
     let damageThisTrial = 0
     for (const w of weapons) {
       if (state.activeProfile >= state.profiles.length) break
-      damageThisTrial += resolveWeaponAgainstUnit(w, state)
+      damageThisTrial += resolveWeaponAgainstUnit(w, state, blastBaseModels)
     }
 
     let killsTotal = 0

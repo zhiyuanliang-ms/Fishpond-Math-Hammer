@@ -33,12 +33,19 @@ For each attack:
 ## Modifiers
 | Term | Code | Meaning |
 |---|---|---|
-| **Crit** | `criticalValue` | Roll value that triggers crit effects. Default `6`, sometimes `5` ("crits on 5+"). |
+| **Crit (hit / wound)** | `critHit`, `critWound`, `criticalValue` | Roll value that triggers crit effects. Default `6`, sometimes `5` ("crits on 5+"). Crits are **always evaluated on the unmodified D6.** |
+| **Critical Hit on x+** | `critHitEnabled` + `critHit` | Per-weapon override of the hit-roll crit threshold. |
+| **+1 to Hit** | `plusOneHit` | -1 to the hit threshold (capped at ±1 per 10e). |
 | **Sustained Hits X** | `sustainedHits` | Each crit hit generates X extra hits. |
-| **Lethal Hits** | `lethalHit` | Each crit hit auto-wounds (skips the wound roll). |
+| **Lethal Hits** | `lethalHits`, `lethalHit` | Each crit hit auto-wounds (skips the wound roll). |
 | **Devastating Wounds** | `devastatingWounds` | Each crit wound becomes mortal wounds (bypasses saves). |
-| **Anti-X N+** | `antiBuff` | Wound roll uses N+ (or better) against the keyword (e.g. Anti-Vehicle 4+). |
+| **Anti-X N+** | `antiBuff`, `antiEnabled` + `antiValue` | Wound roll uses N+ (or better) against the keyword (e.g. Anti-Vehicle 4+). |
+| **Lance** | `lance` | +1 to the wound roll (treated as the bearer charging). Floored at 2+ by `clampThreshold`. |
+| **Blast** | `blast` | +`floor(target_models / 5)` to every attack roll. Snapshotted at trial start, not live. |
+| **Ignores Cover** | `ignoresCover` | Cancels the target's Benefit of Cover. |
+| **Benefit of Cover** | `benefitOfCover` (target) | +1 to armor save (never invuln). Doesn't apply to Sv 3+ vs AP 0. |
 | **Reroll 1s / Reroll Failed / Reroll Non-Crit** | `REROLL_VALUES` | Reroll policies for hit/wound/save rolls. |
+| **Weapons (count)** | `modelsFiring` | Number of weapons firing this profile. Each rolls its attack dice independently. |
 
 ## Wound roll table (closed form in `calculateWoundProbability`)
 | Strength vs Toughness | Wound on |
@@ -68,6 +75,8 @@ ANTI-X overrides this when the buff is better.
   to 10 000.
 
 ## Attack Simulator weapon stats
-Weapons currently use plain integers for Attacks and Damage (no random
-dice expressions). Random effects like `D3` damage or `D6+6` shots may be
-added later if needed.
+Attacks and Damage accept **dice expressions** parsed by `diceExpression.js`:
+plain integers (`4`, `12`), single dice (`D3`, `D6`), multiples (`2D6`, `3D3`),
+and optional flat modifiers (`D6+1`, `2D6-1`, `D3+3`). Plain values must be
+`>= 1`; `0`, `-1`, `D0`, and `0D6` are rejected. Damage is floored at 1 after
+all modifiers.

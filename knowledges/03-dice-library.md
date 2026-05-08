@@ -15,6 +15,29 @@ import { calculateHitProbability, simulateKillProbability } from '../lib/dice'
 ### `index.js`
 Re-exports everything below plus `export *` from `./options.js`.
 
+### `diceExpression.js`
+Tiny parser/evaluator for the dice expressions used by the Attack Simulator's
+`attacks` and `damage` fields.
+
+| Export | Signature | Returns |
+|---|---|---|
+| `parseDiceExpression(expr)` | parse | `{ count, sides, flat }` or `null` if invalid. |
+| `rollDiceExpr(parsed)` | roll | Integer result. `0` if `parsed` is null. |
+| `expectedDiceExpr(parsed)` | mean | `flat + count*(sides+1)/2`. |
+| `isValidDiceExpression(expr)` | bool | Thin wrapper over `parseDiceExpression`. |
+
+Supported forms (case-insensitive, whitespace trimmed): `4`, `12`, `D3`, `D6`,
+`2D6`, `3D3`, `D6+1`, `2D6-1`. Numeric inputs are also accepted (e.g. `4`).
+
+**Validation rules:**
+- Plain flat values (numeric or string-of-digits) must be `>= 1`. `0`, `-1`,
+  `'0'` are rejected.
+- `count >= 1` and `sides >= 1`. `D0` and `0D6` are rejected.
+- Anything that doesn't match the regex returns `null`.
+
+Damage is floored at 1 by `modifyDamage` in `attackSimulation.js`, so a roll
+of `D6-1 = 0` still deals 1 damage when delivered.
+
 ### `probability.js`
 Closed-form D6 math.
 
@@ -91,19 +114,37 @@ returns:
 - `perProfile` — per-target-profile breakdown
 - `numSimulations`, `totalModels`
 
+Weapons accept `attacks` and `damage` as **dice expressions** parsed by
+`diceExpression.js` (e.g. `4`, `D6`, `D3+3`, `2D6-1`). `modelsFiring` is the
+weapons-count multiplier — each weapon rolls its attack dice independently.
+
 Key rules implemented (see 08-glossary.md for vocabulary):
 - 10e wound-roll table from S vs T (`woundThresholdFromST`).
 - AP modifies armor save; the better of modified armor and invuln is used.
 - Critical roll **always succeeds** (per 10e); modifiers can change the
-  pass threshold but never the crit threshold.
-- Roll modifiers (±1) are clamped per the 10e cap (defense in depth: the
-  UI also enforces mutual exclusion among the wound-penalty toggles).
-- Lethal Hits: original critical hit auto-wounds (skips wound roll).
-- Sustained Hits 1 / 2: each crit hit produces N extra hits.
-- Devastating Wounds: each crit wound deals damage as mortal wounds
+  pass threshold but never the crit threshold. Crit detection always uses
+  the **unmodified** D6 (so e.g. +1 to Hit raises hit chance but not crit chance).
+- Roll modifiers (±1) are clamped per the 10e cap. `clampThreshold` floors
+  results at 2+ and ceilings them at 7+ — even an S=15 vs T=1 + Lance attack
+  still wounds on 2+ (and a natural 1 still always fails).
+- **+1 to Hit** (`plusOneHit`): -1 to the hit threshold, capped per the modifier rule.
+- **Lethal Hits**: original critical hit auto-wounds (skips wound roll).
+- **Sustained Hits 1 / 2**: each crit hit produces N extra hits.
+- **Devastating Wounds**: each crit wound deals damage as mortal wounds
   (skips save; FNP-vs-mortal applies if defined, else regular FNP).
-- ANTI-X+: critical wound on natural X+; wound threshold is also lowered
+- **ANTI-X+**: critical wound on natural X+; wound threshold is also lowered
   to X if better.
+- **Lance**: -1 to the wound threshold (treated as the bearer charging this turn).
+- **Blast**: +`floor(target_models / 5)` to every attack roll. The bonus is
+  snapshotted at the **start of each trial** (target-selection time), so it
+  doesn't shrink as earlier weapons in the same trial kill models.
+- **Critical Hit on x+** (`critHitEnabled` + `critHit`): override the crit
+  threshold for hit rolls (default 6). Always evaluated against unmodified D6.
+- **Ignores Cover** (`ignoresCover`): cancels Benefit of Cover for this weapon.
+- **Benefit of Cover** (target side): +1 to armor save, but never to invuln,
+  and never against AP 0 attacks on a Sv 3+ or better target. The 10e
+  "save can never be improved by more than +1" cap is implicit because BoC
+  is the only save modifier modeled.
 - Damage modifiers: HALF DAMAGE (`Math.ceil(d/2)`), DAMAGE −1 (min 1),
   DAMAGE = 1 (overrides). The UI keeps these mutually exclusive.
 - Per-attack overkill is capped at the model boundary (excess damage from

@@ -110,6 +110,12 @@ function TargetProfileCard({
           halfDamage: false,
           minusOneDamage: false
         })
+    },
+    {
+      key: 'benefitOfCover',
+      label: 'BENEFIT OF COVER',
+      active: profile.benefitOfCover,
+      onToggle: () => update({ benefitOfCover: !profile.benefitOfCover })
     }
   ]
 

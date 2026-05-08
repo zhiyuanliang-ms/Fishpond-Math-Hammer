@@ -3,8 +3,10 @@ import { FormSelect } from '../ui'
 import {
   toHitOptions,
   rerollOptions,
-  antiOptions
+  antiOptions,
+  critOptions
 } from '../../lib/dice/options'
+import { isValidDiceExpression } from '../../lib/dice'
 import BuffChipGroup from './BuffChipGroup'
 import IntInput from './IntInput'
 const sustainedOptions = [
@@ -31,6 +33,9 @@ function WeaponProfileCard({
 }) {
   const update = (patch) => onChange({ ...profile, ...patch })
 
+  const attacksValid = isValidDiceExpression(profile.attacks)
+  const damageValid = isValidDiceExpression(profile.damage)
+
 
   const buffs = [
     {
@@ -38,6 +43,27 @@ function WeaponProfileCard({
       label: 'LETHAL HITS',
       active: profile.lethalHits,
       onToggle: () => update({ lethalHits: !profile.lethalHits })
+    },
+    {
+      key: 'plusOneHit',
+      label: '+1 HIT',
+      active: profile.plusOneHit,
+      onToggle: () => update({ plusOneHit: !profile.plusOneHit })
+    },
+    {
+      key: 'ignoresCover',
+      label: 'IGNORES COVER',
+      active: profile.ignoresCover,
+      onToggle: () => update({ ignoresCover: !profile.ignoresCover })
+    },
+    {
+      key: 'critHit',
+      label: 'CRITICAL HIT',
+      active: profile.critHitEnabled,
+      onToggle: () => update({ critHitEnabled: !profile.critHitEnabled }),
+      value: profile.critHit?.toString() || '5',
+      valueOptions: critOptions,
+      onValueChange: (v) => update({ critHit: parseInt(v, 10) })
     },
     {
       key: 'sustainedHits',
@@ -54,6 +80,18 @@ function WeaponProfileCard({
       label: 'DEVASTATING',
       active: profile.devastatingWounds,
       onToggle: () => update({ devastatingWounds: !profile.devastatingWounds })
+    },
+    {
+      key: 'blast',
+      label: 'BLAST',
+      active: profile.blast,
+      onToggle: () => update({ blast: !profile.blast })
+    },
+    {
+      key: 'lance',
+      label: 'LANCE',
+      active: profile.lance,
+      onToggle: () => update({ lance: !profile.lance })
     },
     {
       key: 'anti',
@@ -96,12 +134,22 @@ function WeaponProfileCard({
 
       <div className="stat-line">
         <div className="stat-cell">
-          <label>Attacks</label>
+          <label>Weapons</label>
           <IntInput
             min={1}
             fallback={1}
+            value={profile.modelsFiring}
+            onChange={(n) => update({ modelsFiring: n })}
+          />
+        </div>
+        <div className="stat-cell">
+          <label>Attacks</label>
+          <input
+            type="text"
+            className={attacksValid ? '' : 'invalid'}
             value={profile.attacks}
-            onChange={(n) => update({ attacks: n })}
+            onChange={(e) => update({ attacks: e.target.value })}
+            placeholder="e.g. 4 or D6+1"
           />
         </div>
         <div className="stat-cell">
@@ -144,11 +192,12 @@ function WeaponProfileCard({
         </div>
         <div className="stat-cell">
           <label>Damage</label>
-          <IntInput
-            min={1}
-            fallback={1}
+          <input
+            type="text"
+            className={damageValid ? '' : 'invalid'}
             value={profile.damage}
-            onChange={(n) => update({ damage: n })}
+            onChange={(e) => update({ damage: e.target.value })}
+            placeholder="e.g. 1 or D3+3"
           />
         </div>
       </div>

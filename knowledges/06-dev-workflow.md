@@ -14,14 +14,17 @@
 | Dev server | `npm run dev` (defaults to `http://localhost:5173`) |
 | Dev server on LAN | `npm run dev -- --host` (use printed Network URL on phone) |
 | Lint | `npm run lint` |
+| Unit tests (one-shot) | `npm test` |
+| Unit tests (watch) | `npm run test:watch` |
 | Production build | `npm run build` |
 | Preview prod build | `npm run preview` |
 
 ## "Definition of done" for any change
 1. `npm run lint` → 0 errors, 0 warnings (we keep it clean).
-2. `npm run build` → succeeds (the chunk-size warning is pre-existing and OK).
-3. Smoke-check the affected page in dev (and at mobile width if CSS changed).
-4. Update the relevant doc under `knowledges/` if you changed architecture.
+2. `npm test` → all green (vitest, runs `src/lib/dice/__tests__/`).
+3. `npm run build` → succeeds (the chunk-size warning is pre-existing and OK).
+4. Smoke-check the affected page in dev (and at mobile width if CSS changed).
+5. Update the relevant doc under `knowledges/` if you changed architecture.
 
 PowerShell one-liner used in this project:
 ```powershell

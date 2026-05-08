@@ -33,13 +33,16 @@ src/
 │   ├── attackSimStorage.js      # localStorage helpers for Attack Simulator
 │   └── dice/                   # PURE LOGIC — see 03-dice-library.md
 │       ├── index.js            # Barrel export
+│       ├── constants.js        # DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES
 │       ├── probability.js      # D6 success / crit math
 │       ├── binomial.js         # binomialProbability + buildDistribution
 │       ├── woundDistribution.js# WoundSuccessCalculator-specific dist
 │       ├── simulation.js       # Monte Carlo kill simulation (single-weapon)
 │       ├── attackSimulation.js # Full unit-vs-unit Monte Carlo (Attack Simulator)
+│       ├── diceExpression.js   # Parse/roll dice expressions (4, D6, D3+3, 2D6-1)
 │       ├── killProbability.js  # Thin wrapper that parses form strings
-│       └── options.js          # react-select option arrays
+│       ├── options.js          # react-select option arrays
+│       └── __tests__/          # Vitest unit tests for the pure logic
 ├── components/
 │   ├── ui/                     # SHARED UI — see 04-ui-components.md
 │   │   ├── index.js            # Barrel export

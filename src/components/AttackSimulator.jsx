@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Download, Upload, Save, Trash2 } from 'lucide-react'
-import { simulateAttack } from '../lib/dice'
+import { simulateAttack, isValidDiceExpression } from '../lib/dice'
 import {
   loadScenario,
   saveScenario,
@@ -28,19 +28,24 @@ const makeWeapon = (overrides = {}) => ({
   id: uid(),
   name: '',
   modelsFiring: 1,
-  attacks: 4,
+  attacks: '4',
   strength: 4,
   toHit: 3,
   ap: 1,
-  damage: 1,
+  damage: '1',
   hitReroll: 'no-reroll',
   woundReroll: 'no-reroll',
-  critHit: 6,
+  critHitEnabled: false,
+  critHit: 5,
   critWound: 6,
   torrent: false,
   lethalHits: false,
   sustainedHits: 'off',
   devastatingWounds: false,
+  lance: false,
+  blast: false,
+  plusOneHit: false,
+  ignoresCover: false,
   antiEnabled: false,
   antiValue: 4,
   ...overrides
@@ -63,6 +68,7 @@ const makeTarget = (overrides = {}) => ({
   halfDamage: false,
   minusOneDamage: false,
   damageOne: false,
+  benefitOfCover: false,
   ...overrides
 })
 
@@ -95,8 +101,11 @@ const isThreshold = (v) => Number.isInteger(v) && v >= 2 && v <= 6
 
 const validateWeaponShape = (w) => {
   if (!w || typeof w !== 'object') return 'not an object'
-  if (!isPosInt(w.attacks)) return `invalid attacks ${JSON.stringify(w.attacks)}`
-  if (typeof w.damage !== 'number' || !Number.isInteger(w.damage) || w.damage < 1)
+  // Accept either a dice-expression string ("4", "D6+1", ...) or a plain
+  // number (legacy / interop with externally-generated JSON).
+  if (!isValidDiceExpression(w.attacks))
+    return `invalid attacks ${JSON.stringify(w.attacks)}`
+  if (!isValidDiceExpression(w.damage))
     return `invalid damage ${JSON.stringify(w.damage)}`
   if (!isPosInt(w.strength)) return `invalid strength ${w.strength}`
   if (!isThreshold(w.toHit)) return `invalid toHit ${w.toHit}`
@@ -348,11 +357,11 @@ function AttackSimulator() {
 
     // basic validation
     for (const w of weapons) {
-      if (!Number.isInteger(w.attacks) || w.attacks < 1) {
+      if (!isValidDiceExpression(w.attacks)) {
         setError(`Weapon "${w.name || 'unnamed'}" has invalid Attacks "${w.attacks}".`)
         return
       }
-      if (!Number.isInteger(w.damage) || w.damage < 1) {
+      if (!isValidDiceExpression(w.damage)) {
         setError(`Weapon "${w.name || 'unnamed'}" has invalid Damage "${w.damage}".`)
         return
       }
@@ -509,13 +518,15 @@ function AttackSimulator() {
         <section className="attack-sim-results">
           <h2 className="results-heading">Results</h2>
           <StatGrid>
-            <StatCard
-              label="Expected Models Killed"
-              value={result.expectedKills.toFixed(2)}
-              stdDev={result.expectedKillsStdDev.toFixed(2)}
-              ciLow={result.expectedKillsCILow.toFixed(2)}
-              ciHigh={result.expectedKillsCIHigh.toFixed(2)}
-            />
+            {!(targets.length === 1 && targets[0].models === 1) && (
+              <StatCard
+                label="Expected Models Killed"
+                value={result.expectedKills.toFixed(2)}
+                stdDev={result.expectedKillsStdDev.toFixed(2)}
+                ciLow={result.expectedKillsCILow.toFixed(2)}
+                ciHigh={result.expectedKillsCIHigh.toFixed(2)}
+              />
+            )}
             {targets.length === 1 && targets[0].models === 1 && (
               <StatCard
                 label="Expected Damage Dealt"
