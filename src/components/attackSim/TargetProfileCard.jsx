@@ -52,13 +52,13 @@ function TargetProfileCard({
     },
     {
       key: 'minusOneToHit',
-      label: '−1 TO HIT',
+      label: '−1 HIT',
       active: profile.minusOneToHit,
       onToggle: () => update({ minusOneToHit: !profile.minusOneToHit })
     },
     {
       key: 'minusOneToWound',
-      label: '−1 TO WOUND',
+      label: '−1 WOUND',
       active: profile.minusOneToWound,
       onToggle: () =>
         update({
@@ -148,8 +148,11 @@ function TargetProfileCard({
       </div>
 
       <div className="stat-line">
-        <div className="stat-cell">
-          <label>Models</label>
+        <div
+          className="stat-cell"
+          title="Number of models in the target unit with this profile (used for Blast and to decide when the unit is wiped)."
+        >
+          <label># of Models</label>
           <IntInput
             min={1}
             max={50}

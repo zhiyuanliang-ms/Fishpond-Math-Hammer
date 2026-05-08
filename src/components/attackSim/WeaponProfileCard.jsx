@@ -67,7 +67,7 @@ function WeaponProfileCard({
     },
     {
       key: 'sustainedHits',
-      label: 'SUSTAINED',
+      label: 'SUSTAINED HITS',
       active: profile.sustainedHits && profile.sustainedHits !== 'off',
       onToggle: () =>
         update({ sustainedHits: profile.sustainedHits && profile.sustainedHits !== 'off' ? 'off' : '1' }),
@@ -77,7 +77,7 @@ function WeaponProfileCard({
     },
     {
       key: 'devastating',
-      label: 'DEVASTATING',
+      label: 'DEVASTATING WOUNDS',
       active: profile.devastatingWounds,
       onToggle: () => update({ devastatingWounds: !profile.devastatingWounds })
     },
@@ -133,8 +133,11 @@ function WeaponProfileCard({
       </div>
 
       <div className="stat-line">
-        <div className="stat-cell">
-          <label>Weapons</label>
+        <div
+          className="stat-cell"
+          title="Number of weapons firing this profile (e.g. 5 bolters in a squad). Each weapon rolls its Attacks separately."
+        >
+          <label># of Weapons</label>
           <IntInput
             min={1}
             fallback={1}
