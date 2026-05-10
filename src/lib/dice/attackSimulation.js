@@ -10,6 +10,15 @@
 // receive damage in user-defined order: each profile's models are killed off
 // (a wounded model takes successive damage until destroyed) before moving on.
 // Excess damage from a single attack does NOT spill across models (40k rule).
+//
+// Devastating Wounds: per the 10e core rule, DW attacks (i.e. a critical wound
+// rolled on a [DEVASTATING WOUNDS] weapon) are *only allocated to models after
+// all other attacks made by the attacking unit have been allocated and
+// resolved*. They then inflict mortal wounds equal to the attack's Damage
+// characteristic, and — like Hazardous mortals — do NOT spill over to
+// another model when the model they are allocated to is destroyed (excess is
+// lost). We model this by buffering DW damage rolls during the per-weapon
+// loop and draining them once all weapons in `weapons[]` have resolved.
 
 import { DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES } from './constants'
 import { parseDiceExpression, rollDiceExpr } from './diceExpression'
@@ -123,7 +132,7 @@ const modifyDamage = (rawDamage, halfDamage, minusOneDamage, damageOne) => {
 
 // ---- single-trial attack resolution ----------------------------------------
 
-const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels) => {
+const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDevWounds) => {
   const attacksParsed = parseDiceExpression(weapon.attacks)
   const damageParsed = parseDiceExpression(weapon.damage)
   if (!attacksParsed || !damageParsed) return 0
@@ -211,10 +220,12 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels) => {
       }
 
       // 2b. Devastating Wounds: critical wound deals damage as mortal wounds,
-      // skipping the save. FNP-vs-mortal applies if defined; otherwise normal FNP.
+      // skipping the save. Per 10e RAW these attacks are deferred until all
+      // other attacks made by the attacking unit have been resolved — we just
+      // roll the damage now and queue it; allocation happens after the weapon
+      // loop in `simulateAttack`.
       if (woundIsCrit && weapon.devastatingWounds) {
-        const dmg = modifyDamage(rollDiceExpr(damageParsed), t.halfDamage, t.minusOneDamage, t.damageOne)
-        damageDealt += applyDamageToUnit(unitState, dmg, true)
+        deferredDevWounds.push(rollDiceExpr(damageParsed))
         continue
       }
 
@@ -276,9 +287,22 @@ export const simulateAttack = (weapons, targetProfiles, numSimulations = DEFAULT
     const blastBaseModels = totalModels
 
     let damageThisTrial = 0
+    // Devastating Wounds attacks are buffered here and resolved AFTER all
+    // weapons (the "attacking unit") have fired, per 10e RAW.
+    const deferredDevWounds = []
     for (const w of weapons) {
       if (state.activeProfile >= state.profiles.length) break
-      damageThisTrial += resolveWeaponAgainstUnit(w, state, blastBaseModels)
+      damageThisTrial += resolveWeaponAgainstUnit(w, state, blastBaseModels, deferredDevWounds)
+    }
+
+    // Drain deferred DW attacks. Each one inflicts mortal wounds equal to its
+    // (already-rolled) Damage characteristic, modified by the active target
+    // profile's defensive damage modifiers, and does NOT spill across models.
+    for (const rawDmg of deferredDevWounds) {
+      if (state.activeProfile >= state.profiles.length) break
+      const t = state.profiles[state.activeProfile]
+      const dmg = modifyDamage(rawDmg, t.halfDamage, t.minusOneDamage, t.damageOne)
+      damageThisTrial += applyDamageToUnit(state, dmg, true)
     }
 
     let killsTotal = 0

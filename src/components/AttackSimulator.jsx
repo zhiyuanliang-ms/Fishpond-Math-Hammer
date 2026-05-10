@@ -16,7 +16,8 @@ import {
   saveNamedTargetSet,
   loadNamedTargetSet,
   deleteNamedTargetSet,
-  clearAllAttackSimStorage
+  clearAllAttackSimStorage,
+  StorageQuotaError
 } from '../lib/attackSimStorage'
 import {
   Page,
@@ -288,11 +289,23 @@ function AttackSimulator() {
     if (savedNames.includes(trimmed) && trimmed !== selectedSlot) {
       if (!window.confirm(`"${trimmed}" already exists. Overwrite?`)) return
     }
-    const ok = saveNamedScenario(trimmed, {
-      weapons: weapons.map(stripId),
-      targets: targets.map(stripId),
-      highPrecision
-    })
+    let ok
+    try {
+      ok = saveNamedScenario(trimmed, {
+        weapons: weapons.map(stripId),
+        targets: targets.map(stripId),
+        highPrecision
+      })
+    } catch (err) {
+      if (err instanceof StorageQuotaError) {
+        setToast({
+          kind: 'error',
+          message: 'Browser storage is full. Delete some saved scenarios / sets and try again.'
+        })
+        return
+      }
+      throw err
+    }
     if (ok) {
       refreshSavedNames()
       setSelectedSlot(trimmed)
@@ -340,7 +353,20 @@ function AttackSimulator() {
     if (savedWeaponSets.includes(trimmed) && trimmed !== selectedWeaponSet) {
       if (!window.confirm(`Attacker set "${trimmed}" already exists. Overwrite?`)) return
     }
-    if (saveNamedWeaponSet(trimmed, weapons.map(stripId))) {
+    let ok
+    try {
+      ok = saveNamedWeaponSet(trimmed, weapons.map(stripId))
+    } catch (err) {
+      if (err instanceof StorageQuotaError) {
+        setToast({
+          kind: 'error',
+          message: 'Browser storage is full. Delete some saved scenarios / sets and try again.'
+        })
+        return
+      }
+      throw err
+    }
+    if (ok) {
       refreshWeaponSets()
       setSelectedWeaponSet(trimmed)
       setToast({ kind: 'success', message: `Saved attacker set "${trimmed}".` })
@@ -392,7 +418,20 @@ function AttackSimulator() {
     if (savedTargetSets.includes(trimmed) && trimmed !== selectedTargetSet) {
       if (!window.confirm(`Defender set "${trimmed}" already exists. Overwrite?`)) return
     }
-    if (saveNamedTargetSet(trimmed, targets.map(stripId))) {
+    let ok
+    try {
+      ok = saveNamedTargetSet(trimmed, targets.map(stripId))
+    } catch (err) {
+      if (err instanceof StorageQuotaError) {
+        setToast({
+          kind: 'error',
+          message: 'Browser storage is full. Delete some saved scenarios / sets and try again.'
+        })
+        return
+      }
+      throw err
+    }
+    if (ok) {
       refreshTargetSets()
       setSelectedTargetSet(trimmed)
       setToast({ kind: 'success', message: `Saved defender set "${trimmed}".` })

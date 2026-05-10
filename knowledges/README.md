@@ -11,6 +11,7 @@ over this project. Read these in order:
 6. [`06-dev-workflow.md`](./06-dev-workflow.md) — commands, lint/build, branching, common pitfalls.
 7. [`07-extending-the-app.md`](./07-extending-the-app.md) — recipes for adding a new calculator, page, or stat card.
 8. [`08-glossary.md`](./08-glossary.md) — Warhammer 40k terminology used in the code (BS/WS, AP, FNP, etc.).
+9. [`09-attack-rules-10e.md`](./09-attack-rules-10e.md) — **rules-first** reference for the 10e attack-dice sequence with verified RAW quotes. Read this before editing `attackSimulation.js`.
 
 ## Golden rules (read first)
 

@@ -16,6 +16,10 @@ For each attack:
    doesn't (excess damage on a model is wasted). The kill simulation models
    this correctly.
 
+> For a full RAW-quoted reference of every step, modifier, and edge
+> case (Devastating Wounds deferral, Anti-X+, modifier caps, etc.) see
+> [`09-attack-rules-10e.md`](./09-attack-rules-10e.md).
+
 ## Stats
 | Term | Code name | Meaning |
 |---|---|---|

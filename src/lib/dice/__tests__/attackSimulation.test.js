@@ -391,3 +391,123 @@ describe('simulateAttack — single-model wipe equals expected kills', () => {
     expect(Math.abs(r.expectedKills - r.wipeProbability / 100)).toBeLessThan(1e-9)
   })
 })
+
+describe('simulateAttack — Devastating Wounds (10e RAW)', () => {
+  // Per the 10e core rule, a [DEVASTATING WOUNDS] critical wound inflicts
+  // mortal wounds equal to the attack's Damage characteristic, AND those
+  // mortal wounds do not spill across models if the model they are
+  // allocated to is destroyed (excess is lost). Furthermore, DW attacks
+  // are only allocated AFTER all other attacks made by the attacking unit
+  // have been resolved.
+
+  it('mortal wounds from a Devastating Wound do not spill across models', () => {
+    // 100 attacks, torrent (auto-hit), Anti-Infantry 2+ → every wound roll of
+    // 2-6 is a Critical Wound (only nat 1 fails ≈ 5/6 wound rate). DW on,
+    // damage = 10. Target = 100 single-wound models, no save.
+    //
+    // With no-spill enforced: each successful crit kills exactly ONE model
+    // (9 mortals are wasted). Expected kills ≈ 100 * 5/6 ≈ 83.3.
+    // If spill were (incorrectly) allowed, each crit's 10 mortals would
+    // wipe ~10 models, easily wiping the unit (≈100 kills).
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '100',
+        torrent: true,
+        antiEnabled: true,
+        antiValue: 2,
+        devastatingWounds: true,
+        damage: '10'
+      })],
+      [baseTarget({ models: 100, wounds: 1, save: 7 })],
+      2000
+    )
+    expect(r.expectedKills).toBeGreaterThan(75)
+    expect(r.expectedKills).toBeLessThan(92)
+    // And expected damage tracks kills (since W=1, each kill is exactly 1
+    // damage point). If spill leaked, expected damage would be ~10x kills.
+    expect(r.expectedDamage / r.expectedKills).toBeLessThan(1.05)
+  })
+
+  it('mortal wounds from a Devastating Wound do not spill across multi-wound models', () => {
+    // Single DW attack with damage = 5 vs 1-model unit with W=2.
+    // Auto-hit, anti 2+ ⇒ ~5/6 wound chance, all wounds are crits ⇒ DW.
+    // No-spill rule: at most 2 damage per attack (the model's W). Excess
+    // 3 mortals are lost — they cannot bleed onto a different model… but
+    // here the unit has only 1 model anyway, so the meaningful assertion
+    // is that expected damage ≤ 2 (not 5).
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '1',
+        torrent: true,
+        antiEnabled: true,
+        antiValue: 2,
+        devastatingWounds: true,
+        damage: '5'
+      })],
+      [baseTarget({ models: 1, wounds: 2, save: 7 })],
+      5000
+    )
+    // Per attack: 5/6 chance to wound and kill (capped at 2 dmg). So
+    // expectedDamage ≈ 5/6 * 2 ≈ 1.667. Without the cap it would be
+    // 5/6 * 5 ≈ 4.167.
+    expect(r.expectedDamage).toBeGreaterThan(1.4)
+    expect(r.expectedDamage).toBeLessThan(1.9)
+  })
+
+  it('Devastating Wounds attacks are deferred until after all other weapons resolve', () => {
+    // Setup: target = 2 models with W=2 each, no save.
+    // List order = [DW weapon (D=2), normal weapon (D=1)] — DW is FIRST in
+    // the user-supplied list. Both weapons auto-hit (torrent) and auto-
+    // wound on 2+ via anti-2+ (5/6 wound rate per attack).
+    //
+    // Per RAW the DW attack must resolve LAST. So the normal D=1 attack
+    // hits model A first (leaving A with 1 W), then the DW D=2 mortal
+    // attack must allocate to the wounded model A (kills it, 1 mortal
+    // lost — does NOT carry to model B).
+    //
+    //   Both succeed (25/36): normal → A:1W left; DW → A dies, 1 lost.
+    //                         Total damage = 2, kills = 1.
+    //   Normal only  (5/36):  A:1W left.        Total dmg = 1, kills = 0.
+    //   DW only      (5/36):  A dies (2 mortal). Total dmg = 2, kills = 1.
+    //   Neither      (1/36):  Total dmg = 0, kills = 0.
+    //   Expected damage (deferred) = (50 + 5 + 10 + 0)/36 = 65/36 ≈ 1.806
+    //
+    // If DW were resolved INLINE in list order (the bug): DW fires first
+    // and kills model A clean; normal then hits FRESH model B for 1 dmg.
+    //   Both succeed: dmg = 3, kills = 1.
+    //   Expected damage (inline buggy) = (75 + 10 + 5 + 0)/36 = 90/36 = 2.5
+    //
+    // The 0.7 gap is large enough to detect with 5000 trials.
+    const dwWeapon = baseWeapon({
+      attacks: '1',
+      torrent: true,
+      antiEnabled: true,
+      antiValue: 2,
+      devastatingWounds: true,
+      damage: '2'
+    })
+    const normalWeapon = baseWeapon({
+      attacks: '1',
+      torrent: true,
+      antiEnabled: true,
+      antiValue: 2,
+      devastatingWounds: false,
+      damage: '1'
+    })
+    const r = simulateAttack(
+      [dwWeapon, normalWeapon],
+      [baseTarget({ models: 2, wounds: 2, save: 7 })],
+      5000
+    )
+    // Tight bound around the deferred expectation 1.806; well separated
+    // from the buggy inline expectation 2.5.
+    expect(r.expectedDamage).toBeGreaterThan(1.65)
+    expect(r.expectedDamage).toBeLessThan(2.0)
+    // Expected kills under deferred semantics: P(both succeed) + P(DW only)
+    //   = 25/36 + 5/36 = 30/36 ≈ 0.833.
+    // Under buggy inline they would be the same (1 kill in 30/36 cases),
+    // so this assertion is a sanity check, not the discriminator.
+    expect(r.expectedKills).toBeGreaterThan(0.78)
+    expect(r.expectedKills).toBeLessThan(0.88)
+  })
+})

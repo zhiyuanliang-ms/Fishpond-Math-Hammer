@@ -115,3 +115,40 @@ enough for `ui/`, put it in a same-named subfolder (`<page>Sim/`,
 while staying out of the shared `ui/` namespace. `ProfileCardShell.jsx` and
 `SavedSetControls.jsx` are good examples: reused inside the Attack Simulator,
 but still too page-specific for the app-wide `ui/` layer.
+
+## Persistence layer (`src/lib/attackSimStorage.js`)
+
+The Attack Simulator persists four things to **`localStorage`**:
+
+| Key | Shape | Purpose |
+|---|---|---|
+| `attackSim:scenario:v1` | `{ weapons, targets, highPrecision }` | Auto-saved current scenario (debounced 300 ms). |
+| `attackSim:library:v1` | `{ [name]: scenario }` | Named scenario slots ("Save As…"). |
+| `attackSim:weaponSets:v1` | `{ [name]: { weapons } }` | Reusable attacker profile sets. |
+| `attackSim:targetSets:v1` | `{ [name]: { targets } }` | Reusable defender profile sets. |
+
+### Why `localStorage` (and not IndexedDB)
+The data is small and the API needs to be **synchronous** so React's lazy
+`useState` initializers can read it during the first render with no
+hydration / loading state. Sizing budget for the 5 MB per-origin quota
+(Safari / iOS being the tightest):
+
+- Single weapon JSON ≈ 280–400 B; single target ≈ 230–310 B.
+- Typical scenario (5 weapons + 3 targets) ≈ 3 KB → **~1,600** fit in 5 MB.
+- Big scenario (20 weapons + 10 targets) ≈ 11 KB → **~450** fit in 5 MB.
+- Pure attacker-set library: **~2,500** sets fit in 5 MB.
+
+Realistic users save tens, not thousands, of slots, so localStorage is
+~2–3 orders of magnitude away from being a constraint. The cost of
+switching to IndexedDB (async API, hydration sequencing, more code) is
+not justified.
+
+### Quota handling
+Writes from the explicit "Save As…" / "Save attacker set…" / "Save defender
+set…" handlers re-throw browser `QuotaExceededError` as
+`StorageQuotaError`, which the UI catches and surfaces as a toast
+(*"Browser storage is full…"*). The debounced auto-save swallows it
+silently — the user already sees the error on their explicit action, and
+the on-screen scenario remains intact. Disabled-storage / private-mode
+failures (anything other than quota) are also swallowed silently, so
+the app degrades gracefully to a non-persistent session.

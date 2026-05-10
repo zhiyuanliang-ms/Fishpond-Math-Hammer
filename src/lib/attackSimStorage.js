@@ -1,6 +1,13 @@
 // Tiny localStorage helpers for the Attack Simulator. Wrapped in try/catch
 // so a disabled-storage browser (private mode quotas, etc.) doesn't crash
 // the app — it just falls back to non-persistent behaviour.
+//
+// Quota: see knowledges/02-architecture.md for the sizing analysis. The
+// data we store is small (single scenario ≈ 1–10 KB JSON), so the 5 MB
+// per-origin localStorage budget realistically holds hundreds-to-thousands
+// of saved scenarios. The only failure mode worth surfacing is
+// `QuotaExceededError`, which we re-throw as a `StorageQuotaError` so the
+// explicit "Save As…" handlers can show a toast.
 
 const KEY_CURRENT = 'attackSim:scenario:v1'
 const KEY_LIBRARY = 'attackSim:library:v1'
@@ -16,6 +23,36 @@ export const ATTACK_SIM_STORAGE_KEYS = [
   KEY_TARGET_SETS
 ]
 
+export class StorageQuotaError extends Error {
+  constructor(message = 'Browser storage quota exceeded.') {
+    super(message)
+    this.name = 'StorageQuotaError'
+  }
+}
+
+// QuotaExceededError detection across browsers. Modern browsers throw a
+// DOMException with name 'QuotaExceededError'; older Firefox uses code 1014.
+const isQuotaError = (e) =>
+  e && (
+    e.name === 'QuotaExceededError' ||
+    e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    e.code === 22 ||
+    e.code === 1014
+  )
+
+// Centralized write. Returns true on success. Re-throws StorageQuotaError
+// on quota failures so callers can surface a user-facing message; silently
+// returns false on every other failure (storage disabled, etc.).
+const writeKey = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+    return true
+  } catch (e) {
+    if (isQuotaError(e)) throw new StorageQuotaError()
+    return false
+  }
+}
+
 // ---- "current scenario" auto-save ------------------------------------------
 
 export const loadScenario = () => {
@@ -29,8 +66,11 @@ export const loadScenario = () => {
 }
 
 export const saveScenario = (data) => {
+  // Auto-save: ignore everything, including quota errors. Quota errors on
+  // the auto-save are unlikely to happen before the user hits one on a
+  // "Save As…" / "Save attacker set…" action, where we *do* surface them.
   try {
-    localStorage.setItem(KEY_CURRENT, JSON.stringify(data))
+    writeKey(KEY_CURRENT, data)
   } catch {
     /* ignore */
   }
@@ -58,13 +98,8 @@ const readLibrary = () => {
   }
 }
 
-const writeLibrary = (lib) => {
-  try {
-    localStorage.setItem(KEY_LIBRARY, JSON.stringify(lib))
-  } catch {
-    /* ignore */
-  }
-}
+// Re-throws StorageQuotaError on quota failure (caller surfaces a toast).
+const writeLibrary = (lib) => writeKey(KEY_LIBRARY, lib)
 
 export const listSavedScenarios = () => {
   const lib = readLibrary()
@@ -108,13 +143,8 @@ const readCollection = (key) => {
   }
 }
 
-const writeCollection = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    /* ignore */
-  }
-}
+// Re-throws StorageQuotaError on quota failure (caller surfaces a toast).
+const writeCollection = (key, value) => writeKey(key, value)
 
 const listCollection = (key) =>
   Object.keys(readCollection(key)).sort((a, b) => a.localeCompare(b))
