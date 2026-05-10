@@ -50,16 +50,6 @@
   flex: 0 1 auto;
 }
 
-.attacks-input-row {
-  gap: 16px;
-}
-
-.hit-section {
-  width: 100%;
-  display: flex;
-  gap: 16px;
-}
-
 .hit-buff-section {
   width: 100%;
   display: flex;
@@ -95,26 +85,9 @@
   gap: 8px;
 }
 
-.attacks-input-row {
-  display: flex;
-  align-items: center;
-}
-
-.num-attacks-row .form-group label {
-  display: none;
-}
-
-.num-attacks-row .form-group.damage-field label {
-  display: block;
-}
-
 .form-group--reroll {
   min-width: 203px;
   margin-left: auto;
-}
-
-.sustained-hit-input.hidden {
-  display: none;
 }
 
 .form-checkbox {
@@ -152,23 +125,6 @@
 
 .anti-wounds-select.hidden {
   display: none;
-}
-
-.calculate-button {
-  padding: 12px 24px;
-  background: #fbbf24;
-  color: #1a1a1a;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  align-self: flex-start;
-}
-
-.calculate-button:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .result-stats {
@@ -250,19 +206,6 @@
   text-transform: uppercase;
 }
 
-.defense-section {
-  width: 100%;
-}
-
-.defense-section h3 {
-  color: #fbbf24;
-  font-size: 14px;
-  margin: 0;
-  padding: 8px 0;
-  border-bottom: 1px solid #4a4a4a;
-  text-transform: uppercase;
-}
-
 .defense-checkbox-group {
   display: flex;
   gap: 12px;
@@ -272,11 +215,6 @@
 
 .defense-checkbox-group .form-checkbox {
   flex-shrink: 0;
-}
-
-.defense-checkbox-group .select-container {
-  flex: 1;
-  min-width: 0;
 }
 
 .defense-select.disabled {
@@ -376,11 +314,6 @@
   .form-group {
     min-width: 0;
     width: 100%;
-  }
-
-  .attacks-input-row {
-    flex-wrap: wrap;
-    gap: 12px;
   }
 
   .checkbox-group {

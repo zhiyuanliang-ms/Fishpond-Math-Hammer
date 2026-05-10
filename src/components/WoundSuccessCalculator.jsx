@@ -22,10 +22,14 @@ import {
 
 const Z_95 = 1.96
 
+// To-Hit options with an extra "Torrent" entry tacked on the end. Picking
+// "Torrent" auto-hits every attack and hides the rest of the hit-roll inputs.
+const TORRENT_OPTION = { value: 'torrent', label: 'Torrent' }
+const toHitWithTorrentOptions = [...toHitOptions, TORRENT_OPTION]
+
 function WoundSuccessCalculator() {
   // Hit Roll State
   const [numDice, setNumDice] = useState('20')
-  const [torrent, setTorrent] = useState(false)
   const [toHit, setToHit] = useState({ value: '3', label: '3+' })
   const [hitReroll, setHitReroll] = useState({ value: 'no-reroll', label: 'No Reroll' })
   const [sustainedHit, setSustainedHit] = useState(false)
@@ -42,6 +46,8 @@ function WoundSuccessCalculator() {
 
   const [result, setResult] = useState(null)
 
+  const torrent = toHit.value === 'torrent'
+
   const handleCalculate = (e) => {
     e.preventDefault()
 
@@ -53,8 +59,9 @@ function WoundSuccessCalculator() {
       return
     }
 
-    const { hitChance: baseHitChance, criticalChance: baseCriticalChance } =
-      calculateHitProbability(toHit.value, hitReroll.value, crit.value)
+    const { hitChance: baseHitChance, criticalChance: baseCriticalChance } = torrent
+      ? { hitChance: 1, criticalChance: 0 }
+      : calculateHitProbability(toHit.value, hitReroll.value, crit.value)
 
     // If torrent is enabled, all attacks auto-hit
     const hitChance = torrent ? 1 : baseHitChance
@@ -180,37 +187,29 @@ function WoundSuccessCalculator() {
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="numDice">Number of Attacks</label>
-          <div className="attacks-input-row">
-            <input
-              type="number"
-              id="numDice"
-              min="1"
-              max="100"
-              value={numDice}
-              onChange={(e) => setNumDice(e.target.value)}
-            />
-            <LabeledCheckbox
-              id="torrent"
-              label="TORRENT"
-              checked={torrent}
-              onChange={setTorrent}
-            />
-          </div>
+          <input
+            type="number"
+            id="numDice"
+            min="1"
+            max="100"
+            value={numDice}
+            onChange={(e) => setNumDice(e.target.value)}
+          />
         </div>
       </div>
 
-      {!torrent && (
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="toHit">To Hit</label>
-            <FormSelect
-              inputId="toHit"
-              options={toHitOptions}
-              value={toHit}
-              onChange={setToHit}
-            />
-          </div>
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="toHit">To Hit</label>
+          <FormSelect
+            inputId="toHit"
+            options={toHitWithTorrentOptions}
+            value={toHit}
+            onChange={setToHit}
+          />
+        </div>
 
+        {!torrent && (
           <div className="form-group form-group--reroll">
             <label htmlFor="hitReroll">Reroll</label>
             <FormSelect
@@ -220,8 +219,8 @@ function WoundSuccessCalculator() {
               onChange={setHitReroll}
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {!torrent && (
         <div>

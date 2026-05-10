@@ -102,7 +102,6 @@ input[type="number"].small-input:disabled {
 
 /* Buff/Checkbox labels */
 .form-checkbox label,
-label[for="torrent"],
 label[for="lethalHit"],
 label[for="sustainedHit"],
 label[for="devastatingWounds"],
@@ -113,4 +112,33 @@ label[for="fnpEnabled"] {
   font-weight: 500;
   cursor: pointer;
   margin: 0;
+}
+
+/* ============================================================
+ * Shared primary action button. Used by every calculator/sim
+ * "Calculate" / "Run" / "Roll" submit button. Page-level CSS may
+ * extend it (e.g. .attack-sim-form .calculate-button overrides
+ * weight + spacing) but should not redeclare the base look.
+ * ============================================================ */
+.calculate-button {
+  padding: 12px 24px;
+  background: #fbbf24;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  align-self: flex-start;
+}
+
+.calculate-button:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.calculate-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }

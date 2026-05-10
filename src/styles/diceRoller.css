@@ -44,12 +44,6 @@
   color: #fbbf24;
 }
 
-.calculate-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
 /* Result panels share the stat-card / chart-container look. */
 .dice-result-section {
   padding: 20px;
@@ -77,16 +71,6 @@
   color: #fff;
   font-size: 16px;
   margin: 0;
-}
-
-.dice-roll-summary {
-  color: #a0a0a0;
-  font-size: 13px;
-}
-
-.dice-roll-summary em {
-  color: #fbbf24;
-  font-style: normal;
 }
 
 /* The actual dice tray. 20 dice per row, scaled to fit container width. */
@@ -184,10 +168,6 @@
   font-size: 28px;
   line-height: 1;
   color: #fbbf24;
-}
-
-.face-name {
-  display: none;
 }
 
 .face-count-value {

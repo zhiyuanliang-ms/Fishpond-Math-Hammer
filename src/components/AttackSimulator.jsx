@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Download, Upload, Save, Trash2 } from 'lucide-react'
+import { Download, Upload, Save, Trash2, Eraser } from 'lucide-react'
 import { simulateAttack, isValidDiceExpression } from '../lib/dice'
 import {
   loadScenario,
@@ -7,7 +7,16 @@ import {
   listSavedScenarios,
   saveNamedScenario,
   loadNamedScenario,
-  deleteNamedScenario
+  deleteNamedScenario,
+  listSavedWeaponSets,
+  saveNamedWeaponSet,
+  loadNamedWeaponSet,
+  deleteNamedWeaponSet,
+  listSavedTargetSets,
+  saveNamedTargetSet,
+  loadNamedTargetSet,
+  deleteNamedTargetSet,
+  clearAllAttackSimStorage
 } from '../lib/attackSimStorage'
 import {
   Page,
@@ -162,6 +171,10 @@ function AttackSimulator() {
   const [toast, setToast] = useState(null)
   const [savedNames, setSavedNames] = useState(() => listSavedScenarios())
   const [selectedSlot, setSelectedSlot] = useState('')
+  const [savedWeaponSets, setSavedWeaponSets] = useState(() => listSavedWeaponSets())
+  const [selectedWeaponSet, setSelectedWeaponSet] = useState('')
+  const [savedTargetSets, setSavedTargetSets] = useState(() => listSavedTargetSets())
+  const [selectedTargetSet, setSelectedTargetSet] = useState('')
   const [isMobile] = useState(detectMobile)
   const fileInputRef = useRef(null)
 
@@ -305,6 +318,128 @@ function AttackSimulator() {
     setToast({ kind: 'success', message: `Deleted "${selectedSlot}".` })
   }
 
+  // ---- attacker profile sets (saved weapon lists) ----
+  const refreshWeaponSets = () => setSavedWeaponSets(listSavedWeaponSets())
+
+  const handleSaveWeaponSet = () => {
+    const suggested = selectedWeaponSet || ''
+    const name = window.prompt('Save attacker profile set as:', suggested)
+    if (name === null) return
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setToast({ kind: 'error', message: 'Name cannot be empty.' })
+      return
+    }
+    if (savedWeaponSets.includes(trimmed) && trimmed !== selectedWeaponSet) {
+      if (!window.confirm(`Attacker set "${trimmed}" already exists. Overwrite?`)) return
+    }
+    if (saveNamedWeaponSet(trimmed, weapons.map(stripId))) {
+      refreshWeaponSets()
+      setSelectedWeaponSet(trimmed)
+      setToast({ kind: 'success', message: `Saved attacker set "${trimmed}".` })
+    }
+  }
+
+  const handleLoadWeaponSet = (name) => {
+    setSelectedWeaponSet(name)
+    if (!name) return
+    const data = loadNamedWeaponSet(name)
+    if (!data || !Array.isArray(data.weapons) || data.weapons.length === 0) {
+      setToast({ kind: 'error', message: `Could not load attacker set "${name}".` })
+      return
+    }
+    for (let i = 0; i < data.weapons.length; i++) {
+      const err = validateWeaponShape(data.weapons[i])
+      if (err) {
+        setToast({ kind: 'error', message: `Invalid attacker set: weapons[${i}] ${err}.` })
+        return
+      }
+    }
+    setWeapons(data.weapons.map(rehydrateWeapon))
+    setResult(null)
+    setError(null)
+    setToast({ kind: 'success', message: `Loaded attacker set "${name}".` })
+  }
+
+  const handleDeleteWeaponSet = () => {
+    if (!selectedWeaponSet) return
+    if (!window.confirm(`Delete saved attacker set "${selectedWeaponSet}"?`)) return
+    deleteNamedWeaponSet(selectedWeaponSet)
+    setSelectedWeaponSet('')
+    refreshWeaponSets()
+    setToast({ kind: 'success', message: `Deleted attacker set "${selectedWeaponSet}".` })
+  }
+
+  // ---- defender profile sets (saved target lists) ----
+  const refreshTargetSets = () => setSavedTargetSets(listSavedTargetSets())
+
+  const handleSaveTargetSet = () => {
+    const suggested = selectedTargetSet || ''
+    const name = window.prompt('Save defender profile set as:', suggested)
+    if (name === null) return
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setToast({ kind: 'error', message: 'Name cannot be empty.' })
+      return
+    }
+    if (savedTargetSets.includes(trimmed) && trimmed !== selectedTargetSet) {
+      if (!window.confirm(`Defender set "${trimmed}" already exists. Overwrite?`)) return
+    }
+    if (saveNamedTargetSet(trimmed, targets.map(stripId))) {
+      refreshTargetSets()
+      setSelectedTargetSet(trimmed)
+      setToast({ kind: 'success', message: `Saved defender set "${trimmed}".` })
+    }
+  }
+
+  const handleLoadTargetSet = (name) => {
+    setSelectedTargetSet(name)
+    if (!name) return
+    const data = loadNamedTargetSet(name)
+    if (!data || !Array.isArray(data.targets) || data.targets.length === 0) {
+      setToast({ kind: 'error', message: `Could not load defender set "${name}".` })
+      return
+    }
+    for (let i = 0; i < data.targets.length; i++) {
+      const err = validateTargetShape(data.targets[i])
+      if (err) {
+        setToast({ kind: 'error', message: `Invalid defender set: targets[${i}] ${err}.` })
+        return
+      }
+    }
+    setTargets(data.targets.map(rehydrateTarget))
+    setResult(null)
+    setError(null)
+    setToast({ kind: 'success', message: `Loaded defender set "${name}".` })
+  }
+
+  const handleDeleteTargetSet = () => {
+    if (!selectedTargetSet) return
+    if (!window.confirm(`Delete saved defender set "${selectedTargetSet}"?`)) return
+    deleteNamedTargetSet(selectedTargetSet)
+    setSelectedTargetSet('')
+    refreshTargetSets()
+    setToast({ kind: 'success', message: `Deleted defender set "${selectedTargetSet}".` })
+  }
+
+  // ---- nuke local storage ----
+  const handleClearStorage = () => {
+    const msg =
+      'Clear all Attack Simulator data from this browser?\n\n' +
+      'This deletes the auto-saved scenario, all saved scenarios, and all ' +
+      'saved attacker / defender profile sets. The current on-screen ' +
+      'profiles are kept until you reload.'
+    if (!window.confirm(msg)) return
+    clearAllAttackSimStorage()
+    setSavedNames([])
+    setSavedWeaponSets([])
+    setSavedTargetSets([])
+    setSelectedSlot('')
+    setSelectedWeaponSet('')
+    setSelectedTargetSet('')
+    setToast({ kind: 'success', message: 'Local storage cleared.' })
+  }
+
   const handleImportFile = async (e) => {
     const file = e.target.files?.[0]
     e.target.value = '' // allow re-importing the same file
@@ -389,43 +524,60 @@ function AttackSimulator() {
   return (
     <Page title="Attack Simulator">
       <div className="attack-sim-toolbar">
-        {!isMobile && (
-          <>
-            <button type="button" className="toolbar-button" onClick={handleImportClick}>
-              <Upload size={14} />
-              <span>Import</span>
-            </button>
-            <button type="button" className="toolbar-button" onClick={handleExport}>
-              <Download size={14} />
-              <span>Export</span>
-            </button>
-            <span className="toolbar-divider" aria-hidden="true" />
-          </>
-        )}
-        <select
-          className="toolbar-select"
-          value={selectedSlot}
-          onChange={(e) => handleLoadSlot(e.target.value)}
-          aria-label="Load saved scenario"
-        >
-          <option value="">— Saved scenarios —</option>
-          {savedNames.map((n) => (
-            <option key={n} value={n}>{n}</option>
-          ))}
-        </select>
-        <button type="button" className="toolbar-button" onClick={handleSaveAs}>
-          <Save size={14} />
-          <span>Save As…</span>
-        </button>
-        <button
-          type="button"
-          className="toolbar-button toolbar-button--danger"
-          onClick={handleDeleteSlot}
-          disabled={!selectedSlot}
-          title={selectedSlot ? `Delete "${selectedSlot}"` : 'Select a saved scenario to delete'}
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="toolbar-group" role="group" aria-label="Saved scenarios">
+          <span className="toolbar-group-label">Scenario</span>
+          <select
+            className="toolbar-select"
+            value={selectedSlot}
+            onChange={(e) => handleLoadSlot(e.target.value)}
+            aria-label="Load saved scenario"
+          >
+            <option value="">— Saved scenarios —</option>
+            {savedNames.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <button type="button" className="toolbar-button" onClick={handleSaveAs}>
+            <Save size={14} />
+            <span>Save As…</span>
+          </button>
+          <button
+            type="button"
+            className="toolbar-button toolbar-button--danger"
+            onClick={handleDeleteSlot}
+            disabled={!selectedSlot}
+            title={selectedSlot ? `Delete "${selectedSlot}"` : 'Select a saved scenario to delete'}
+            aria-label="Delete selected scenario"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+
+        <div className="toolbar-group" role="group" aria-label="Data">
+          <span className="toolbar-group-label">Data</span>
+          {!isMobile && (
+            <>
+              <button type="button" className="toolbar-button" onClick={handleImportClick}>
+                <Upload size={14} />
+                <span>Import</span>
+              </button>
+              <button type="button" className="toolbar-button" onClick={handleExport}>
+                <Download size={14} />
+                <span>Export</span>
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="toolbar-button toolbar-button--danger"
+            onClick={handleClearStorage}
+            title="Clear all Attack Simulator data from local storage"
+          >
+            <Eraser size={14} />
+            <span>Clear Storage</span>
+          </button>
+        </div>
+
         <input
           ref={fileInputRef}
           type="file"
@@ -433,12 +585,14 @@ function AttackSimulator() {
           onChange={handleImportFile}
           style={{ display: 'none' }}
         />
-        {toast && (
+      </div>
+      {toast && (
+        <div className="attack-sim-toast-row">
           <span className={`toolbar-toast toolbar-toast--${toast.kind}`}>
             {toast.message}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       <form onSubmit={handleRun} className="attack-sim-form">
         <section className="attack-sim-section">
@@ -448,6 +602,33 @@ function AttackSimulator() {
               + Add Weapon
             </button>
           </header>
+          <div className="profile-set-controls" role="group" aria-label="Saved attacker profile sets">
+            <select
+              className="toolbar-select profile-set-select"
+              value={selectedWeaponSet}
+              onChange={(e) => handleLoadWeaponSet(e.target.value)}
+              aria-label="Load saved attacker profile set"
+            >
+              <option value="">— Saved attacker sets —</option>
+              {savedWeaponSets.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+            <button type="button" className="toolbar-button" onClick={handleSaveWeaponSet}>
+              <Save size={14} />
+              <span>Save Set…</span>
+            </button>
+            <button
+              type="button"
+              className="toolbar-button toolbar-button--danger"
+              onClick={handleDeleteWeaponSet}
+              disabled={!selectedWeaponSet}
+              title={selectedWeaponSet ? `Delete "${selectedWeaponSet}"` : 'Select a saved attacker set to delete'}
+              aria-label="Delete selected attacker set"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
           <div className="profile-list">
             {weapons.map((w, i) => (
               <WeaponProfileCard
@@ -472,6 +653,33 @@ function AttackSimulator() {
               + Add Profile
             </button>
           </header>
+          <div className="profile-set-controls" role="group" aria-label="Saved defender profile sets">
+            <select
+              className="toolbar-select profile-set-select"
+              value={selectedTargetSet}
+              onChange={(e) => handleLoadTargetSet(e.target.value)}
+              aria-label="Load saved defender profile set"
+            >
+              <option value="">— Saved defender sets —</option>
+              {savedTargetSets.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+            <button type="button" className="toolbar-button" onClick={handleSaveTargetSet}>
+              <Save size={14} />
+              <span>Save Set…</span>
+            </button>
+            <button
+              type="button"
+              className="toolbar-button toolbar-button--danger"
+              onClick={handleDeleteTargetSet}
+              disabled={!selectedTargetSet}
+              title={selectedTargetSet ? `Delete "${selectedTargetSet}"` : 'Select a saved defender set to delete'}
+              aria-label="Delete selected defender set"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
           <div className="profile-list">
             {targets.map((t, i) => (
               <TargetProfileCard

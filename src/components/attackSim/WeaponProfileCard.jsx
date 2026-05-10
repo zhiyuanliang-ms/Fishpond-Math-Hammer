@@ -104,6 +104,19 @@ function WeaponProfileCard({
     }
   ]
 
+  // Buff keys that only affect the hit roll (auto-bypassed by Torrent).
+  // Hidden when the weapon is set to Torrent so users aren't presented with
+  // toggles that have no effect on the simulation.
+  const HIT_ONLY_BUFF_KEYS = new Set([
+    'lethalHits',
+    'plusOneHit',
+    'critHit',
+    'sustainedHits'
+  ])
+  const visibleBuffs = profile.torrent
+    ? buffs.filter((b) => !HIT_ONLY_BUFF_KEYS.has(b.key))
+    : buffs
+
   const findOpt = (opts, v) => opts.find((o) => o.value === v.toString()) || opts[0]
 
   return (
@@ -227,7 +240,7 @@ function WeaponProfileCard({
 
       <div className="buff-row">
         <label className="buff-row-label">Buffs</label>
-        <BuffChipGroup buffs={buffs} />
+        <BuffChipGroup buffs={visibleBuffs} />
       </div>
     </div>
   )
