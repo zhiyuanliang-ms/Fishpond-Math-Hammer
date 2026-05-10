@@ -212,7 +212,6 @@ function TargetProfileCard({
       </div>
 
       <div className="buff-row">
-        <label className="buff-row-label">Buffs</label>
         <BuffChipGroup buffs={buffs} />
       </div>
     </div>

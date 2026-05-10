@@ -15,10 +15,10 @@ import {
   CalculatorLayout,
   DistributionChart,
   FormSelect,
-  LabeledCheckbox,
   StatCard,
   StatGrid
 } from './ui'
+import BuffChipGroup from './attackSim/BuffChipGroup'
 
 const Z_95 = 1.96
 
@@ -26,6 +26,13 @@ const Z_95 = 1.96
 // "Torrent" auto-hits every attack and hides the rest of the hit-roll inputs.
 const TORRENT_OPTION = { value: 'torrent', label: 'Torrent' }
 const toHitWithTorrentOptions = [...toHitOptions, TORRENT_OPTION]
+
+// Inline value options exposed by the SUSTAINED HITS buff chip.
+const sustainedOptions = [
+  { value: '1', label: '1' },
+  { value: '2', label: '2' },
+  { value: '3', label: '3' }
+]
 
 function WoundSuccessCalculator() {
   // Hit Roll State
@@ -40,6 +47,7 @@ function WoundSuccessCalculator() {
   const [toWound, setToWound] = useState({ value: '4', label: '4+' })
   const [woundReroll, setWoundReroll] = useState({ value: 'no-reroll', label: 'No Reroll' })
   const [devastatingWounds, setDevastatingWounds] = useState(false)
+  const [critEnabled, setCritEnabled] = useState(false)
   const [crit, setCrit] = useState({ value: '6', label: '6+' })
   const [antiEnabled, setAntiEnabled] = useState(false)
   const [antiValue, setAntiValue] = useState({ value: '4', label: '4+' })
@@ -61,7 +69,7 @@ function WoundSuccessCalculator() {
 
     const { hitChance: baseHitChance, criticalChance: baseCriticalChance } = torrent
       ? { hitChance: 1, criticalChance: 0 }
-      : calculateHitProbability(toHit.value, hitReroll.value, crit.value)
+      : calculateHitProbability(toHit.value, hitReroll.value, critEnabled ? crit.value : '6')
 
     // If torrent is enabled, all attacks auto-hit
     const hitChance = torrent ? 1 : baseHitChance
@@ -179,14 +187,64 @@ function WoundSuccessCalculator() {
     })
   }
 
+  // Buff chip descriptors split into Hit and Wound groups so each section
+  // of the form gets its own labeled set of toggles. Same shape as
+  // WeaponProfileCard's buffs so the visual style stays consistent.
+  const hitBuffs = [
+    {
+      key: 'critHit',
+      label: 'CRITICAL HIT',
+      active: critEnabled,
+      onToggle: () => setCritEnabled((v) => !v),
+      value: crit.value,
+      valueOptions: critOptions,
+      onValueChange: (v) =>
+        setCrit(critOptions.find((o) => o.value === v) || critOptions[0])
+    },
+    {
+      key: 'lethalHit',
+      label: 'LETHAL HITS',
+      active: lethalHit,
+      onToggle: () => setLethalHit((v) => !v)
+    },
+    {
+      key: 'sustainedHit',
+      label: 'SUSTAINED HITS',
+      active: sustainedHit,
+      onToggle: () => setSustainedHit((v) => !v),
+      value: sustainedHitValue,
+      valueOptions: sustainedOptions,
+      onValueChange: (v) => setSustainedHitValue(v)
+    }
+  ]
+
+  const woundBuffs = [
+    {
+      key: 'devastating',
+      label: 'DEVASTATING WOUNDS',
+      active: devastatingWounds,
+      onToggle: () => setDevastatingWounds((v) => !v)
+    },
+    {
+      key: 'anti',
+      label: 'ANTI',
+      active: antiEnabled,
+      onToggle: () => setAntiEnabled((v) => !v),
+      value: antiValue.value,
+      valueOptions: antiOptions,
+      onValueChange: (v) =>
+        setAntiValue(antiOptions.find((o) => o.value === v) || antiOptions[0])
+    }
+  ]
+
   const form = (
     <form onSubmit={handleCalculate} className="calculator-form">
       <div className="form-section-header">
-        <h3>Attack Stats</h3>
+        <h3>Hit</h3>
       </div>
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="numDice">Number of Attacks</label>
+      <div className="stat-line">
+        <div className="stat-cell">
+          <label htmlFor="numDice">Attacks</label>
           <input
             type="number"
             id="numDice"
@@ -196,91 +254,56 @@ function WoundSuccessCalculator() {
             onChange={(e) => setNumDice(e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="toHit">To Hit</label>
+        <div className="stat-cell">
+          <label htmlFor="toHit">BS/WS</label>
           <FormSelect
             inputId="toHit"
+            variant="buff"
             options={toHitWithTorrentOptions}
             value={toHit}
             onChange={setToHit}
           />
         </div>
-
-        {!torrent && (
-          <div className="form-group form-group--reroll">
-            <label htmlFor="hitReroll">Reroll</label>
-            <FormSelect
-              inputId="hitReroll"
-              options={rerollOptions}
-              value={hitReroll}
-              onChange={setHitReroll}
-            />
-          </div>
-        )}
       </div>
 
       {!torrent && (
-        <div>
-          <div className="form-row crit-row">
-            <label htmlFor="crit">Critical Hit On</label>
-            <div className="crit-select">
+        <>
+          <div className="reroll-row">
+            <div className="reroll-cell">
+              <label htmlFor="hitReroll">Hit Reroll</label>
               <FormSelect
-                inputId="crit"
-                options={critOptions}
-                value={crit}
-                onChange={setCrit}
+                inputId="hitReroll"
+                options={rerollOptions}
+                value={hitReroll}
+                onChange={setHitReroll}
               />
             </div>
           </div>
 
-          <div className="form-row hit-buff-section">
-            <div className="checkbox-group">
-              <LabeledCheckbox
-                id="lethalHit"
-                label="LETHAL HITS"
-                checked={lethalHit}
-                onChange={setLethalHit}
-              />
-
-              <div className="sustained-hits-container">
-                <LabeledCheckbox
-                  id="sustainedHit"
-                  label="SUSTAINED HITS"
-                  checked={sustainedHit}
-                  onChange={setSustainedHit}
-                />
-                <input
-                  type="number"
-                  id="sustainedHitValue"
-                  min="1"
-                  max="3"
-                  value={sustainedHitValue}
-                  onChange={(e) => setSustainedHitValue(e.target.value)}
-                  disabled={!sustainedHit}
-                  className={`small-input ${!sustainedHit ? 'disabled' : ''}`}
-                />
-              </div>
-            </div>
+          <div className="buff-row">
+            <BuffChipGroup buffs={hitBuffs} />
           </div>
-        </div>
+        </>
       )}
 
-      <div className="form-row">
-        <div className="form-group">
+      <div className="form-section-header">
+        <h3>Wound</h3>
+      </div>
+      <div className="stat-line">
+        <div className="stat-cell">
           <label htmlFor="toWound">To Wound</label>
           <FormSelect
             inputId="toWound"
+            variant="buff"
             options={toWoundOptions}
             value={toWound}
             onChange={setToWound}
           />
         </div>
-
-        <div className="form-group form-group--reroll">
-          <label htmlFor="woundReroll">Reroll</label>
+      </div>
+      <div className="reroll-row">
+        <div className="reroll-cell">
+          <label htmlFor="woundReroll">Wound Reroll</label>
           <FormSelect
             inputId="woundReroll"
             options={rerollOptions}
@@ -290,33 +313,8 @@ function WoundSuccessCalculator() {
         </div>
       </div>
 
-      <div className="form-row wound-buff-section">
-        <div className="checkbox-group">
-          <LabeledCheckbox
-            id="devastatingWounds"
-            label="DEVASTATING WOUNDS"
-            checked={devastatingWounds}
-            onChange={setDevastatingWounds}
-          />
-
-          <div className="anti-wounds-container">
-            <LabeledCheckbox
-              id="antiWounds"
-              label="ANTI"
-              checked={antiEnabled}
-              onChange={setAntiEnabled}
-            />
-            <FormSelect
-              variant="buff"
-              inputId="antiValue"
-              options={antiOptions}
-              value={antiValue}
-              onChange={setAntiValue}
-              isDisabled={!antiEnabled}
-              className={`anti-wounds-select ${!antiEnabled ? 'disabled' : ''}`}
-            />
-          </div>
-        </div>
+      <div className="buff-row">
+        <BuffChipGroup buffs={woundBuffs} />
       </div>
 
       <button type="submit" className="calculate-button">

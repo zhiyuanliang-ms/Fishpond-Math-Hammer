@@ -37,7 +37,7 @@ const baseWeapon = (overrides = {}) => ({
   lethalHits: false,
   devastatingWounds: false,
   torrent: false,
-  lance: false,
+  plusOneWound: false,
   blast: false,
   plusOneHit: false,
   ignoresCover: false,
@@ -128,19 +128,123 @@ describe('simulateAttack — Blast', () => {
   })
 })
 
-describe('simulateAttack — Lance', () => {
-  it('S=15 vs T=1 with Lance still wounds on 2+ (clamp floor, never 1+)', () => {
-    // BS auto-hit. Wound base for S>=2T is 2+; lance gives -1 to threshold,
+describe('simulateAttack — +1 Wound', () => {
+  it('S=15 vs T=1 with +1 Wound still wounds on 2+ (clamp floor, never 1+)', () => {
+    // BS auto-hit. Wound base for S>=2T is 2+; +1 wound gives -1 to threshold,
     // but clampThreshold floors at 2. Plus nat 1 always fails. So per attack:
     // wound prob = 5/6 (only nat 1 fails). 4 attacks, 1 model, 1 wound.
     // Wipe prob = 1 - (1/6)^4 ≈ 0.9992
     const r = simulateAttack(
-      [baseWeapon({ attacks: '4', torrent: true, strength: 15, lance: true })],
+      [baseWeapon({ attacks: '4', torrent: true, strength: 15, plusOneWound: true })],
       [baseTarget({ models: 1, toughness: 1, save: 7 })],
       N
     )
     expect(r.wipeProbability).toBeGreaterThan(99.5)
     expect(r.wipeProbability).toBeLessThanOrEqual(100)
+  })
+})
+
+describe('simulateAttack — ±1 modifier cap (10e rule)', () => {
+  it('+1 to Hit and -1 to Hit cancel out (modifier arithmetic correctness)', () => {
+    // Pre-condition for the cap rule: modifiers from both sides must net
+    // properly. BS 3+, target has -1 to hit (worsens to 4+ → 3/6).
+    // Adding +1 to hit cancels the debuff back to 3+ (4/6).
+    // S4 vs T4 (4+ wound = 3/6 hits), sv 7+, 20 attacks, 1 dmg:
+    //   debuff only:        20 * 3/6 * 3/6 = 5.0
+    //   debuff + plusOne:   20 * 4/6 * 3/6 ≈ 6.67
+    const debuffOnly = simulateAttack(
+      [baseWeapon({ attacks: '20', toHit: 3, strength: 4 })],
+      [baseTarget({ models: 100, save: 7, toughness: 4, minusOneToHit: true })],
+      N
+    )
+    const debuffPlusBuff = simulateAttack(
+      [baseWeapon({ attacks: '20', toHit: 3, strength: 4, plusOneHit: true })],
+      [baseTarget({ models: 100, save: 7, toughness: 4, minusOneToHit: true })],
+      N
+    )
+    expect(debuffOnly.expectedDamage).toBeGreaterThan(4)
+    expect(debuffOnly.expectedDamage).toBeLessThan(6)
+    expect(debuffPlusBuff.expectedDamage).toBeGreaterThan(5.5)
+    expect(debuffPlusBuff.expectedDamage).toBeLessThan(8)
+    // Sanity: adding the buff strictly improves expected damage.
+    expect(debuffPlusBuff.expectedDamage).toBeGreaterThan(debuffOnly.expectedDamage)
+  })
+
+  it('wound modifiers cap at -1 (two -1-to-wound sources do not stack)', () => {
+    // Target has BOTH minusOneToWound and minusOneToWoundIfStronger. With
+    // S5 vs T4, both would apply (S>T triggers the conditional one too) for
+    // a raw -2 wound mod, but the cap clamps it to -1.
+    // S5 vs T4 base wound = 3+; with -1 mod → 4+ (3/6). If the cap were
+    // broken and -2 applied → 5+ (2/6).
+    // Auto-hit, sv7+, 20 attacks, 1 dmg.
+    // Capped expected damage: 20 * 3/6 = 10. Uncapped would be ~6.67.
+    const r = simulateAttack(
+      [baseWeapon({ attacks: '20', torrent: true, strength: 5 })],
+      [baseTarget({
+        models: 100,
+        save: 7,
+        toughness: 4,
+        minusOneToWound: true,
+        minusOneToWoundIfStronger: true
+      })],
+      N
+    )
+    expect(r.expectedDamage).toBeGreaterThan(8.5)
+    expect(r.expectedDamage).toBeLessThan(11.5)
+  })
+
+  it('wound modifiers cap at +1 (+1 wound + already 2+ stays 2+, not 1+)', () => {
+    // S=15 vs T=1 base wounds on 2+ already. +1 wound would push the
+    // threshold to 1+ if uncapped, meaning every roll except nat 1 succeeds —
+    // BUT clampThreshold floors at 2+ so the rate stays 5/6 (nat 1 always
+    // fails). With +1 wound on a 2+, the only difference is that nat 1
+    // continues to fail.
+    // Auto-hit, sv 7+, 20 attacks → expected damage = 20 * 5/6 ≈ 16.67.
+    const r = simulateAttack(
+      [baseWeapon({ attacks: '20', torrent: true, strength: 15, plusOneWound: true })],
+      [baseTarget({ models: 100, save: 7, toughness: 1 })],
+      N
+    )
+    expect(r.expectedDamage).toBeGreaterThan(15)
+    expect(r.expectedDamage).toBeLessThan(18)
+  })
+})
+
+describe('simulateAttack — natural 1 always fails', () => {
+  it('natural 1 fails the hit roll even with +1 to Hit on a 2+ weapon', () => {
+    // BS 2+, +1 to Hit → modified threshold would be 1+ but clampThreshold
+    // floors at 2+. Nat 1 still fails. So hit rate = 5/6.
+    // Auto-wound via Anti-2+ (S any vs anything: crit/success on 2+).
+    // Use S4 vs T4 (4+ wound) with anti 2+ — anti lowers wound threshold to 2.
+    // So hit (5/6) * wound (5/6, nat 1 fails) = 25/36 per attack.
+    // 36 attacks, sv 7+, 1 dmg → expected ≈ 25.
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '36',
+        toHit: 2,
+        plusOneHit: true,
+        strength: 4,
+        antiEnabled: true,
+        antiValue: 2
+      })],
+      [baseTarget({ models: 100, save: 7, toughness: 4 })],
+      N
+    )
+    // Tight bound: 25 ± ~2.
+    expect(r.expectedDamage).toBeGreaterThan(22)
+    expect(r.expectedDamage).toBeLessThan(28)
+  })
+
+  it('natural 1 fails the wound roll even with +1 to Wound at 2+', () => {
+    // S15 vs T1 = base 2+ wound. +1 wound + clamp = still 2+. Nat 1 fails.
+    // Auto-hit, sv7+, 60 attacks → expected damage = 60 * 5/6 = 50.
+    const r = simulateAttack(
+      [baseWeapon({ attacks: '60', torrent: true, strength: 15, plusOneWound: true })],
+      [baseTarget({ models: 100, save: 7, toughness: 1 })],
+      N
+    )
+    expect(r.expectedDamage).toBeGreaterThan(46)
+    expect(r.expectedDamage).toBeLessThan(54)
   })
 })
 

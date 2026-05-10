@@ -1,0 +1,205 @@
+/* ============================================================
+ * Shared "form card" primitives.
+ *
+ * These class names are imported by both the Attack Simulator
+ * (`attackSimulator.css`) and the Dice Calculator pages
+ * (`diceCalculator.css`). Keep this file dependency-free so it
+ * can be @imported safely from any page-level stylesheet.
+ *
+ * Visual vocabulary:
+ *   .stat-line      — horizontal flex row of compact .stat-cells
+ *   .stat-cell      — single labeled stat (small uppercase label
+ *                     + narrow input/select)
+ *   .reroll-row     — wider row for full-width selects (rerolls)
+ *   .reroll-cell    — single labeled wider select
+ *   .buff-row       — labeled section for buff chips
+ *   .buff-chip*     — tag-style toggle chips with optional inline
+ *                     value selector, rendered by BuffChipGroup.jsx
+ *   .form-section-header — amber section heading inside a card
+ * ============================================================ */
+
+/* ---- section header ---- */
+
+.form-section-header {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.form-section-header h3 {
+  color: #fbbf24;
+  font-size: 17px;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #4a4a4a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---- compact stat line ---- */
+
+.stat-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 70px;
+  flex: 1 1 70px;
+}
+
+.stat-cell label {
+  color: #d0d0d0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.stat-cell input[type="number"],
+.stat-cell input[type="text"] {
+  width: 100%;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 5px 8px;
+  box-sizing: border-box;
+}
+
+.stat-cell input:focus {
+  outline: none;
+  border-color: #fbbf24;
+}
+
+.stat-cell input.invalid {
+  border-color: #ef4444;
+}
+
+/* Allow FormSelect (variant=buff) inside a stat-cell to fill the cell width
+   instead of its compact default. The selector matches react-select's
+   container element regardless of its hashed emotion class name. */
+.stat-cell > div[class*="-container"] {
+  width: 100% !important;
+}
+
+/* ---- wider reroll row ---- */
+
+.reroll-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reroll-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.reroll-cell label {
+  color: #d0d0d0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ---- buff chips ---- */
+
+.buff-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.buff-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.buff-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.buff-chip.active {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.buff-chip-toggle {
+  background: transparent;
+  color: #d0d0d0;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  padding: 5px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.buff-chip.active .buff-chip-toggle {
+  color: #fbbf24;
+}
+
+.buff-chip-toggle:hover {
+  color: #fbbf24;
+}
+
+.buff-chip-value {
+  background: #1f1f1f;
+  color: #fbbf24;
+  border: none;
+  border-left: 1px solid #fbbf24;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  appearance: none;
+}
+
+.buff-chip-value:focus {
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .stat-line {
+    gap: 8px;
+  }
+
+  .stat-cell {
+    flex: 1 1 calc(33.333% - 8px);
+    min-width: 0;
+  }
+
+  .reroll-cell {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-cell {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .buff-chip-toggle {
+    padding: 5px 10px;
+  }
+}

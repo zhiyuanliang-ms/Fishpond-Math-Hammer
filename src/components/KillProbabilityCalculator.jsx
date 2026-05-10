@@ -5,10 +5,10 @@ import {
   CalculatorLayout,
   DistributionChart,
   FormSelect,
-  LabeledCheckbox,
   StatCard,
   StatGrid
 } from './ui'
+import BuffChipGroup from './attackSim/BuffChipGroup'
 
 function KillProbabilityCalculator() {
   const [woundedAttacks, setWoundedAttacks] = useState('10')
@@ -56,14 +56,27 @@ function KillProbabilityCalculator() {
     })
   }
 
+  const buffs = [
+    {
+      key: 'fnp',
+      label: 'FEEL NO PAIN',
+      active: fnpEnabled,
+      onToggle: () => setFnpEnabled((v) => !v),
+      value: fnp.value,
+      valueOptions: fnpOptions,
+      onValueChange: (v) =>
+        setFnp(fnpOptions.find((o) => o.value === v) || fnpOptions[0])
+    }
+  ]
+
   const form = (
     <form onSubmit={handleCalculate} className="calculator-form">
       <div className="form-section-header">
         <h3>Attack Stats</h3>
       </div>
-      <div className="form-row form-row--split">
-        <div className="form-group">
-          <label htmlFor="woundedAttacks">Number of Attacks</label>
+      <div className="stat-line">
+        <div className="stat-cell">
+          <label htmlFor="woundedAttacks">Attacks</label>
           <input
             type="number"
             id="woundedAttacks"
@@ -73,7 +86,7 @@ function KillProbabilityCalculator() {
             onChange={(e) => setWoundedAttacks(e.target.value)}
           />
         </div>
-        <div className="form-group">
+        <div className="stat-cell">
           <label htmlFor="damagePerAttack">Damage</label>
           <input
             type="number"
@@ -89,10 +102,9 @@ function KillProbabilityCalculator() {
       <div className="form-section-header">
         <h3>Target Stats</h3>
       </div>
-
-      <div className="form-row form-row--split">
-        <div className="form-group num-attacks-input">
-          <label htmlFor="numModels">Number of Models</label>
+      <div className="stat-line">
+        <div className="stat-cell">
+          <label htmlFor="numModels">Models</label>
           <input
             type="number"
             id="numModels"
@@ -102,9 +114,8 @@ function KillProbabilityCalculator() {
             onChange={(e) => setNumModels(e.target.value)}
           />
         </div>
-
-        <div className="form-group">
-          <label htmlFor="modelWounds">Wound</label>
+        <div className="stat-cell">
+          <label htmlFor="modelWounds">Wounds</label>
           <input
             type="number"
             id="modelWounds"
@@ -114,21 +125,21 @@ function KillProbabilityCalculator() {
             onChange={(e) => setModelWounds(e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="toSave">To Save:</label>
+        <div className="stat-cell">
+          <label htmlFor="toSave">To Save</label>
           <FormSelect
             inputId="toSave"
+            variant="buff"
             options={saveOptions}
             value={toSave}
             onChange={setToSave}
           />
         </div>
+      </div>
 
-        <div className="form-group form-group--reroll">
-          <label htmlFor="saveReroll">Reroll</label>
+      <div className="reroll-row">
+        <div className="reroll-cell">
+          <label htmlFor="saveReroll">Save Reroll</label>
           <FormSelect
             inputId="saveReroll"
             options={saveRerollOptions}
@@ -138,24 +149,8 @@ function KillProbabilityCalculator() {
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="defense-checkbox-group">
-          <LabeledCheckbox
-            id="fnpEnabled"
-            label="FEEL NO PAIN"
-            checked={fnpEnabled}
-            onChange={setFnpEnabled}
-          />
-          <FormSelect
-            variant="buff"
-            inputId="fnp"
-            options={fnpOptions}
-            value={fnp}
-            onChange={setFnp}
-            isDisabled={!fnpEnabled}
-            className={`defense-select ${!fnpEnabled ? 'disabled' : ''}`}
-          />
-        </div>
+      <div className="buff-row">
+        <BuffChipGroup buffs={buffs} />
       </div>
 
       <button type="submit" className="calculate-button">

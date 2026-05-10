@@ -68,50 +68,11 @@ input:focus {
   border-color: #fbbf24;
 }
 
-/* Small input for compact fields */
-input[type="number"].small-input {
-  padding: 8px 6px 8px 6px;
-  background: #2a2a2a;
-  border: 1px solid #4a4a4a;
-  border-radius: 4px;
-  color: #d0d0d0;
-  font-size: 12px;
-  font-family: inherit;
-  text-align: center;
-  height: 28px;
-  width: 35px;
-  margin-left: auto;
-}
-
-input[type="number"].small-input:focus {
-  outline: none;
-  border-color: #fbbf24;
-}
-
-input[type="number"].small-input:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 /* Title labels */
 .form-row label {
   color: #fff;
   font-size: 16px;
   font-weight: 600;
-}
-
-/* Buff/Checkbox labels */
-.form-checkbox label,
-label[for="lethalHit"],
-label[for="sustainedHit"],
-label[for="devastatingWounds"],
-label[for="antiWounds"],
-label[for="fnpEnabled"] {
-  color: #d0d0d0;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  margin: 0;
 }
 
 /* ============================================================

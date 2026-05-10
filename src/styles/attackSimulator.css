@@ -3,6 +3,8 @@
  * Matches the dark / amber palette used by the rest of the app.
  * ============================================================ */
 
+@import './formCard.css';
+
 .attack-sim-form {
   display: flex;
   flex-direction: column;
@@ -274,155 +276,9 @@
   color: #ef4444;
 }
 
-/* ---- stat line ---- */
-
-.stat-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: flex-end;
-}
-
-.stat-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 70px;
-  flex: 1 1 70px;
-}
-
-.stat-cell label {
-  color: #d0d0d0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.stat-cell input[type="number"],
-.stat-cell input[type="text"] {
-  width: 100%;
-  background: #2a2a2a;
-  border: 1px solid #4a4a4a;
-  border-radius: 4px;
-  color: #fff;
-  font-family: inherit;
-  font-size: 14px;
-  padding: 5px 8px;
-  box-sizing: border-box;
-}
-
-.stat-cell input:focus {
-  outline: none;
-  border-color: #fbbf24;
-}
-
-.stat-cell input.invalid {
-  border-color: #ef4444;
-}
-
-/* Allow FormSelect (variant=buff) inside a stat-cell to fill the cell width
-   instead of its compact 70px default. The selector matches react-select's
-   container element regardless of its hashed emotion class name. */
-.stat-cell > div[class*="-container"] {
-  width: 100% !important;
-}
-
-/* ---- reroll row ---- */
-
-.reroll-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.reroll-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1 1 200px;
-  min-width: 180px;
-}
-
-.reroll-cell label {
-  color: #d0d0d0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-/* ---- buff chips ---- */
-
-.buff-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.buff-row-label {
-  color: #d0d0d0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.buff-chip-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.buff-chip {
-  display: inline-flex;
-  align-items: center;
-  background: #2a2a2a;
-  border: 1px solid #4a4a4a;
-  border-radius: 16px;
-  overflow: hidden;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.buff-chip.active {
-  border-color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12);
-}
-
-.buff-chip-toggle {
-  background: transparent;
-  color: #d0d0d0;
-  border: none;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  padding: 5px 12px;
-  cursor: pointer;
-  text-transform: uppercase;
-}
-
-.buff-chip.active .buff-chip-toggle {
-  color: #fbbf24;
-}
-
-.buff-chip-toggle:hover {
-  color: #fbbf24;
-}
-
-.buff-chip-value {
-  background: #1f1f1f;
-  color: #fbbf24;
-  border: none;
-  border-left: 1px solid #fbbf24;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 8px;
-  cursor: pointer;
-  appearance: none;
-}
-
-.buff-chip-value:focus {
-  outline: none;
-}
+/* Compact .stat-line / .stat-cell, .reroll-row / .reroll-cell and
+   .buff-row / .buff-chip primitives live in ./formCard.css and are
+   imported at the top of this file. */
 
 /* ---- error / submit ---- */
 
@@ -639,20 +495,6 @@
     margin-left: auto;
   }
 
-  .stat-line {
-    gap: 8px;
-  }
-
-  .stat-cell {
-    flex: 1 1 calc(33.333% - 8px);
-    min-width: 0;
-  }
-
-  .reroll-cell {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-
   .per-profile-table {
     overflow-x: auto;
   }
@@ -663,14 +505,6 @@
 }
 
 @media (max-width: 480px) {
-  .stat-cell {
-    flex: 1 1 calc(50% - 4px);
-  }
-
-  .buff-chip-toggle {
-    padding: 5px 10px;
-  }
-
   .run-row {
     gap: 14px;
   }

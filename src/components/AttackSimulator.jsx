@@ -51,7 +51,7 @@ const makeWeapon = (overrides = {}) => ({
   lethalHits: false,
   sustainedHits: 'off',
   devastatingWounds: false,
-  lance: false,
+  plusOneWound: false,
   blast: false,
   plusOneHit: false,
   ignoresCover: false,

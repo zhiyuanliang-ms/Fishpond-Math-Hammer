@@ -191,10 +191,9 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels) => {
         let mod = 0
         if (t.minusOneToWound) mod += 1
         if (t.minusOneToWoundIfStronger && weapon.strength > t.toughness) mod += 1
-        // Lance: +1 to the Wound roll if the bearer charged. In this app
-        // we treat the Lance buff as the player asserting the bearer
-        // charged this turn. +1 to roll == -1 to threshold.
-        if (weapon.lance) mod -= 1
+        // +1 to Wound (e.g. Lance on the charge, certain stratagems): -1 to
+        // the wound threshold. Per 10e, all roll modifiers cap at ±1 below.
+        if (weapon.plusOneWound) mod -= 1
         // 10e rule: roll modifiers cap at ±1.
         if (mod > 1) mod = 1
         if (mod < -1) mod = -1

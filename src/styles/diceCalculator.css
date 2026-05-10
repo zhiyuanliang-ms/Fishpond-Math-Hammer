@@ -1,4 +1,18 @@
+/* ============================================================
+ * Dice Calculator pages — wrapper layout for the Wound Success
+ * and Kill Probability calculators.
+ *
+ * Form-card primitives (.stat-line, .stat-cell, .reroll-row,
+ * .reroll-cell, .buff-row, .buff-chip*, .form-section-header)
+ * live in ./formCard.css and are imported below so the dice
+ * calculators stay visually in sync with the Attack Simulator.
+ *
+ * The base .form-row / .form-group / .calculator-form classes
+ * remain here because the Dice Roller page still uses them.
+ * ============================================================ */
+
 @import './tabs.css';
+@import './formCard.css';
 
 .tab-content {
   margin-top: 24px;
@@ -13,7 +27,7 @@
 .form-side {
   flex: 0 0 auto;
   width: 100%;
-  max-width: 342px;
+  max-width: 480px;
 }
 
 .result-side {
@@ -30,6 +44,12 @@
   border-radius: 8px;
 }
 
+/* Extra breathing room between the buff chips and the primary action so
+   the submit button doesn't visually crowd the toggles above it. */
+.calculator-form .calculate-button {
+  margin-top: 16px;
+}
+
 .form-row {
   display: flex;
   gap: 16px;
@@ -38,93 +58,10 @@
   min-height: 50px;
 }
 
-/* Split row: left and right form-groups separated.
-   Used by KillProbabilityCalculator's attack/target stats rows so the
-   spacing works fluidly on both desktop and mobile. */
-.form-row--split {
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.form-row--split > .form-group {
-  flex: 0 1 auto;
-}
-
-.hit-buff-section {
-  width: 100%;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.wound-buff-section {
-  width: 100%;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.checkbox-group {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-}
-
-
-.checkbox-group .form-group {
-  flex-direction: row;
-  gap: 8px;
-  max-width: none;
-}
-
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.form-group--reroll {
-  min-width: 203px;
-  margin-left: auto;
-}
-
-.form-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.form-checkbox label {
-  font-size: 13px;
-}
-
-.sustained-hits-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.anti-wounds-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.anti-wounds-select {
-  width: 70px;
-  flex-shrink: 0;
-}
-
-.anti-wounds-select.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.anti-wounds-select.hidden {
-  display: none;
 }
 
 .result-stats {
@@ -192,56 +129,12 @@
   align-items: flex-start;
 }
 
-.form-section-header {
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.form-section-header h3 {
-  color: #fbbf24;
-  font-size: 17px;
-  margin: 0;
-  padding: 8px 0;
-  border-bottom: 1px solid #4a4a4a;
-  text-transform: uppercase;
-}
-
-.defense-checkbox-group {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  width: 100%;
-}
-
-.defense-checkbox-group .form-checkbox {
-  flex-shrink: 0;
-}
-
-.defense-select.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 .simulation-note {
   font-size: 0.8rem;
   color: #9ca3af;
   margin-top: 10px;
   text-align: center;
   font-style: italic;
-}
-
-.crit-row {
-  align-items: center;
-  gap: 12px;
-}
-
-.crit-row label {
-  min-width: 120px;
-}
-
-.crit-select {
-  flex: 1;
-  min-width: 180px;
 }
 
 @media (max-width: 1024px) {
@@ -256,20 +149,8 @@
     max-width: none;
     width: 100%;
   }
-
-  .form-group--reroll {
-    min-width: 0;
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .crit-row {
-    flex-direction: row;
-  }
 }
 
-
-/* Responsive */
 @media (max-width: 768px) {
   .wound-success-container,
   .kill-probability-container {
@@ -294,31 +175,9 @@
     gap: 12px;
   }
 
-  /* Split rows stay side-by-side on phones — they only contain two small
-     numeric inputs and look better paired than stacked. */
-  .form-row.form-row--split {
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 12px;
-  }
-
-  .form-row.form-row--split > .form-group {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .form-row.form-row--split input[type="number"] {
-    width: 100%;
-  }
-
   .form-group {
     min-width: 0;
     width: 100%;
-  }
-
-  .checkbox-group {
-    flex-wrap: wrap;
-    gap: 12px;
   }
 
   .result-stats {
@@ -338,22 +197,6 @@
     width: 100%;
     text-align: center;
   }
-
-  .crit-row {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .crit-row label {
-    min-width: 0;
-  }
-
-  .crit-select {
-    flex: 1;
-    min-width: 140px;
-    width: auto;
-  }
 }
 
 @media (max-width: 480px) {
@@ -363,9 +206,5 @@
 
   .stat-value {
     font-size: 20px;
-  }
-
-  .form-section-header h3 {
-    font-size: 15px;
   }
 }

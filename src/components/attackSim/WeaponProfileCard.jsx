@@ -88,10 +88,10 @@ function WeaponProfileCard({
       onToggle: () => update({ blast: !profile.blast })
     },
     {
-      key: 'lance',
-      label: 'LANCE',
-      active: profile.lance,
-      onToggle: () => update({ lance: !profile.lance })
+      key: 'plusOneWound',
+      label: '+1 WOUND',
+      active: profile.plusOneWound,
+      onToggle: () => update({ plusOneWound: !profile.plusOneWound })
     },
     {
       key: 'anti',
@@ -239,7 +239,6 @@ function WeaponProfileCard({
       </div>
 
       <div className="buff-row">
-        <label className="buff-row-label">Buffs</label>
         <BuffChipGroup buffs={visibleBuffs} />
       </div>
     </div>
