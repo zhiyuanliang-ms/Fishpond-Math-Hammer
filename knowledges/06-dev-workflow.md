@@ -45,9 +45,13 @@ cd "c:\Users\zhiyuanliang\Desktop\Warhammer"; npm run lint 2>&1 | Select-Object 
 
 - **Don't deep-import from `lib/dice/`.** Always go through the barrel
   (`from '../lib/dice'`). Same for `ui` (`from './ui'`).
-- **Don't add inline `style={{...}}` for layout/spacing.** Use a class. The
-  KillProbabilityCalculator was bitten by `marginRight: '50px'` overflowing
-  on phones; the fix was the `.form-row--split` class.
+- **Don't strand shared classes in a page stylesheet.** Shared UI primitives
+  belong in `uiShared.css` or `formCard.css`; page CSS should own page layout.
+  This avoids hidden cross-page dependencies like one route relying on another
+  route's imported stylesheet.
+- **Don't add inline `style={{...}}` for layout/spacing.** Use the existing
+  layout primitives first (`CalculatorLayout`, `.calculator-form`, `.stat-line`,
+  `.reroll-row`, `.dice-roller-actions`) before inventing a one-off wrapper.
 - **Don't break the layering.** `lib/dice/` must never import React; `ui/`
   must never import `lib/dice/`. If you find yourself wanting to, the logic
   belongs in the page component instead.

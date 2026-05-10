@@ -1,4 +1,3 @@
-import { ArrowUp, ArrowDown, Copy, X } from 'lucide-react'
 import { FormSelect } from '../ui'
 import {
   saveOptions,
@@ -7,6 +6,7 @@ import {
 } from '../../lib/dice/options'
 import BuffChipGroup from './BuffChipGroup'
 import IntInput from './IntInput'
+import ProfileCardShell from './ProfileCardShell'
 
 const invulnOptions = [
   { value: '0', label: '—' },
@@ -122,31 +122,17 @@ function TargetProfileCard({
   const findOpt = (opts, v) => opts.find((o) => o.value === v.toString()) || opts[0]
 
   return (
-    <div className="profile-card">
-      <div className="profile-card-header">
-        <input
-          type="text"
-          className="profile-name"
-          value={profile.name}
-          onChange={(e) => update({ name: e.target.value })}
-          placeholder={`Profile ${index + 1}`}
-        />
-        <div className="profile-card-actions">
-          <button type="button" title="Move up" onClick={onMoveUp} disabled={index === 0}>
-            <ArrowUp size={14} />
-          </button>
-          <button type="button" title="Move down" onClick={onMoveDown} disabled={index === total - 1}>
-            <ArrowDown size={14} />
-          </button>
-          <button type="button" title="Duplicate" onClick={onDuplicate}>
-            <Copy size={14} />
-          </button>
-          <button type="button" className="danger" title="Remove" onClick={onRemove}>
-            <X size={14} />
-          </button>
-        </div>
-      </div>
-
+    <ProfileCardShell
+      name={profile.name}
+      placeholder={`Profile ${index + 1}`}
+      index={index}
+      total={total}
+      onNameChange={(name) => update({ name })}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
+      onDuplicate={onDuplicate}
+      onRemove={onRemove}
+    >
       <div className="stat-line">
         <div
           className="stat-cell"
@@ -214,7 +200,7 @@ function TargetProfileCard({
       <div className="buff-row">
         <BuffChipGroup buffs={buffs} />
       </div>
-    </div>
+    </ProfileCardShell>
   )
 }
 

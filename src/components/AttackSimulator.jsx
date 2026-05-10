@@ -26,6 +26,7 @@ import {
 } from './ui'
 import WeaponProfileCard from './attackSim/WeaponProfileCard'
 import TargetProfileCard from './attackSim/TargetProfileCard'
+import SavedSetControls from './attackSim/SavedSetControls'
 import '../styles/attackSimulator.css'
 
 // ---- factory helpers -------------------------------------------------------
@@ -93,11 +94,17 @@ const moveItem = (arr, from, to) => {
 
 // Re-hydrate a stored profile by stripping the stale id so the factory
 // helper assigns a fresh uid (React keys must be stable & unique).
-const rehydrateWeapon = ({ id: _oldId, ...rest } = {}) => makeWeapon(rest)
-const rehydrateTarget = ({ id: _oldId, ...rest } = {}) => makeTarget(rest)
+const omitId = (entry = {}) => {
+  const next = { ...entry }
+  delete next.id
+  return next
+}
+
+const rehydrateWeapon = (entry = {}) => makeWeapon(omitId(entry))
+const rehydrateTarget = (entry = {}) => makeTarget(omitId(entry))
 
 // Strip runtime-only fields (React keys) when serializing for storage / export.
-const stripId = ({ id: _id, ...rest }) => rest
+const stripId = (entry = {}) => omitId(entry)
 
 // ---- import validators -----------------------------------------------------
 // Return null if the shape is acceptable, otherwise a short reason string.
@@ -602,33 +609,19 @@ function AttackSimulator() {
               + Add Weapon
             </button>
           </header>
-          <div className="profile-set-controls" role="group" aria-label="Saved attacker profile sets">
-            <select
-              className="toolbar-select profile-set-select"
-              value={selectedWeaponSet}
-              onChange={(e) => handleLoadWeaponSet(e.target.value)}
-              aria-label="Load saved attacker profile set"
-            >
-              <option value="">— Saved attacker sets —</option>
-              {savedWeaponSets.map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-            <button type="button" className="toolbar-button" onClick={handleSaveWeaponSet}>
-              <Save size={14} />
-              <span>Save Set…</span>
-            </button>
-            <button
-              type="button"
-              className="toolbar-button toolbar-button--danger"
-              onClick={handleDeleteWeaponSet}
-              disabled={!selectedWeaponSet}
-              title={selectedWeaponSet ? `Delete "${selectedWeaponSet}"` : 'Select a saved attacker set to delete'}
-              aria-label="Delete selected attacker set"
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
+          <SavedSetControls
+            value={selectedWeaponSet}
+            options={savedWeaponSets}
+            placeholder="— Saved attacker sets —"
+            onChange={handleLoadWeaponSet}
+            onSave={handleSaveWeaponSet}
+            onDelete={handleDeleteWeaponSet}
+            deleteDisabled={!selectedWeaponSet}
+            deleteTitle={selectedWeaponSet ? `Delete "${selectedWeaponSet}"` : 'Select a saved attacker set to delete'}
+            groupAriaLabel="Saved attacker profile sets"
+            selectAriaLabel="Load saved attacker profile set"
+            deleteAriaLabel="Delete selected attacker set"
+          />
           <div className="profile-list">
             {weapons.map((w, i) => (
               <WeaponProfileCard
@@ -653,33 +646,19 @@ function AttackSimulator() {
               + Add Profile
             </button>
           </header>
-          <div className="profile-set-controls" role="group" aria-label="Saved defender profile sets">
-            <select
-              className="toolbar-select profile-set-select"
-              value={selectedTargetSet}
-              onChange={(e) => handleLoadTargetSet(e.target.value)}
-              aria-label="Load saved defender profile set"
-            >
-              <option value="">— Saved defender sets —</option>
-              {savedTargetSets.map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-            <button type="button" className="toolbar-button" onClick={handleSaveTargetSet}>
-              <Save size={14} />
-              <span>Save Set…</span>
-            </button>
-            <button
-              type="button"
-              className="toolbar-button toolbar-button--danger"
-              onClick={handleDeleteTargetSet}
-              disabled={!selectedTargetSet}
-              title={selectedTargetSet ? `Delete "${selectedTargetSet}"` : 'Select a saved defender set to delete'}
-              aria-label="Delete selected defender set"
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
+          <SavedSetControls
+            value={selectedTargetSet}
+            options={savedTargetSets}
+            placeholder="— Saved defender sets —"
+            onChange={handleLoadTargetSet}
+            onSave={handleSaveTargetSet}
+            onDelete={handleDeleteTargetSet}
+            deleteDisabled={!selectedTargetSet}
+            deleteTitle={selectedTargetSet ? `Delete "${selectedTargetSet}"` : 'Select a saved defender set to delete'}
+            groupAriaLabel="Saved defender profile sets"
+            selectAriaLabel="Load saved defender profile set"
+            deleteAriaLabel="Delete selected defender set"
+          />
           <div className="profile-list">
             {targets.map((t, i) => (
               <TargetProfileCard

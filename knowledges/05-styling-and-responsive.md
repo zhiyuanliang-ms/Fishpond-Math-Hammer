@@ -3,8 +3,10 @@
 ## Approach
 - Plain CSS files in `src/styles/`, one per page/area. No CSS modules, no
   styled-components, no Tailwind.
-- Each page component imports its own stylesheet at the top.
-- `app.css` imports `tabs.css` globally so `<Tabs>` works everywhere.
+- `app.css` imports `uiShared.css` globally so shared UI primitives (`Tabs`,
+  `StatCard`, `DistributionChart`, `calculator-form`, etc.) work everywhere.
+- Page components still import their own stylesheet at the top for page-specific
+  layout and one-off visuals.
 - Dark theme. Background `#1a1a1a`–`#2a2a2a`, accents amber `#fbbf24` and
   blue `#60a5fa`.
 
@@ -12,11 +14,13 @@
 | File | Owns |
 |---|---|
 | `index.css` | Global resets, body, generic inputs (incl. `input[type="number"]` width). |
-| `app.css` | App shell layout (`.app`, `.main-wrapper`, `.main-content`, `.page h1`). Imports `tabs.css`. |
+| `app.css` | App shell layout (`.app`, `.main-wrapper`, `.main-content`, `.page h1`). Imports `uiShared.css`. |
+| `uiShared.css` | Shared UI primitives: `.tabs`, `.tab-button`, `.calculator-form`, `.form-row`, `.form-group`, `.result-stats`, `.stat-card`, `.chart-container`. |
 | `sidebar.css` | Sidebar nav. |
-| `tabs.css` | `.tabs`, `.tab-button`. |
-| `diceCalculator.css` | Both calculators (`.wound-success-container`, `.kill-probability-container`, `.form-row`, `.form-row--split`, `.result-stats`, `.stat-value`, `.chart-container`, etc.). |
-| `attackSimulator.css` | Attack Simulator: `.attack-sim-toolbar`, `.toolbar-button`, `.toolbar-select`, `.profile-card`, `.stat-line`, `.precision-toggle`, etc. Same dark/amber palette as the rest. |
+| `diceCalculator.css` | Calculator page layout: `.wound-success-container`, `.kill-probability-container`, `.form-side`, `.result-side`, `.simulation-note`. |
+| `formCard.css` | Shared compact card primitives: `.stat-line`, `.stat-cell`, `.reroll-row`, `.reroll-cell`, `.buff-row`, `.buff-chip*`. |
+| `attackSimulator.css` | Attack Simulator-specific layout and controls: `.attack-sim-toolbar`, `.toolbar-button`, `.toolbar-select`, `.profile-card`, `.precision-toggle`, etc. Same dark/amber palette as the rest. |
+| `diceRoller.css` | Dice Roller-specific actions, tray, face counts, and result sections. |
 | `cheatsheet.css` | Probability table. |
 | `about.css`, `footer.css` | Self-explanatory. |
 
@@ -26,23 +30,24 @@ Three tiers, applied consistently across files:
 | Breakpoint | Trigger | What changes |
 |---|---|---|
 | `≤ 960px` | tablet | Sidebar collapses to a horizontal bar above content. Main padding reduces to `24px 16px`. |
-| `≤ 768px` | small tablet / large phone | Calculator splits stack vertically. Form rows stack EXCEPT `.form-row--split` rows (two small numeric inputs) which stay side-by-side. Stat grid drops to 2 columns. Cheatsheet table padding/font shrinks. |
-| `≤ 480px` | phone | Sidebar restacks vertically (title above nav). Stat grid drops to 1 column. Page H1 → 24px. Main padding → `16px 12px`. Cheatsheet table padding/font shrinks again. |
+| `≤ 768px` | small tablet / large phone | Calculator layouts stack vertically. Shared `.calculator-form` padding tightens. Shared `.form-row` stacks, while `formCard.css` rows (`.stat-line`, `.reroll-row`) keep wrapping compactly. Stat grid drops to 2 columns. Cheatsheet table padding/font shrinks. |
+| `≤ 480px` | phone | Sidebar restacks vertically (title above nav). Stat grid drops to 1 column. Dice tray becomes denser. Page H1 → 24px. Main padding → `16px 12px`. Cheatsheet table padding/font shrinks again. |
 
-The `.form-row--split` class is the key trick: it lets two small inputs share
-a row on phones without stacking awkwardly. Apply it on rows that contain
-exactly two small fields.
+Ownership rule of thumb: if a class is used by a shared component, it belongs
+in `uiShared.css` or `formCard.css`. If it is tied to one page's structure, it
+belongs in that page's stylesheet.
 
 ## Number inputs
 `input[type="number"]` has a fixed `width: 102px` for desktop alignment, but
 also `max-width: 100%` so it never overflows narrow containers. On mobile
-split rows the rule `.form-row.form-row--split input[type="number"] { width: 100% }`
-makes them fill their flex column.
+layouts the shared `.form-row` stacks vertically, and the `formCard.css`
+selectors inside `.stat-cell` make compact numeric inputs fill the available
+cell width.
 
 ## Charts
 - All charts are wrapped in recharts' `ResponsiveContainer` and shrink with
   the viewport.
-- The chart container uses `overflow-x: hidden` on mobile to defeat any
+- The shared `.chart-container` uses `overflow-x: hidden` on mobile to defeat any
   recharts internal overflow on very narrow widths.
 
 ## Color-coded probabilities (cheatsheet)

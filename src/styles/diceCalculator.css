@@ -11,7 +11,6 @@
  * remain here because the Dice Roller page still uses them.
  * ============================================================ */
 
-@import './tabs.css';
 @import './formCard.css';
 
 .tab-content {
@@ -35,92 +34,12 @@
   min-width: 0;
 }
 
-.calculator-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 10px;
-  background: #3a3a3a;
-  border-radius: 8px;
-}
-
 /* Extra breathing room between the buff chips and the primary action so
-   the submit button doesn't visually crowd the toggles above it. */
-.calculator-form .calculate-button {
+   the submit button doesn't visually crowd the toggles above it. Restrict
+   this to direct children so nested button rows (e.g. Dice Roller actions)
+   don't inherit calculator-specific spacing. */
+.calculator-form > .calculate-button {
   margin-top: 16px;
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-  min-height: 50px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.result-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  padding: 16px;
-  background: #3a3a3a;
-  border-radius: 8px;
-  border-left: 4px solid transparent;
-}
-
-.stat-card:hover {
-  border-left-color: #fbbf24;
-}
-
-.stat-label {
-  display: block;
-  color: #d0d0d0;
-  font-size: 12px;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-}
-
-.stat-value {
-  display: block;
-  color: #fbbf24;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.stat-range {
-  display: block;
-  color: #a0a0a0;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.chart-container {
-  padding: 20px;
-  background: #3a3a3a;
-  border-radius: 8px;
-  border-left: 4px solid transparent;
-}
-
-.chart-container:hover {
-  border-left-color: #fbbf24;
-}
-
-.chart-container h2 {
-  color: #fff;
-  font-size: 14px;
-  margin-bottom: 16px;
 }
 
 .kill-probability-container {
@@ -164,35 +83,6 @@
     width: 100%;
   }
 
-  .calculator-form {
-    padding: 14px;
-    gap: 14px;
-  }
-
-  .form-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .form-group {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .result-stats {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .stat-value {
-    font-size: 22px;
-  }
-
-  .chart-container {
-    padding: 14px;
-    overflow-x: hidden;
-  }
-
   .calculate-button {
     width: 100%;
     text-align: center;
@@ -200,11 +90,4 @@
 }
 
 @media (max-width: 480px) {
-  .result-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-value {
-    font-size: 20px;
-  }
 }

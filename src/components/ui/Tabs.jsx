@@ -1,5 +1,5 @@
-// A reusable tab strip. Visual style comes from the existing `tab-button`
-// CSS classes shared via styles/tabs.css so all tab strips look identical.
+// A reusable tab strip. Visual style comes from the shared UI stylesheet so
+// all tab strips look identical across pages.
 //
 // Props:
 //   value: currently-selected tab value

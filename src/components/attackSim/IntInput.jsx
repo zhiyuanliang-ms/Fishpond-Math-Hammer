@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 // Numeric input that allows transient empty / partial drafts during typing,
 // so deleting the only digit on a phone keypad doesn't snap the field back to
@@ -13,13 +13,6 @@ import { useEffect, useState } from 'react'
 function IntInput({ value, onChange, min, max, fallback, ...rest }) {
   const [draft, setDraft] = useState(String(value))
   const [focused, setFocused] = useState(false)
-
-  // Keep draft in sync when the parent value changes from outside (e.g.
-  // duplicating a profile, importing a scenario), but don't clobber the
-  // user's in-progress typing.
-  useEffect(() => {
-    if (!focused) setDraft(String(value))
-  }, [value, focused])
 
   const clamp = (n) => {
     if (typeof min === 'number' && n < min) return min
@@ -63,8 +56,11 @@ function IntInput({ value, onChange, min, max, fallback, ...rest }) {
       inputMode="numeric"
       min={min}
       max={max}
-      value={draft}
-      onFocus={() => setFocused(true)}
+      value={focused ? draft : String(value)}
+      onFocus={() => {
+        setDraft(String(value))
+        setFocused(true)
+      }}
       onChange={handleChange}
       onBlur={handleBlur}
       {...rest}

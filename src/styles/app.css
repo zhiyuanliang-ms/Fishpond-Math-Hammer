@@ -1,4 +1,4 @@
-@import './tabs.css';
+@import './uiShared.css';
 
 .app {
   display: flex;

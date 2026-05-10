@@ -12,7 +12,6 @@ will stay consistent with existing patterns.
    import { useState } from 'react'
    import { CalculatorLayout, FormSelect, StatGrid, StatCard, DistributionChart } from './ui'
    import { myNewCalculation } from '../lib/dice'
-   import './ui'  // not needed, just illustrative
 
    export default function MyNewCalculator() {
      const [field, setField] = useState('3')
@@ -22,7 +21,7 @@ will stay consistent with existing patterns.
 
      const form = (
        <div className="calculator-form">
-         {/* form rows using FormSelect / inputs / LabeledCheckbox */}
+             {/* form rows using FormSelect / inputs / shared form classes */}
          <button className="calculate-button" onClick={handleCalculate}>Calculate</button>
        </div>
      )
@@ -60,8 +59,9 @@ Only do this if **2+ pages** will use it. Pattern:
 1. Create `src/components/ui/MyThing.jsx` — `default export`, props in,
    JSX out, no business logic.
 2. Re-export from `src/components/ui/index.js`.
-3. Add the styles to the most appropriate existing CSS file, or create a new
-   one and import it from the component.
+3. If the class names are shared app-wide, add the styles to
+   `src/styles/uiShared.css`. If reuse stays local to one page, do not promote
+   it to `ui/`; keep it in that page's subfolder instead.
 
 ## Recipe 4: Add a new option to a dropdown
 
@@ -81,7 +81,7 @@ Reruns will pick it up; no other change needed.
    `attackSimulation.js` and the relevant card in `components/attackSim/`.
 6. Update [`08-glossary.md`](./08-glossary.md) with the new term.
 
-## Recipe 7: Add a new buff to the Attack Simulator
+## Recipe 6: Add a new buff to the Attack Simulator
 
 Weapon buffs live on `WeaponProfileCard`; defensive buffs on
 `TargetProfileCard`. Both render via `BuffChipGroup`.
@@ -99,15 +99,31 @@ Weapon buffs live on `WeaponProfileCard`; defensive buffs on
 5. Test with a known-correct closed-form scenario (e.g. 40 attacks
    BS3+ S5 vs T4 Sv3+ → expected damage = 40 × 2/3 × 2/3 × 1/2 = 8.89).
 
-## Recipe 6: Add unit tests (currently none exist)
+## Recipe 7: Add or extend unit tests
 
-Recommended: **vitest** (Vite-native, zero-config).
+Vitest is already configured. Put tests next to pure logic modules under
+`src/lib/dice/__tests__/` or alongside the module when that is the existing
+pattern. Start with `lib/dice/` because it's pure JS — high ROI, zero React
+mocking needed.
+
+Useful commands:
 ```powershell
-npm install -D vitest
+npm test
+npm run test:watch
 ```
-Add `"test": "vitest"` to `package.json` scripts. Put tests next to modules
-as `probability.test.js`. Start with `lib/dice/` because it's pure JS — high
-ROI, zero React mocking needed.
+
+## Recipe 8: Add a new Attack Simulator-only helper component
+
+If markup is reused inside the Attack Simulator but is still too specific for
+`src/components/ui/`, place it in `src/components/attackSim/`.
+
+Good candidates:
+- shared shells like `ProfileCardShell.jsx`
+- repeated storage/tool rows like `SavedSetControls.jsx`
+- small input helpers like `IntInput.jsx`
+
+Rule of thumb: page-private reuse belongs in the page-private folder; app-wide
+reuse belongs in `ui/`.
 
 ## Anti-patterns (do not do)
 

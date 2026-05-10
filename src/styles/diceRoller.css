@@ -2,6 +2,7 @@
    Reuses .calculator-form, .form-row, .form-group, .calculate-button. */
 
 .dice-roller {
+  --dice-roller-inline-gutter: 10px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -9,6 +10,13 @@
 
 .dice-roller-form {
   max-width: 420px;
+}
+
+/* Match the shared calculator submit-button spacing even though the Dice
+   Roller wraps its actions in a row instead of placing the button directly
+   under .calculator-form. */
+.dice-roller-form > .dice-roller-actions {
+  margin-top: 16px;
 }
 
 .dice-roller-actions {
@@ -44,19 +52,17 @@
   color: #fbbf24;
 }
 
-/* Result panels share the stat-card / chart-container look. */
-.dice-result-section {
-  padding: 20px;
-  background: #3a3a3a;
-  border-radius: 8px;
-  border-left: 4px solid transparent;
+.dice-tray-section {
+  width: 100%;
+  padding-inline: var(--dice-roller-inline-gutter);
+}
+
+.dice-counts-section {
+  width: 100%;
+  padding-inline: var(--dice-roller-inline-gutter);
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.dice-result-section:hover {
-  border-left-color: #fbbf24;
 }
 
 .dice-section-header {
@@ -178,6 +184,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .dice-roller {
+    --dice-roller-inline-gutter: 14px;
+  }
+
   .dice-roller-form {
     max-width: none;
   }
@@ -200,10 +210,6 @@
   .dice-tray {
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: 5px;
-  }
-
-  .dice-result-section {
-    padding: 14px;
   }
 
   .face-count-list {

@@ -108,7 +108,7 @@ function DiceRoller() {
 
         {rolls.length > 0 && (
           <>
-            <section className="dice-result-section">
+            <section className="dice-tray-section" aria-label="Roll result">
               <div className="dice-tray" key={rollNumber}>
                 {rolls.map((face, idx) => (
                   <span
@@ -124,7 +124,7 @@ function DiceRoller() {
               </div>
             </section>
 
-            <section className="dice-result-section">
+            <section className="dice-counts-section" aria-label="Dice counts and rerolls">
               <div className="dice-section-header">
                 <h3>Counts</h3>
               </div>

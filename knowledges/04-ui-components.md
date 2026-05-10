@@ -8,7 +8,7 @@ Import from the barrel:
 ```js
 import {
   Page, Tabs, CalculatorLayout, StatGrid, StatCard,
-  DistributionChart, FormSelect, LabeledCheckbox,
+  DistributionChart, FormSelect,
 } from './ui'
 ```
 
@@ -30,7 +30,7 @@ Wraps content in `.page` div, optional `<h1>{title}</h1>`.
 />
 ```
 Buttons get classes `tab-button` and `active`. Styling lives in
-`src/styles/tabs.css` which is imported globally from `app.css`.
+`src/styles/uiShared.css` which is imported globally from `app.css`.
 
 ### `CalculatorLayout`
 Two-column form/result layout used by every calculator.
@@ -63,7 +63,9 @@ Renders:
 ```
 `StatCard` conditionally renders the σ row and CI row only when those props
 are present. `valueSuffix` / `ciSuffix` are appended to the numbers (used by
-"Chance to Kill All" with `'%'`).
+"Chance to Kill All" with `'%'`). The shared `.result-stats`, `.stat-card`,
+`.stat-label`, `.stat-value`, and `.stat-range` classes also live in
+`src/styles/uiShared.css`.
 
 ### `DistributionChart`
 Wraps recharts `ComposedChart`:
@@ -82,6 +84,7 @@ Wraps recharts `ComposedChart`:
 - Line (cumulative, right axis) is `#60a5fa`.
 - Uses `ResponsiveContainer` so it auto-fits the parent width — do **not**
   set a fixed pixel width on its container.
+- The outer `.chart-container` class is part of `src/styles/uiShared.css`.
 
 ### `FormSelect`
 Thin react-select wrapper with the dark theme baked in.
@@ -95,21 +98,18 @@ Thin react-select wrapper with the dark theme baked in.
 ```
 `isSearchable` defaults to `false` (we never want the keyboard popup on a 5-item list).
 
-### `LabeledCheckbox`
-```jsx
-<LabeledCheckbox
-  id="lethal-hit"
-  label="Lethal Hit"
-  checked={lethalHit}
-  onChange={(e) => setLethalHit(e.target.checked)}
-  disabled={false}
-/>
-```
-
 ### `selectStyles.js`
 Two style objects (`selectStyles`, `buffSelectStyles`) for react-select. If
 you change theme colors, do it here.
 
+## Not everything reusable belongs in `ui/`
+If a component is reused only inside one page, keep it in that page-private
+folder instead of promoting it prematurely. The Attack Simulator's
+`ProfileCardShell.jsx` and `SavedSetControls.jsx` live in
+`src/components/attackSim/` for exactly that reason.
+
 ## When to add a new ui component
 Add one when **two or more** page-level components would otherwise duplicate
-the same JSX + CSS. Until then, keep it inline in the page.
+the same JSX + CSS. If the component becomes shared, move its shared styling
+into `src/styles/uiShared.css`; if reuse stays local to one page, keep it in
+that page's subfolder.
