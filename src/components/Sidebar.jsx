@@ -10,14 +10,6 @@ function Sidebar({ currentPage, onPageChange }) {
       <ul className="nav-list">
         <li>
           <button
-            className={`nav-button ${currentPage === 'dice-calculator' ? 'active' : ''}`}
-            onClick={() => onPageChange('dice-calculator')}
-          >
-            Dice Calculator
-          </button>
-        </li>
-        <li>
-          <button
             className={`nav-button ${currentPage === 'attack-simulator' ? 'active' : ''}`}
             onClick={() => onPageChange('attack-simulator')}
           >
@@ -26,18 +18,26 @@ function Sidebar({ currentPage, onPageChange }) {
         </li>
         <li>
           <button
-            className={`nav-button ${currentPage === 'dice-roller' ? 'active' : ''}`}
-            onClick={() => onPageChange('dice-roller')}
-          >
-            Dice Roller
-          </button>
-        </li>
-        <li>
-          <button
             className={`nav-button ${currentPage === 'cheat-sheet' ? 'active' : ''}`}
             onClick={() => onPageChange('cheat-sheet')}
           >
             Cheat Sheet
+          </button>
+        </li>
+        <li>
+          <button
+            className={`nav-button ${currentPage === 'dice-calculator' ? 'active' : ''}`}
+            onClick={() => onPageChange('dice-calculator')}
+          >
+            Dice Calculator
+          </button>
+        </li>
+        <li>
+          <button
+            className={`nav-button ${currentPage === 'dice-roller' ? 'active' : ''}`}
+            onClick={() => onPageChange('dice-roller')}
+          >
+            Dice Roller
           </button>
         </li>
         <li>

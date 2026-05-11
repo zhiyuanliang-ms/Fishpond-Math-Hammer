@@ -77,12 +77,6 @@ export function MacroScoreboard() {
 
   const playerTotal = total('player')
   const opponentTotal = total('opponent')
-  const leader =
-    playerTotal === opponentTotal
-      ? 'tie'
-      : playerTotal > opponentTotal
-      ? 'player'
-      : 'opponent'
 
   const cellInput = (side, round) => {
     const v = state.scores[side][round]
@@ -113,14 +107,13 @@ export function MacroScoreboard() {
           <tr>
             <th className="mbp-th-side"></th>
             {ROUNDS.map((r) => (
-              <th key={r}>R{r}</th>
+              <th key={r}>T{r}</th>
             ))}
             <th className="mbp-th-total">VP</th>
           </tr>
         </thead>
         <tbody>
           {['player', 'opponent'].map((side) => {
-            const isWinner = leader === side
             const t = side === 'player' ? playerTotal : opponentTotal
             return (
               <tr key={side}>
@@ -139,7 +132,7 @@ export function MacroScoreboard() {
                 {ROUNDS.map((r) => (
                   <td key={r}>{cellInput(side, r)}</td>
                 ))}
-                <td className={`mbp-total ${isWinner ? 'mbp-total--winner' : ''}`}>{t}</td>
+                <td className="mbp-total">{t}</td>
               </tr>
             )
           })}

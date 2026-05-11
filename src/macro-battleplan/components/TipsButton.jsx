@@ -25,6 +25,9 @@ export function TipsButton() {
           <li>
             <span className="mbp-kbd">Q</span>/<span className="mbp-kbd">E</span> rotate
           </li>
+          <li>
+            <span className="mbp-kbd">↑</span><span className="mbp-kbd">↓</span><span className="mbp-kbd">←</span><span className="mbp-kbd">→</span> nudge selection
+          </li>
         </ul>
       </div>
     </div>

@@ -29,7 +29,7 @@ function AppContent() {
       case '/about':
         return 'about'
       default:
-        return 'dice-calculator'
+        return 'attack-simulator'
     }
   }
 
@@ -54,7 +54,7 @@ function AppContent() {
         navigate('/about')
         break
       default:
-        navigate('/dice-calculator')
+        navigate('/attack-simulator')
     }
   }
 
@@ -70,7 +70,7 @@ function AppContent() {
             <Route path="/dice-roller" element={<DiceRoller />} />
             <Route path="/cheat-sheet" element={<Cheatsheet />} />
             <Route path="/about" element={<About />} />
-            <Route path="/" element={<DiceCalculator />} />
+            <Route path="/" element={<AttackSimulator />} />
           </Routes>
         </main>
         <Footer onCopyrightClick={() => navigate('/about')} />

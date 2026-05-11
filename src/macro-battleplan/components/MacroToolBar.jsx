@@ -5,7 +5,7 @@ import {
   Pencil,
   Slash,
   Eraser,
-  Trash,
+  Trash2,
   Palette,
   Undo2,
   GripHorizontal,
@@ -239,7 +239,7 @@ export function MacroToolBar() {
         className="mbp-toolbar__btn mbp-toolbar__btn--danger"
         disabled={drawings.length === 0}
       >
-        <Trash size={15} />
+        <Trash2 size={15} />
       </button>
     </div>
   )

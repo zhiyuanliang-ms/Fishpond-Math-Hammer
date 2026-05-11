@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Circle as CircleIcon,
-  Square,
-  Target,
   Lock,
   Unlock,
   Save,
   Share2,
-  Trash,
+  Trash2,
+  RotateCcw,
   Download,
   Upload,
   Move,
@@ -168,8 +167,8 @@ function ScenerySection({ addObjective, addTerrain }) {
         <span>Battlefield</span>
       </div>
       <div className="mbp-segmented">
-        {tabBtn('objective', 'Objective', <Target size={11} />)}
-        {tabBtn('terrain', 'Terrain', <Square size={11} />)}
+        {tabBtn('objective', 'Objective')}
+        {tabBtn('terrain', 'Terrain')}
       </div>
       <div className="mbp-section__row">
         {tab === 'objective' ? (
@@ -205,6 +204,7 @@ function BoardSection() {
   const savedBoards = useBoardStore((s) => s.savedBoards)
   const saveBoard = useBoardStore((s) => s.saveBoard)
   const loadBoard = useBoardStore((s) => s.loadBoard)
+  const deleteSavedBoard = useBoardStore((s) => s.deleteSavedBoard)
   const clearBoard = useBoardStore((s) => s.clearBoard)
   const exportBoard = useBoardStore((s) => s.exportBoard)
   const importBoard = useBoardStore((s) => s.importBoard)
@@ -271,6 +271,13 @@ function BoardSection() {
     }
     loadBoard(name)
     setSelectedBoard(name)
+  }
+
+  const handleDeleteSavedBoard = () => {
+    if (!selectedBoard) return
+    if (!window.confirm(`Delete saved board "${selectedBoard}"?`)) return
+    deleteSavedBoard(selectedBoard)
+    setSelectedBoard('')
   }
 
   const handleExport = () => {
@@ -377,14 +384,8 @@ function BoardSection() {
           disabled={!canMirror}
         />
         <IconAction
-          onClick={handleSave}
-          icon={<Save size={15} />}
-          label="Save board"
-          title="Save current board to browser storage"
-        />
-        <IconAction
           onClick={handleClear}
-          icon={<Trash size={15} />}
+          icon={<RotateCcw size={15} />}
           label="Clear board"
           title="Remove all pieces from the board"
           variant="danger"
@@ -402,6 +403,24 @@ function BoardSection() {
           icon={<Link2 size={15} />}
           label="Load battlefield code"
           title="Load terrain and objective layout from a shared code"
+        />
+        <IconAction
+          onClick={handleSave}
+          icon={<Save size={15} />}
+          label="Save board"
+          title="Save current board to browser storage"
+        />
+        <IconAction
+          onClick={handleDeleteSavedBoard}
+          icon={<Trash2 size={15} />}
+          label="Delete saved board"
+          title={
+            selectedBoard
+              ? `Delete saved board "${selectedBoard}"`
+              : 'Select a saved board below to delete'
+          }
+          variant="danger"
+          disabled={!selectedBoard}
         />
       </div>
 
@@ -474,7 +493,7 @@ function SelectionSection() {
           </Chip>
         </div>
         <Chip onClick={deleteSelected} variant="danger" title="Delete (Del)" full>
-          <Trash size={13} /> Delete Selection
+          <Trash2 size={13} /> Delete Selection
         </Chip>
         <div className="mbp-section__note">
           Drag any selected piece to move the whole group. Use Q/E to rotate
@@ -518,7 +537,7 @@ function SelectionSection() {
         </Chip>
       </div>
       <Chip onClick={deleteSelected} variant="danger" title="Delete (Del)" full>
-        <Trash size={13} /> Delete
+        <Trash2 size={13} /> Delete
       </Chip>
 
       {isBase && (

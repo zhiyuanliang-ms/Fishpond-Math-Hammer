@@ -516,13 +516,25 @@ export const useBoardStore = create((set, get) => {
       pushHistory()
       const pieces = board.pieces.map((p) => ({ ...p, id: newId() }))
       const drawings = (board.drawings ?? []).map((d) => ({ ...d, id: newId() }))
-      set({ pieces, drawings, selectedIds: [], selectedId: null })
+      set({ pieces, drawings, selectedIds: [], selectedId: null, terrainLocked: true })
     },
 
     deleteSavedBoard: (name) => {
       const next = get().savedBoards.filter((b) => b.name !== name)
       writeSavedBoards(next)
       set({ savedBoards: next })
+    },
+
+    clearAllStorage: () => {
+      try {
+        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(LEGACY_STORAGE_KEY)
+        localStorage.removeItem('fishpond-mathhammer-macro-battleplan:scoreboard')
+        localStorage.removeItem('40k-macro-battleplan:scoreboard')
+      } catch {
+        /* ignore */
+      }
+      set({ savedBoards: [] })
     },
 
     exportBoard: () => {
@@ -557,7 +569,7 @@ export const useBoardStore = create((set, get) => {
         .filter((d) => d && Array.isArray(d.points))
         .map((d) => ({ ...d, id: newId() }))
       pushHistory()
-      set({ pieces, drawings, selectedIds: [], selectedId: null })
+      set({ pieces, drawings, selectedIds: [], selectedId: null, terrainLocked: true })
       return true
     },
 
@@ -572,6 +584,7 @@ export const useBoardStore = create((set, get) => {
         pieces,
         selectedIds: [],
         selectedId: null,
+        terrainLocked: true,
       })
       return true
     },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Download, Upload, Save, Trash2, Eraser } from 'lucide-react'
+import { Download, Upload, Save, Trash2 } from 'lucide-react'
 import { simulateAttack, isValidDiceExpression } from '../lib/dice'
 import {
   loadScenario,
@@ -16,7 +16,6 @@ import {
   saveNamedTargetSet,
   loadNamedTargetSet,
   deleteNamedTargetSet,
-  clearAllAttackSimStorage,
   StorageQuotaError
 } from '../lib/attackSimStorage'
 import {
@@ -469,22 +468,6 @@ function AttackSimulator() {
   }
 
   // ---- nuke local storage ----
-  const handleClearStorage = () => {
-    const msg =
-      'Clear all Attack Simulator data from this browser?\n\n' +
-      'This deletes the auto-saved scenario, all saved scenarios, and all ' +
-      'saved attacker / defender profile sets. The current on-screen ' +
-      'profiles are kept until you reload.'
-    if (!window.confirm(msg)) return
-    clearAllAttackSimStorage()
-    setSavedNames([])
-    setSavedWeaponSets([])
-    setSavedTargetSets([])
-    setSelectedSlot('')
-    setSelectedWeaponSet('')
-    setSelectedTargetSet('')
-    setToast({ kind: 'success', message: 'Local storage cleared.' })
-  }
 
   const handleImportFile = async (e) => {
     const file = e.target.files?.[0]
@@ -613,15 +596,6 @@ function AttackSimulator() {
               </button>
             </>
           )}
-          <button
-            type="button"
-            className="toolbar-button toolbar-button--danger"
-            onClick={handleClearStorage}
-            title="Clear all Attack Simulator data from local storage"
-          >
-            <Eraser size={14} />
-            <span>Clear Storage</span>
-          </button>
         </div>
 
         <input

@@ -1,9 +1,27 @@
 import { Page } from './ui'
+import { clearAllAttackSimStorage } from '../lib/attackSimStorage'
+import { useBoardStore } from '../macro-battleplan/store/boardStore'
 import '../styles/about.css'
 
 function About() {
   const handleCoffeeClick = () => {
     alert('This function is not implemented yet')
+  }
+
+  const handleClearStorage = () => {
+    const msg =
+      'Clear ALL Fishpond Math Hammer data from this browser?\n\n' +
+      'This deletes every saved Attack Simulator scenario / profile set ' +
+      'and every saved Macro Battleplan board and scoreboard. ' +
+      'On-screen state is kept until you reload.'
+    if (!window.confirm(msg)) return
+    try {
+      clearAllAttackSimStorage()
+      useBoardStore.getState().clearAllStorage?.()
+    } catch {
+      /* ignore */
+    }
+    alert('Local storage cleared.')
   }
 
   return (
@@ -44,6 +62,17 @@ function About() {
               <h4>Support This Project</h4>
               <button onClick={handleCoffeeClick} className="coffee-button">
                 Buy Me a Coffee
+              </button>
+            </div>
+
+            <div className="storage-info">
+              <h4>Local Storage</h4>
+              <p>
+                Remove every saved scenario, profile set, board, and scoreboard
+                that this app keeps in your browser.
+              </p>
+              <button onClick={handleClearStorage} className="clear-storage-button">
+                Clear Storage
               </button>
             </div>
           </div>
