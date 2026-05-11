@@ -13,8 +13,10 @@ export default function MacroBattleplan() {
   return (
     <div className="mbp-page">
       <div className={`mbp-body ${sidebarOpen ? '' : 'mbp-body--collapsed'}`}>
-        <main ref={stageContainerRef} className="mbp-canvas">
-          <BoardCanvas containerRef={stageContainerRef} />
+        <div className="mbp-canvas-wrap">
+          <main ref={stageContainerRef} className="mbp-canvas">
+            <BoardCanvas containerRef={stageContainerRef} />
+          </main>
           <MacroToolBar />
           <TipsButton />
           {!sidebarOpen && (
@@ -28,7 +30,7 @@ export default function MacroBattleplan() {
               <PanelRightOpen size={16} />
             </button>
           )}
-        </main>
+        </div>
         {sidebarOpen && <MacroSidebar onClose={() => setSidebarOpen(false)} />}
       </div>
     </div>

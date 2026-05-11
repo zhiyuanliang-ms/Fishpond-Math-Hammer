@@ -155,6 +155,13 @@
   display: none;
 }
 
+.mbp-canvas-wrap {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  display: flex;
+}
+
 .mbp-canvas {
   flex: 1;
   position: relative;
@@ -168,7 +175,10 @@
 
 .mbp-canvas .konvajs-content,
 .mbp-canvas canvas {
-  touch-action: none;
+  /* Default to allowing native pan so users on coarse pointers can swipe to
+     scroll the overflowing board. DrawingOverlay / RulerOverlay set
+     touch-action: none dynamically while their tool is active. */
+  touch-action: pan-x pan-y;
 }
 
 /* On narrow viewports stack the tools panel below the canvas so both remain

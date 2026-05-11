@@ -93,6 +93,10 @@ export function BoardCanvas({ containerRef }) {
         if (activeTool !== 'cursor') return
         if (isOnInteractiveTarget(e)) return
         const evt = e.evt
+        // Skip marquee/multi-select on touch input (finger). Mouse, pen, and
+        // an external trackpad on iPadOS still report 'mouse' here, so they
+        // keep full marquee + multi-select support.
+        if (evt && evt.pointerType === 'touch') return
         if (evt && evt.button !== undefined && evt.button !== 0) return
         additiveRef.current = !!(evt.ctrlKey || evt.metaKey || evt.shiftKey)
         const p = getStagePointer()
