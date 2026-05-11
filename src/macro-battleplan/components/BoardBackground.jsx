@@ -19,7 +19,7 @@ const shortLabel = (offset) => (offset <= 22 ? offset : 44 - offset)
 
 const RULER_GAP = 6
 const RULER_FONT = 11
-const RULER_COLOR = '#aab2c0'
+const RULER_COLOR = '#a0a0a0'
 
 export function BoardBackground() {
   const verticals = []
@@ -31,7 +31,7 @@ export function BoardBackground() {
       <Line
         key={`v-${i}`}
         points={[x, MAP_Y, x, MAP_Y + MAP_H]}
-        stroke={major ? '#5a6373' : '#3a3f48'}
+        stroke={major ? '#555' : '#3a3a3a'}
         strokeWidth={major ? 1.25 : 0.5}
         listening={false}
       />,
@@ -47,7 +47,7 @@ export function BoardBackground() {
       <Line
         key={`h-${i}`}
         points={[MAP_X, y, MAP_X + MAP_W, y]}
-        stroke={major ? '#5a6373' : '#3a3f48'}
+        stroke={major ? '#555' : '#3a3a3a'}
         strokeWidth={major ? 1.25 : 0.5}
         listening={false}
       />,
@@ -90,12 +90,12 @@ export function BoardBackground() {
 
   return (
     <Layer listening={false}>
-      <Rect x={0} y={0} width={STAGE_W} height={STAGE_H} fill="#0f1115" />
-      <Rect x={MAP_X} y={MAP_Y} width={MAP_W} height={MAP_H} fill="#2b2f36"
-        stroke="#6a7280" strokeWidth={2} />
+      <Rect x={0} y={0} width={STAGE_W} height={STAGE_H} fill="#1a1a1a" />
+      <Rect x={MAP_X} y={MAP_Y} width={MAP_W} height={MAP_H} fill="#2a2a2a"
+        stroke="#555" strokeWidth={2} />
       {verticals}
       {horizontals}
-      <Rect x={MAP_X} y={MAP_Y} width={MAP_W} height={MAP_H} stroke="#8a93a3"
+      <Rect x={MAP_X} y={MAP_Y} width={MAP_W} height={MAP_H} stroke="#888"
         strokeWidth={2} listening={false} />
       {labels}
     </Layer>

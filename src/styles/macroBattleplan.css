@@ -158,7 +158,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: #0f1115;
+  background: #1a1a1a;
   border: 1px solid #444;
   border-radius: 8px;
   min-width: 0;
@@ -226,19 +226,20 @@
 }
 
 .mbp-toolbar__btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
+  color: #fbbf24;
+  border-color: #fbbf24;
 }
 
 .mbp-toolbar__btn.is-active {
-  background: rgba(251, 191, 36, 0.18);
   color: #fbbf24;
-  border-color: rgba(251, 191, 36, 0.5);
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
 }
 
 .mbp-toolbar__btn--danger:hover:not(:disabled) {
-  color: #f4a3a3;
-  background: rgba(196, 61, 61, 0.18);
+  color: #fecaca;
+  border-color: #ef4444;
+  background: transparent;
 }
 
 .mbp-toolbar__btn:disabled {
@@ -248,7 +249,7 @@
 
 .mbp-toolbar__sep {
   width: 1px;
-  heightn: 2px 2px;
+  margin: 2px 2px;
   background: #444;
   align-self: stretch;
 }
@@ -451,17 +452,17 @@
   gap: 6px;
 }
 
-/* Chip-style buttons (replace Tailwind chips) */
+/* Chip-style buttons — match attack simulator's toolbar buttons. */
 
 .mbp-chip {
   padding: 6px 10px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   font-family: inherit;
-  background: #4a4a4a;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 4px;
+  background: #2a2a2a;
+  color: #d0d0d0;
+  border: 1px solid #4a4a4a;
+  border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -470,8 +471,8 @@
 }
 
 .mbp-chip:hover {
-  background: #5a5a5a;
-  border-color: #666;
+  border-color: #fbbf24;
+  color: #fbbf24;
 }
 
 .mbp-chip--full {
@@ -480,23 +481,23 @@
 }
 
 .mbp-chip--accent {
-  background: rgba(251, 191, 36, 0.18);
-  border-color: rgba(251, 191, 36, 0.5);
+  border-color: #fbbf24;
   color: #fbbf24;
 }
 
 .mbp-chip--accent:hover {
-  background: rgba(251, 191, 36, 0.28);
+  background: rgba(251, 191, 36, 0.12);
 }
 
 .mbp-chip--danger {
-  background: rgba(196, 61, 61, 0.18);
-  border-color: rgba(196, 61, 61, 0.55);
-  color: #f4a3a3;
+  background: #2a2a2a;
+  border-color: #4a4a4a;
+  color: #d0d0d0;
 }
 
 .mbp-chip--danger:hover {
-  background: rgba(196, 61, 61, 0.3);
+  border-color: #ef4444;
+  color: #fecaca;
 }
 
 /* Tool toggle buttons (single-row, equal width) */
@@ -513,22 +514,23 @@
   align-items: center;
   justify-content: center;
   height: 32px;
-  background: #4a4a4a;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 4px;
+  background: #2a2a2a;
+  color: #d0d0d0;
+  border: 1px solid #4a4a4a;
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .mbp-tool-btn:hover {
-  background: #5a5a5a;
+  border-color: #fbbf24;
+  color: #fbbf24;
 }
 
 .mbp-tool-btn.is-active {
-  background: rgba(251, 191, 36, 0.18);
-  border-color: rgba(251, 191, 36, 0.5);
+  border-color: #fbbf24;
   color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
 }
 
 /* Inline segmented switch (round / oval, objective / terrain) */

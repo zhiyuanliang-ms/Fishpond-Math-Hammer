@@ -16,8 +16,8 @@ export function TerrainToken({ piece }) {
   const selectedIds = useBoardStore((s) => s.selectedIds)
   const locked = useBoardStore((s) => s.terrainLocked)
 
-  const footprintStroke = selected ? '#fbbf24' : '#8a93a3'
-  const footprintFill = 'rgba(180, 200, 230, 0.18)'
+  const footprintStroke = selected ? '#fbbf24' : '#888'
+  const footprintFill = 'rgba(255, 255, 255, 0.05)'
 
   const dragStartRef = useRef(null)
   const { onGroupDragStart, onGroupDragMove, onGroupDragEnd } = useGroupDragMove({

@@ -307,7 +307,7 @@ export function DrawingOverlay({ stageRef }) {
               y={mid.y - labelH / 2}
               width={labelW}
               height={labelH}
-              fill="rgba(15, 17, 21, 0.85)"
+              fill="rgba(26, 26, 26, 0.88)"
               cornerRadius={4}
               listening={false}
             />,
