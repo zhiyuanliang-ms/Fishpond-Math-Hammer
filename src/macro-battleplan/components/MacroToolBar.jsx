@@ -1,5 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
-import { MousePointer2, Ruler, Pencil, Slash, Eraser, Trash, Palette } from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+  MousePointer2,
+  Ruler,
+  Pencil,
+  Slash,
+  Eraser,
+  Trash,
+  Palette,
+  Undo2,
+  GripHorizontal,
+} from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
 import { DRAW_COLOR_PALETTE } from '../config/board'
 
@@ -18,9 +28,92 @@ export function MacroToolBar() {
   const clearDrawings = useBoardStore((s) => s.clearDrawings)
   const drawColor = useBoardStore((s) => s.drawColor)
   const setDrawColor = useBoardStore((s) => s.setDrawColor)
+  const undo = useBoardStore((s) => s.undo)
+  const canUndo = useBoardStore((s) => (s.history?.length ?? 0) > 0)
 
   const [colorOpen, setColorOpen] = useState(false)
   const colorWrapRef = useRef(null)
+
+  const barRef = useRef(null)
+  const handleRef = useRef(null)
+  const [snapEdge, setSnapEdge] = useState('right')
+  const [dragPos, setDragPos] = useState(null)
+
+  useLayoutEffect(() => {
+    const handle = handleRef.current
+    const bar = barRef.current
+    if (!handle || !bar) return
+    const parent = bar.offsetParent
+    if (!parent) return
+
+    let activeId = null
+    let startPointer = null
+    let startBar = null
+
+    const onDown = (ev) => {
+      if (ev.button !== undefined && ev.button !== 0) return
+      activeId = ev.pointerId
+      ev.preventDefault()
+      try { handle.setPointerCapture(ev.pointerId) } catch { /* noop */ }
+      const barRect = bar.getBoundingClientRect()
+      const parentRect = parent.getBoundingClientRect()
+      startPointer = { x: ev.clientX, y: ev.clientY }
+      startBar = {
+        x: barRect.left - parentRect.left,
+        y: barRect.top - parentRect.top,
+      }
+      setDragPos(startBar)
+    }
+    const onMove = (ev) => {
+      if (activeId === null || ev.pointerId !== activeId) return
+      ev.preventDefault()
+      const parentRect = parent.getBoundingClientRect()
+      const barRect = bar.getBoundingClientRect()
+      const dx = ev.clientX - startPointer.x
+      const dy = ev.clientY - startPointer.y
+      const maxX = Math.max(0, parentRect.width - barRect.width)
+      const maxY = Math.max(0, parentRect.height - barRect.height)
+      const x = Math.min(maxX, Math.max(0, startBar.x + dx))
+      const y = Math.min(maxY, Math.max(0, startBar.y + dy))
+      setDragPos({ x, y })
+    }
+    const onUp = (ev) => {
+      if (activeId === null || ev.pointerId !== activeId) return
+      activeId = null
+      try { handle.releasePointerCapture(ev.pointerId) } catch { /* noop */ }
+      const parentRect = parent.getBoundingClientRect()
+      const barRect = bar.getBoundingClientRect()
+      // Snap to whichever parent edge the bar is closest to (edge-to-edge gap).
+      // Using gaps (not center distance) lets a tall vertical bar still snap
+      // to the top edge when its top side is dragged near the canvas top.
+      const distances = {
+        left: barRect.left - parentRect.left,
+        right: parentRect.right - barRect.right,
+        top: barRect.top - parentRect.top,
+        bottom: parentRect.bottom - barRect.bottom,
+      }
+      const nearest = Object.keys(distances).reduce((a, b) =>
+        distances[a] <= distances[b] ? a : b,
+      )
+      setSnapEdge(nearest)
+      setDragPos(null)
+    }
+    const onCancel = () => {
+      activeId = null
+      setDragPos(null)
+    }
+
+    handle.addEventListener('pointerdown', onDown)
+    handle.addEventListener('pointermove', onMove)
+    handle.addEventListener('pointerup', onUp)
+    handle.addEventListener('pointercancel', onCancel)
+    return () => {
+      handle.removeEventListener('pointerdown', onDown)
+      handle.removeEventListener('pointermove', onMove)
+      handle.removeEventListener('pointerup', onUp)
+      handle.removeEventListener('pointercancel', onCancel)
+    }
+  }, [])
 
   useEffect(() => {
     if (!colorOpen) return
@@ -41,7 +134,31 @@ export function MacroToolBar() {
   }
 
   return (
-    <div className="mbp-toolbar" role="toolbar" aria-label="Map tools">
+    <div
+      ref={barRef}
+      className={`mbp-toolbar mbp-toolbar--snap-${snapEdge}`}
+      style={
+        dragPos
+          ? {
+              left: `${dragPos.x}px`,
+              top: `${dragPos.y}px`,
+              right: 'auto',
+              bottom: 'auto',
+              transform: 'none',
+            }
+          : undefined
+      }
+      role="toolbar"
+      aria-label="Map tools"
+    >
+      <div
+        ref={handleRef}
+        className="mbp-toolbar__handle"
+        title="Drag to move · release to snap to nearest edge"
+        aria-label="Drag to reposition tool bar"
+      >
+        <GripHorizontal size={14} />
+      </div>
       {TOOLS.map(({ id, icon: Icon, title }) => {
         const active = activeTool === id
         return (
@@ -102,6 +219,17 @@ export function MacroToolBar() {
       </div>
 
       <div className="mbp-toolbar__sep" />
+
+      <button
+        type="button"
+        onClick={undo}
+        title="Undo (Ctrl+Z)"
+        aria-label="Undo"
+        className="mbp-toolbar__btn"
+        disabled={!canUndo}
+      >
+        <Undo2 size={15} />
+      </button>
 
       <button
         type="button"

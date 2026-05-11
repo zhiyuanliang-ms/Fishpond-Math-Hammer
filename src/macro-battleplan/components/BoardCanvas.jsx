@@ -27,7 +27,15 @@ export function BoardCanvas({ containerRef }) {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const update = () => setSize({ width: el.clientWidth, height: el.clientHeight })
+    // Map adapts to the viewport but never shrinks below this lower bound.
+    // Below this size the canvas becomes scrollable instead of scaling further.
+    const MIN_W = 640
+    const MIN_H = 480
+    const update = () =>
+      setSize({
+        width: Math.max(MIN_W, el.clientWidth),
+        height: Math.max(MIN_H, el.clientHeight),
+      })
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
@@ -81,17 +89,18 @@ export function BoardCanvas({ containerRef }) {
       ref={stageRef}
       width={size.width}
       height={size.height}
-      onMouseDown={(e) => {
+      onPointerDown={(e) => {
         if (activeTool !== 'cursor') return
         if (isOnInteractiveTarget(e)) return
         const evt = e.evt
+        if (evt && evt.button !== undefined && evt.button !== 0) return
         additiveRef.current = !!(evt.ctrlKey || evt.metaKey || evt.shiftKey)
         const p = getStagePointer()
         if (!p) return
         rubberStartRef.current = p
         setRubber({ x: p.x, y: p.y, w: 0, h: 0 })
       }}
-      onMouseMove={() => {
+      onPointerMove={() => {
         if (!rubberStartRef.current) return
         const p = getStagePointer()
         if (!p) return
@@ -103,7 +112,7 @@ export function BoardCanvas({ containerRef }) {
           h: Math.abs(p.y - start.y),
         })
       }}
-      onMouseUp={() => {
+      onPointerUp={() => {
         const start = rubberStartRef.current
         const rect = rubber
         rubberStartRef.current = null

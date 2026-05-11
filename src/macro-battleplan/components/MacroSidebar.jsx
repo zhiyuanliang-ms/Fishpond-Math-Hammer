@@ -13,6 +13,7 @@ import {
   Download,
   Upload,
   Move,
+  PanelRightClose,
 } from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
 import { MacroScoreboard } from './MacroScoreboard'
@@ -374,6 +375,7 @@ function SelectionSection() {
   const updatePiece = useBoardStore((s) => s.commitPieceUpdate)
   const copySelected = useBoardStore((s) => s.copySelected)
   const pasteCopied = useBoardStore((s) => s.pasteCopied)
+  const deleteSelected = useBoardStore((s) => s.deleteSelected)
 
   const isBase = piece?.kind === 'base'
   const aura = isBase ? piece.auraIn ?? 0 : 0
@@ -397,6 +399,9 @@ function SelectionSection() {
             Paste
           </Chip>
         </div>
+        <Chip onClick={deleteSelected} variant="danger" title="Delete (Del)" full>
+          <Trash size={13} /> Delete Selection
+        </Chip>
         <div className="mbp-section__note">
           Drag any selected piece to move the whole group. Use Q/E to rotate
           each in place.
@@ -438,6 +443,9 @@ function SelectionSection() {
           Paste
         </Chip>
       </div>
+      <Chip onClick={deleteSelected} variant="danger" title="Delete (Del)" full>
+        <Trash size={13} /> Delete
+      </Chip>
 
       {isBase && (
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6, marginTop: 2 }}>
@@ -499,7 +507,7 @@ function SelectionSection() {
   )
 }
 
-export function MacroSidebar() {
+export function MacroSidebar({ onClose }) {
   const addBase = useBoardStore((s) => s.addBase)
   const addOvalBase = useBoardStore((s) => s.addOvalBase)
   const addTerrain = useBoardStore((s) => s.addTerrain)
@@ -507,6 +515,19 @@ export function MacroSidebar() {
 
   return (
     <aside className="mbp-tools">
+      {onClose && (
+        <div className="mbp-tools__topbar">
+          <button
+            type="button"
+            className="mbp-tools__close"
+            onClick={onClose}
+            title="Hide panel"
+            aria-label="Hide panel"
+          >
+            <PanelRightClose size={14} />
+          </button>
+        </div>
+      )}
       <div className="mbp-tools__scroll">
         <MacroScoreboard />
         <BasesSection addBase={addBase} addOvalBase={addOvalBase} />
@@ -514,24 +535,6 @@ export function MacroSidebar() {
         <ScenerySection addObjective={addObjective} addTerrain={addTerrain} />
         <BoardSection />
       </div>
-      <footer className="mbp-tools__footer">
-        <div>
-          <span className="mbp-kbd">R</span>/<span className="mbp-kbd">D</span>/
-          <span className="mbp-kbd">S</span>/<span className="mbp-kbd">X</span> tools ·{' '}
-          <span className="mbp-kbd">Esc</span> cursor
-        </div>
-        <div>
-          <span className="mbp-kbd">Q</span>/<span className="mbp-kbd">E</span> rotate ±1° ·{' '}
-          <span className="mbp-kbd">Del</span> delete ·{' '}
-          <span className="mbp-kbd">Ctrl+Z</span> undo
-        </div>
-        <div>
-          <span className="mbp-kbd">Ctrl+C</span>/<span className="mbp-kbd">Ctrl+V</span> copy/paste
-        </div>
-        <div>
-          <span className="mbp-kbd">Ctrl</span>+click or drag-rect to multi-select
-        </div>
-      </footer>
     </aside>
   )
 }

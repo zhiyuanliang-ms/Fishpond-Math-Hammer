@@ -20,6 +20,14 @@
   padding: 40px;
 }
 
+/* Macro Battleplan can hide the app's left nav for more canvas room. */
+body.app-nav-hidden .sidebar {
+  display: none;
+}
+body.app-nav-hidden .main-wrapper {
+  margin-left: 0;
+}
+
 .page {
   max-width: 1200px;
   margin: 0 auto;

@@ -40,7 +40,7 @@ function Sidebar({ currentPage, onPageChange }) {
             Cheat Sheet
           </button>
         </li>
-        <li className="nav-item--desktop-only">
+        <li>
           <button
             className={`nav-button ${currentPage === 'macro-battleplan' ? 'active' : ''}`}
             onClick={() => onPageChange('macro-battleplan')}

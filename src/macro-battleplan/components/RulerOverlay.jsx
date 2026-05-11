@@ -27,8 +27,9 @@ export function RulerOverlay({ stageRef }) {
     }
 
     const onDown = (e) => {
-      if (e.evt.button !== 0) return
+      if (e.evt && e.evt.button !== undefined && e.evt.button !== 0) return
       if (e.target !== stage) return
+      if (e.evt && typeof e.evt.preventDefault === 'function') e.evt.preventDefault()
       const p = getPos()
       if (!p) return
       dragStartRef.current = p
@@ -60,18 +61,27 @@ export function RulerOverlay({ stageRef }) {
       }
     }
 
-    stage.on('mousedown.ruler', onDown)
-    stage.on('mousemove.ruler', onMove)
-    stage.on('mouseup.ruler', finish)
-    stage.on('mouseleave.ruler', finish)
+    stage.on('mousedown.ruler touchstart.ruler', onDown)
+    stage.on('mousemove.ruler touchmove.ruler', onMove)
+    stage.on('mouseup.ruler touchend.ruler', finish)
+    stage.on('mouseleave.ruler touchcancel.ruler', finish)
 
     const container = stage.container()
     const prevCursor = container?.style.cursor ?? ''
-    if (container) container.style.cursor = 'crosshair'
+    const prevTouchAction = container?.style.touchAction ?? ''
+    if (container) {
+      container.style.cursor = 'crosshair'
+      container.style.touchAction = 'none'
+    }
 
     return () => {
-      stage.off('mousedown.ruler mousemove.ruler mouseup.ruler mouseleave.ruler')
-      if (container) container.style.cursor = prevCursor
+      stage.off(
+        'mousedown.ruler touchstart.ruler mousemove.ruler touchmove.ruler mouseup.ruler touchend.ruler mouseleave.ruler touchcancel.ruler',
+      )
+      if (container) {
+        container.style.cursor = prevCursor
+        container.style.touchAction = prevTouchAction
+      }
       dragStartRef.current = null
     }
   }, [active, stageRef])

@@ -79,13 +79,6 @@
   vertical-align: middle;
 }
 
-/* Macro Battleplan is desktop-only — hide its nav entry on tablet/phone. */
-@media (max-width: 960px) {
-  .nav-item--desktop-only {
-    display: none !important;
-  }
-}
-
 @media (max-width: 960px) {
   .sidebar {
     position: relative;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Layer, Line, Rect, Text } from 'react-konva'
+import { Circle, Layer, Line, Rect, Text } from 'react-konva'
 import { useBoardStore } from '../store/boardStore'
 import { PX_PER_INCH } from '../config/board'
 
@@ -47,6 +47,8 @@ export function DrawingOverlay({ stageRef }) {
 
   const [linePreview, setLinePreview] = useState(null)
   const [freePreview, setFreePreview] = useState(null)
+  // Touch-only eraser indicator (for mouse, OS cursor is the indicator).
+  const [touchEraserPos, setTouchEraserPos] = useState(null)
   const startRef = useRef(null)
   const lastPtRef = useRef(null)
   const freeBufRef = useRef(null)
@@ -58,14 +60,18 @@ export function DrawingOverlay({ stageRef }) {
     if (!container) return
     if (eraserActive) {
       container.style.cursor = ERASER_CURSOR
+      container.style.touchAction = 'none'
       return () => {
         container.style.cursor = ''
+        container.style.touchAction = ''
       }
     }
     if (captureActive) {
       container.style.cursor = 'crosshair'
+      container.style.touchAction = 'none'
       return () => {
         container.style.cursor = ''
+        container.style.touchAction = ''
       }
     }
   }, [captureActive, eraserActive, stageRef])
@@ -76,6 +82,8 @@ export function DrawingOverlay({ stageRef }) {
     if (!stage) return
     const container = stage.container()
     if (!container) return
+
+    let activePointerId = null
 
     const setPointerFromEvent = (ev) => {
       stage.setPointersPositions(ev)
@@ -89,13 +97,22 @@ export function DrawingOverlay({ stageRef }) {
       startRef.current = null
       lastPtRef.current = null
       freeBufRef.current = null
+      activePointerId = null
       setLinePreview(null)
       setFreePreview(null)
     }
 
     const onDown = (ev) => {
-      if (ev.button !== 0) return
+      // Primary button only (mouse left, touch, pen contact).
+      if (ev.button !== undefined && ev.button !== 0) return
+      if (activePointerId !== null) return
+      activePointerId = ev.pointerId
       ev.preventDefault()
+      try {
+        container.setPointerCapture(ev.pointerId)
+      } catch {
+        /* noop */
+      }
       setPointerFromEvent(ev)
       const p = getPos()
       if (!p) return
@@ -110,6 +127,7 @@ export function DrawingOverlay({ stageRef }) {
     }
 
     const onMove = (ev) => {
+      if (activePointerId !== null && ev.pointerId !== activePointerId) return
       const start = startRef.current
       if (!start) return
       setPointerFromEvent(ev)
@@ -166,34 +184,40 @@ export function DrawingOverlay({ stageRef }) {
       reset()
     }
 
-    const onUp = (ev) => finish(ev)
-    const onLeave = () => {
-      if (startRef.current) finish()
+    const onUp = (ev) => {
+      if (activePointerId !== null && ev.pointerId !== activePointerId) return
+      finish(ev)
+    }
+    const onCancel = () => {
+      reset()
     }
 
-    container.addEventListener('mousedown', onDown)
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-    container.addEventListener('mouseleave', onLeave)
+    container.addEventListener('pointerdown', onDown)
+    container.addEventListener('pointermove', onMove)
+    container.addEventListener('pointerup', onUp)
+    container.addEventListener('pointercancel', onCancel)
 
     return () => {
-      container.removeEventListener('mousedown', onDown)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-      container.removeEventListener('mouseleave', onLeave)
+      container.removeEventListener('pointerdown', onDown)
+      container.removeEventListener('pointermove', onMove)
+      container.removeEventListener('pointerup', onUp)
+      container.removeEventListener('pointercancel', onCancel)
       reset()
     }
   }, [captureActive, lineActive, stageRef, addDrawing, drawColor])
 
   // Circle eraser: press & drag removes any line inside the cursor radius.
   useEffect(() => {
-    if (!eraserActive) return
+    if (!eraserActive) {
+      setTouchEraserPos(null)
+      return
+    }
     const stage = stageRef.current
     if (!stage) return
     const container = stage.container()
     if (!container) return
 
-    let pressed = false
+    let activePointerId = null
 
     const setPointerFromEvent = (ev) => {
       stage.setPointersPositions(ev)
@@ -221,36 +245,52 @@ export function DrawingOverlay({ stageRef }) {
     }
 
     const onDown = (ev) => {
-      if (ev.button !== 0) return
+      if (ev.button !== undefined && ev.button !== 0) return
+      if (activePointerId !== null) return
+      activePointerId = ev.pointerId
       ev.preventDefault()
-      pressed = true
+      try {
+        container.setPointerCapture(ev.pointerId)
+      } catch {
+        /* noop */
+      }
       setPointerFromEvent(ev)
       const p = getPos()
-      if (p) eraseAt(p)
+      if (p) {
+        if (ev.pointerType !== 'mouse') setTouchEraserPos(p)
+        eraseAt(p)
+      }
     }
     const onMove = (ev) => {
-      if (!pressed) return
+      if (activePointerId !== null && ev.pointerId !== activePointerId) return
+      if (activePointerId === null) return
       setPointerFromEvent(ev)
       const p = getPos()
-      if (p) eraseAt(p)
+      if (!p) return
+      if (ev.pointerType !== 'mouse') setTouchEraserPos(p)
+      eraseAt(p)
     }
-    const onUp = () => {
-      pressed = false
+    const onUp = (ev) => {
+      if (activePointerId !== null && ev.pointerId !== activePointerId) return
+      activePointerId = null
+      setTouchEraserPos(null)
     }
-    const onLeave = () => {
-      pressed = false
+    const onCancel = () => {
+      activePointerId = null
+      setTouchEraserPos(null)
     }
 
-    container.addEventListener('mousedown', onDown)
-    container.addEventListener('mouseleave', onLeave)
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+    container.addEventListener('pointerdown', onDown)
+    container.addEventListener('pointermove', onMove)
+    container.addEventListener('pointerup', onUp)
+    container.addEventListener('pointercancel', onCancel)
 
     return () => {
-      container.removeEventListener('mousedown', onDown)
-      container.removeEventListener('mouseleave', onLeave)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      container.removeEventListener('pointerdown', onDown)
+      container.removeEventListener('pointermove', onMove)
+      container.removeEventListener('pointerup', onUp)
+      container.removeEventListener('pointercancel', onCancel)
+      setTouchEraserPos(null)
     }
   }, [eraserActive, stageRef, removeDrawing])
 
@@ -327,6 +367,19 @@ export function DrawingOverlay({ stageRef }) {
             />,
           ]
         })()}
+
+      {eraserActive && touchEraserPos && (
+        <Circle
+          x={touchEraserPos.x}
+          y={touchEraserPos.y}
+          radius={ERASER_RADIUS}
+          stroke="#fafafa"
+          strokeWidth={1.5}
+          fill="rgba(255, 255, 255, 0.08)"
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+      )}
     </Layer>
   )
 }
