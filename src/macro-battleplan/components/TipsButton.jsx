@@ -7,7 +7,6 @@ export function TipsButton() {
         type="button"
         className="mbp-tips__btn"
         aria-label="Show hotkeys"
-        title="Hotkeys"
       >
         <HelpCircle size={16} />
       </button>

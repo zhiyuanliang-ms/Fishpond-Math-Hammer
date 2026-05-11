@@ -241,6 +241,12 @@
   left: 8px;
   z-index: 30;
 }
+/* Hotkeys are keyboard-only — hide the tips button on touch devices. */
+@media (pointer: coarse) {
+  .mbp-tips {
+    display: none;
+  }
+}
 .mbp-tips__btn {
   width: 28px;
   height: 28px;
@@ -251,7 +257,7 @@
   color: #d0d0d0;
   border: 1px solid #444;
   border-radius: 4px;
-  cursor: help;
+  cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .mbp-tips__btn:hover,
