@@ -1,5 +1,10 @@
 // React-Select custom styles configuration shared across the app.
 // Centralizes the dark theme + amber-accent look used by every form select.
+//
+// Heights are unified with the shared form controls (stat-cell inputs,
+// toolbar-select, toolbar-button) at 34px so dropdowns and input boxes
+// line up cleanly across the Attack Simulator and Dice Calculator pages.
+const CONTROL_HEIGHT = 34
 
 export const selectStyles = {
   control: (baseStyles, state) => ({
@@ -7,7 +12,9 @@ export const selectStyles = {
     backgroundColor: '#2a2a2a',
     borderColor: state.isFocused ? '#fbbf24' : '#4a4a4a',
     boxShadow: state.isFocused ? 'none' : 'none',
-    padding: '4px',
+    minHeight: `${CONTROL_HEIGHT}px`,
+    height: `${CONTROL_HEIGHT}px`,
+    padding: '0 2px',
     cursor: 'pointer',
     '&:hover': {
       borderColor: '#fbbf24'
@@ -15,7 +22,7 @@ export const selectStyles = {
   }),
   valueContainer: (baseStyles) => ({
     ...baseStyles,
-    padding: '2px 6px'
+    padding: '0 6px'
   }),
   singleValue: (baseStyles) => ({
     ...baseStyles,
@@ -58,12 +65,13 @@ export const buffSelectStyles = {
   }),
   control: (baseStyles, state) => ({
     ...selectStyles.control(baseStyles, state),
-    minHeight: '26px',
-    padding: '0px 4px'
+    minHeight: `${CONTROL_HEIGHT}px`,
+    height: `${CONTROL_HEIGHT}px`,
+    padding: '0 2px'
   }),
   valueContainer: (baseStyles) => ({
     ...selectStyles.valueContainer(baseStyles),
-    padding: '0px 4px'
+    padding: '0 4px'
   }),
   singleValue: (baseStyles) => ({
     ...selectStyles.singleValue(baseStyles),

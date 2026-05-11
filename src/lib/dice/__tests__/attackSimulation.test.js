@@ -510,4 +510,53 @@ describe('simulateAttack — Devastating Wounds (10e RAW)', () => {
     expect(r.expectedKills).toBeGreaterThan(0.78)
     expect(r.expectedKills).toBeLessThan(0.88)
   })
+
+  it('Devastating Wounds use regular FNP when no FNP vs Mortal is present', () => {
+    // 100 auto-hit DW attacks with damage 1 against 100 one-wound models.
+    // Anti 2+ makes every successful wound a critical wound (5/6 rate), so
+    // each successful wound becomes a single mortal wound. With only FNP 5+
+    // set, each point is ignored on a 5+ (2/6), so kill expectation is:
+    //   100 * 5/6 to wound * 4/6 through FNP = 55.6.
+    // If regular FNP were ignored for mortal wounds, expectation would be
+    // ~83.3 kills instead.
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '100',
+        torrent: true,
+        antiEnabled: true,
+        antiValue: 2,
+        devastatingWounds: true,
+        damage: '1'
+      })],
+      [baseTarget({ models: 100, wounds: 1, save: 7, fnp: 5, fnpMortal: 0 })],
+      N
+    )
+
+    expect(r.expectedKills).toBeGreaterThan(52)
+    expect(r.expectedKills).toBeLessThan(59)
+  })
+
+  it('Devastating Wounds prefer FNP vs Mortal over regular FNP', () => {
+    // Same DW setup, but now the target has a very strong normal FNP 2+
+    // and a much weaker FNP vs Mortal 6+. Devastating Wounds must use the
+    // mortal-specific value, so kill expectation is:
+    //   100 * 5/6 to wound * 5/6 through 6+ FNP = 69.4.
+    // If the simulator incorrectly used normal FNP 2+, expectation would be
+    // only ~13.9 kills, which is far outside this range.
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '100',
+        torrent: true,
+        antiEnabled: true,
+        antiValue: 2,
+        devastatingWounds: true,
+        damage: '1'
+      })],
+      [baseTarget({ models: 100, wounds: 1, save: 7, fnp: 2, fnpMortal: 6 })],
+      N
+    )
+
+    expect(r.expectedKills).toBeGreaterThan(66)
+    expect(r.expectedKills).toBeLessThan(73)
+  })
 })

@@ -260,6 +260,9 @@ const parseSustained = (val) => {
   if (typeof val === 'string' && val.toUpperCase() === 'D3') {
     return Math.floor(Math.random() * 3) + 1
   }
+  if (typeof val === 'string' && val.toUpperCase() === 'D6') {
+    return Math.floor(Math.random() * 6) + 1
+  }
   const n = parseInt(val, 10)
   return Number.isFinite(n) ? n : 0
 }

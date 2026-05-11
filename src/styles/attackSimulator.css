@@ -125,6 +125,7 @@
 
 .profile-name {
   flex: 1;
+  height: var(--form-control-height);
   background: #2a2a2a;
   border: 1px solid #4a4a4a;
   border-radius: 4px;
@@ -132,7 +133,8 @@
   font-family: inherit;
   font-size: 15px;
   font-weight: 600;
-  padding: 6px 10px;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 
 .profile-name:focus {

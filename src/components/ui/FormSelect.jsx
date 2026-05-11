@@ -5,10 +5,12 @@ import { selectStyles, buffSelectStyles } from './selectStyles'
 // and sensible defaults (no search box, consistent indicator look).
 //
 // Props:
-//   variant: 'default' | 'buff'  (buff = compact inline style)
+//   variant: 'default' | 'buff'
+//            buff = compact inline style
 //   ...rest: any react-select prop (options, value, onChange, etc.)
 function FormSelect({ variant = 'default', styles, isSearchable = false, ...rest }) {
   const baseStyles = variant === 'buff' ? buffSelectStyles : selectStyles
+
   return (
     <Select
       styles={styles ?? baseStyles}
