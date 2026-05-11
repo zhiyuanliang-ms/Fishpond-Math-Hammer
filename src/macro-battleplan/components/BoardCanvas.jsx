@@ -7,6 +7,7 @@ import { ObjectiveToken } from './ObjectiveToken'
 import { SelectionLayer } from './SelectionLayer'
 import { RulerOverlay } from './RulerOverlay'
 import { DrawingOverlay } from './DrawingOverlay'
+import { DeploymentZoneOverlay } from './DeploymentZoneOverlay'
 import { useBoardStore } from '../store/boardStore'
 import { MAP_W, MAP_H, MAP_X, MAP_Y } from '../config/board'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
@@ -162,6 +163,7 @@ export function BoardCanvas({ containerRef }) {
       }}
     >
       <BoardBackground />
+      <DeploymentZoneOverlay />
       <Layer>
         {pieces.map((p) => {
           if (p.kind === 'base') return <BaseToken key={p.id} piece={p} />

@@ -634,6 +634,16 @@
   width: 100%;
 }
 
+.mbp-toast-row {
+  width: 100%;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.mbp-toast-row .toolbar-toast {
+  width: 100%;
+}
+
 .mbp-board-load {
   width: 100%;
   display: flex;

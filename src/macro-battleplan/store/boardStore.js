@@ -8,7 +8,13 @@ import {
   MM_PER_INCH,
   DEFAULT_DRAW_COLOR,
   WTC_TERRAIN,
+  DEPLOYMENT_ZONES,
+  DEFAULT_DEPLOYMENT_ZONE,
 } from '../config/board'
+
+const DEPLOYMENT_ZONE_IDS = new Set(DEPLOYMENT_ZONES.map((z) => z.id))
+const sanitizeDeploymentZone = (id) =>
+  typeof id === 'string' && DEPLOYMENT_ZONE_IDS.has(id) ? id : DEFAULT_DEPLOYMENT_ZONE
 
 export const EXPORT_SCHEMA = 'fishpond-mathhammer-macro-battleplan/v1'
 export const BATTLEFIELD_SHARE_SCHEMA = 'fishpond-mathhammer-macro-battlefield/v1'
@@ -88,7 +94,7 @@ function inferTerrainPresetId(piece) {
   return match?.id ?? null
 }
 
-function exportBattlefieldCodeCompact(pieces) {
+function exportBattlefieldCodeCompact(pieces, deploymentZone) {
   const terrainEntries = []
   const objectiveEntries = []
 
@@ -117,10 +123,13 @@ function exportBattlefieldCodeCompact(pieces) {
   const sections = [BATTLEFIELD_SHARE_PREFIX]
   if (terrainEntries.length > 0) sections.push(`t=${terrainEntries.join(';')}`)
   if (objectiveEntries.length > 0) sections.push(`o=${objectiveEntries.join(';')}`)
+  if (deploymentZone && deploymentZone !== DEFAULT_DEPLOYMENT_ZONE) {
+    sections.push(`z=${deploymentZone}`)
+  }
   return sections.join('|')
 }
 
-function exportBattlefieldCodeLegacy(pieces) {
+function exportBattlefieldCodeLegacy(pieces, deploymentZone) {
   const payload = pieces.map((piece) => {
     const { id, ...rest } = piece
     return rest
@@ -130,6 +139,7 @@ function exportBattlefieldCodeLegacy(pieces) {
       schema: BATTLEFIELD_SHARE_SCHEMA,
       savedAt: Date.now(),
       pieces: payload,
+      deploymentZone: deploymentZone ?? DEFAULT_DEPLOYMENT_ZONE,
     }),
   )
 }
@@ -141,6 +151,7 @@ function importBattlefieldCodeCompact(code) {
 
   const sections = code.split('|').slice(1)
   const pieces = []
+  let deploymentZone = DEFAULT_DEPLOYMENT_ZONE
 
   for (const section of sections) {
     if (!section) continue
@@ -180,10 +191,15 @@ function importBattlefieldCodeCompact(code) {
       continue
     }
 
+    if (section.startsWith('z=')) {
+      deploymentZone = sanitizeDeploymentZone(section.slice(2))
+      continue
+    }
+
     return null
   }
 
-  return pieces
+  return { pieces, deploymentZone }
 }
 
 function importBattlefieldCodeLegacy(code) {
@@ -193,9 +209,10 @@ function importBattlefieldCodeLegacy(code) {
     if (data.schema !== BATTLEFIELD_SHARE_SCHEMA) return null
     if (!Array.isArray(data.pieces)) return null
 
-    return data.pieces
+    const pieces = data.pieces
       .filter((piece) => piece && typeof piece === 'object' && isBattlefieldPiece(piece))
       .map((piece) => ({ ...piece, id: newId() }))
+    return { pieces, deploymentZone: sanitizeDeploymentZone(data.deploymentZone) }
   } catch {
     return null
   }
@@ -270,7 +287,10 @@ export const useBoardStore = create((set, get) => {
     activeTool: 'cursor',
     drawings: [],
     drawColor: DEFAULT_DRAW_COLOR,
+    deploymentZone: DEFAULT_DEPLOYMENT_ZONE,
     history: [],
+
+    setDeploymentZone: (id) => set({ deploymentZone: sanitizeDeploymentZone(id) }),
 
     addBase: (diameterMm) => {
       pushHistory()
@@ -503,6 +523,7 @@ export const useBoardStore = create((set, get) => {
         savedAt: Date.now(),
         pieces: get().pieces,
         drawings: get().drawings,
+        deploymentZone: get().deploymentZone,
       }
       const others = get().savedBoards.filter((b) => b.name !== trimmed)
       const next = [entry, ...others]
@@ -516,7 +537,14 @@ export const useBoardStore = create((set, get) => {
       pushHistory()
       const pieces = board.pieces.map((p) => ({ ...p, id: newId() }))
       const drawings = (board.drawings ?? []).map((d) => ({ ...d, id: newId() }))
-      set({ pieces, drawings, selectedIds: [], selectedId: null, terrainLocked: true })
+      set({
+        pieces,
+        drawings,
+        selectedIds: [],
+        selectedId: null,
+        terrainLocked: true,
+        deploymentZone: sanitizeDeploymentZone(board.deploymentZone),
+      })
     },
 
     deleteSavedBoard: (name) => {
@@ -545,6 +573,7 @@ export const useBoardStore = create((set, get) => {
           savedAt: Date.now(),
           pieces: s.pieces,
           drawings: s.drawings,
+          deploymentZone: s.deploymentZone,
         },
         null,
         2,
@@ -552,9 +581,14 @@ export const useBoardStore = create((set, get) => {
     },
 
     exportBattlefieldCode: () => {
-      const pieces = get().pieces.filter(isBattlefieldPiece)
-      if (pieces.length === 0) return ''
-      return exportBattlefieldCodeCompact(pieces) ?? exportBattlefieldCodeLegacy(pieces)
+      const state = get()
+      const pieces = state.pieces.filter(isBattlefieldPiece)
+      const hasZone = state.deploymentZone && state.deploymentZone !== DEFAULT_DEPLOYMENT_ZONE
+      if (pieces.length === 0 && !hasZone) return ''
+      return (
+        exportBattlefieldCodeCompact(pieces, state.deploymentZone) ??
+        exportBattlefieldCodeLegacy(pieces, state.deploymentZone)
+      )
     },
 
     importBoard: (data) => {
@@ -569,22 +603,30 @@ export const useBoardStore = create((set, get) => {
         .filter((d) => d && Array.isArray(d.points))
         .map((d) => ({ ...d, id: newId() }))
       pushHistory()
-      set({ pieces, drawings, selectedIds: [], selectedId: null, terrainLocked: true })
+      set({
+        pieces,
+        drawings,
+        selectedIds: [],
+        selectedId: null,
+        terrainLocked: true,
+        deploymentZone: sanitizeDeploymentZone(data.deploymentZone),
+      })
       return true
     },
 
     importBattlefieldCode: (rawCode) => {
       const code = normalizeBattlefieldCode(rawCode)
       if (!code) return false
-      const pieces = importBattlefieldCodeCompact(code) ?? importBattlefieldCodeLegacy(code)
-      if (!pieces) return false
+      const result = importBattlefieldCodeCompact(code) ?? importBattlefieldCodeLegacy(code)
+      if (!result) return false
 
       pushHistory()
       set({
-        pieces,
+        pieces: result.pieces,
         selectedIds: [],
         selectedId: null,
         terrainLocked: true,
+        deploymentZone: sanitizeDeploymentZone(result.deploymentZone),
       })
       return true
     },

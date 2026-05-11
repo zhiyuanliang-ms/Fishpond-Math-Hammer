@@ -22,7 +22,20 @@ import {
   OVAL_BASE_SIZES_MM,
   BASE_COLOR_PALETTE,
   DEFAULT_BASE_COLOR,
+  DEPLOYMENT_ZONES,
 } from '../config/board'
+
+const DEPLOYMENT_ZONE_LABELS = new Map(
+  DEPLOYMENT_ZONES.map((z) => [z.id, z.label]),
+)
+
+// "None" first, then remaining zones alphabetically by label.
+const SORTED_DEPLOYMENT_ZONES = [
+  ...DEPLOYMENT_ZONES.filter((z) => z.id === 'none'),
+  ...DEPLOYMENT_ZONES.filter((z) => z.id !== 'none').sort((a, b) =>
+    a.label.localeCompare(b.label),
+  ),
+]
 
 function Section({ label, icon, children }) {
   return (
@@ -150,6 +163,8 @@ function BasesSection({ addBase, addOvalBase }) {
 
 function ScenerySection({ addObjective, addTerrain }) {
   const [tab, setTab] = useState('objective')
+  const deploymentZone = useBoardStore((s) => s.deploymentZone)
+  const setDeploymentZone = useBoardStore((s) => s.setDeploymentZone)
   const tabBtn = (id, label, icon) => (
     <button
       type="button"
@@ -165,6 +180,21 @@ function ScenerySection({ addObjective, addTerrain }) {
     <div className="mbp-section">
       <div className="mbp-section__header">
         <span>Battlefield</span>
+      </div>
+      <div className="mbp-board-load" style={{ marginBottom: 6 }}>
+        <select
+          className="toolbar-select mbp-board-load__select"
+          value={deploymentZone}
+          onChange={(e) => setDeploymentZone(e.target.value)}
+          aria-label="Deployment zone"
+          title="Highlight a Pariah Nexus deployment zone boundary on the map"
+        >
+          {SORTED_DEPLOYMENT_ZONES.map((z) => (
+            <option key={z.id} value={z.id}>
+              {z.label.toUpperCase()}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="mbp-segmented">
         {tabBtn('objective', 'Objective')}
@@ -212,10 +242,25 @@ function BoardSection() {
   const importBattlefieldCode = useBoardStore((s) => s.importBattlefieldCode)
   const mirrorScenery = useBoardStore((s) => s.mirrorScenery)
   const pieces = useBoardStore((s) => s.pieces)
+  const deploymentZone = useBoardStore((s) => s.deploymentZone)
 
   const [selectedBoard, setSelectedBoard] = useState('')
+  const [toast, setToast] = useState('')
   const fileInputRef = useRef(null)
+  const toastTimerRef = useRef(null)
   const savedBoardNames = savedBoards.map((board) => board.name)
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    }
+  }, [])
+
+  const flashToast = (message) => {
+    setToast(message)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setToast(''), 2500)
+  }
 
   useEffect(() => {
     if (selectedBoard && !savedBoards.some((board) => board.name === selectedBoard)) {
@@ -224,7 +269,9 @@ function BoardSection() {
   }, [savedBoards, selectedBoard])
 
   const handleSave = () => {
-    const suggested = selectedBoard || `Board ${new Date().toLocaleString()}`
+    const zoneLabel = DEPLOYMENT_ZONE_LABELS.get(deploymentZone)
+    const zonePart = zoneLabel && deploymentZone !== 'none' ? `${zoneLabel} ` : ''
+    const suggested = selectedBoard || `${zonePart}Board ${new Date().toLocaleString()}`
     const name = window.prompt('Save board as:', suggested)
     if (name === null) return
     const trimmed = name.trim()
@@ -323,13 +370,13 @@ function BoardSection() {
   const handleShareBattlefield = async () => {
     const code = exportBattlefieldCode()
     if (!code) {
-      window.alert('There are no terrain or objective pieces to share yet.')
+      window.alert('There is nothing to share yet — add terrain/objectives or pick a deployment zone.')
       return
     }
 
     try {
       await navigator.clipboard.writeText(code)
-      window.alert('Battlefield share code copied to clipboard.')
+      flashToast('Battlefield code copied.')
     } catch {
       window.prompt('Copy this battlefield share code:', code)
     }
@@ -395,8 +442,8 @@ function BoardSection() {
           onClick={handleShareBattlefield}
           icon={<Share2 size={15} />}
           label="Share battlefield code"
-          title="Copy a share code for the current terrain and objective layout"
-          disabled={sceneryCount === 0}
+          title="Copy a share code for the current terrain, objectives, and deployment zone"
+          disabled={sceneryCount === 0 && deploymentZone === 'none'}
         />
         <IconAction
           onClick={handleLoadBattlefieldCode}
@@ -423,6 +470,12 @@ function BoardSection() {
           disabled={!selectedBoard}
         />
       </div>
+
+      {toast && (
+        <div className="mbp-toast-row">
+          <span className="toolbar-toast toolbar-toast--success">{toast}</span>
+        </div>
+      )}
 
       <div className="mbp-board-load">
         <select

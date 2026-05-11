@@ -67,6 +67,64 @@ export const DRAW_COLOR_PALETTE = [
 
 export const DEFAULT_DRAW_COLOR = DRAW_COLOR_PALETTE[0].value
 
+// Pariah Nexus deployment zones for a 60×44″ board. Each zone is a list
+// of straight line segments in inches (origin = top-left of the map),
+// drawn as bold lines on top of the grid to mark the deployment boundary.
+// Coordinates assume MAP_W_IN=60 (long) × MAP_H_IN=44 (short).
+export const DEPLOYMENT_ZONES = [
+  { id: 'none', label: 'None', segments: [] },
+  {
+    id: 'hammer-anvil',
+    label: 'Hammer & Anvil',
+    segments: [
+      [18, 0, 18, 44],
+      [42, 0, 42, 44],
+    ],
+  },
+  {
+    id: 'search-and-destroy',
+    label: 'Search and Destroy',
+    // Four table quarters with a 9" no-deployment circle around the
+    // battlefield centre (30, 22). The cross is broken at the circle.
+    segments: [
+      [30, 0, 30, 13],
+      [30, 31, 30, 44],
+      [0, 22, 21, 22],
+      [39, 22, 60, 22],
+    ],
+    circles: [{ x: 30, y: 22, r: 9 }],
+  },
+  {
+    id: 'tipping-point',
+    label: 'Tipping Point',
+    // Stepped boundary on each side, point-symmetric around centre
+    // (30, 22). Top-left zone is bounded by (12,0)-(12,22)-(20,22)-(20,44);
+    // bottom-right zone is its mirror.
+    segments: [
+      // Top-left zone boundary
+      [12, 0, 12, 22],
+      [12, 22, 20, 22],
+      [20, 22, 20, 44],
+      // Bottom-right zone boundary (mirror)
+      [48, 44, 48, 22],
+      [48, 22, 40, 22],
+      [40, 22, 40, 0],
+    ],
+  },
+  {
+    id: 'crucible-of-battle',
+    label: 'Crucible of Battle',
+    // Two parallel diagonal boundaries, point-symmetric around centre
+    // (30, 22): (0,0)-(30,44) and its mirror (60,44)-(30,0).
+    segments: [
+      [0, 0, 30, 44],
+      [60, 44, 30, 0],
+    ],
+  },
+]
+
+export const DEFAULT_DEPLOYMENT_ZONE = 'none'
+
 // WTC v2.4 terrain.
 export const WTC_TERRAIN = [
   {
