@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Group, Line, Rect, Text } from 'react-konva'
+import { Group, Line, Rect } from 'react-konva'
 import { useBoardStore } from '../store/boardStore'
 import { PX_PER_INCH } from '../config/board'
 import { useGroupDragMove } from '../hooks/useGroupDragMove'
@@ -145,20 +145,6 @@ export function TerrainToken({ piece }) {
       />
 
       {renderBuilding()}
-
-      <Text
-        x={piece.shape === 'ruinL' ? (piece.mirrorX ? 0 : w / 2) : 0}
-        y={piece.shape === 'ruinL' ? h / 2 : 0}
-        width={piece.shape === 'ruinL' ? w / 2 : w}
-        height={piece.shape === 'ruinL' ? h / 2 : h}
-        text={piece.label}
-        fontSize={11}
-        fontStyle="600"
-        fill={piece.shape === 'rect' ? '#fff' : '#cfd6e0'}
-        align="center"
-        verticalAlign="middle"
-        listening={false}
-      />
     </Group>
   )
 }
