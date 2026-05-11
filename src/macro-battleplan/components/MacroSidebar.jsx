@@ -10,7 +10,7 @@ import {
   Download,
   Upload,
   Move,
-  Link2,
+  ClipboardPaste,
   PanelRightClose,
   FlipHorizontal2,
 } from 'lucide-react'
@@ -447,7 +447,7 @@ function BoardSection() {
         />
         <IconAction
           onClick={handleLoadBattlefieldCode}
-          icon={<Link2 size={15} />}
+          icon={<ClipboardPaste size={15} />}
           label="Load battlefield code"
           title="Load terrain and objective layout from a shared code"
         />
