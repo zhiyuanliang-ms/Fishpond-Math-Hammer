@@ -1,0 +1,759 @@
+/* Macro Battleplan page styles — matches the rest of Fishpond Math Hammer
+   (dark grays + amber accent). Replaces what was Tailwind in the standalone
+   40k-macro-battleplan project. */
+
+.mbp-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  min-height: 480px;
+  margin: -40px;
+  padding: 10px;
+  gap: 8px;
+  box-sizing: border-box;
+  color: #fff;
+}
+
+.mbp-preview-pill {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  background: #fbbf24;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* ---------- Scoreboard (lives inside the right tools sidebar) ---------- */
+
+.mbp-scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: #3a3a3a;
+  border: 1px solid #444;
+  border-radius: 6px;
+}
+
+.mbp-scoreboard__primary-input {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #1f1f1f;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.mbp-scoreboard__primary-input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+}
+
+.mbp-scoretable {
+  border-collapse: separate;
+  border-spacing: 2px 2px;
+  font-size: 11px;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.mbp-scoretable th {
+  font-weight: 600;
+  color: #a0a0a0;
+  text-align: center;
+  padding: 0;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+.mbp-scoretable th.mbp-th-total {
+  width: 26px;
+}
+
+.mbp-scoretable th.mbp-th-side {
+  width: 70px;
+}
+
+.mbp-scoretable td {
+  text-align: center;
+  padding: 0;
+}
+
+.mbp-scoretable td.mbp-td-side {
+  padding-right: 2px;
+}
+
+.mbp-scoretable input[type='number'] {
+  width: 100%;
+  padding: 2px 0;
+  font-size: 11px;
+  text-align: center;
+  background: #1f1f1f;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 3px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  box-sizing: border-box;
+}
+
+.mbp-scoretable input[type='number']::-webkit-outer-spin-button,
+.mbp-scoretable input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mbp-scoretable input[type='text'] {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #1f1f1f;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.mbp-scoretable input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+}
+
+.mbp-scoretable td.mbp-total {
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.mbp-scoretable td.mbp-total--winner {
+  color: #fbbf24;
+}
+
+/* ---------- Body ---------- */
+
+.mbp-body {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  min-height: 0;
+}
+
+.mbp-body--collapsed .mbp-tools {
+  display: none;
+}
+
+.mbp-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0f1115;
+  border: 1px solid #444;
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.mbp-canvas .konvajs-content {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Floating toggle to collapse/expand the tools sidebar */
+.mbp-sidebar-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(42, 42, 42, 0.92);
+  color: #d0d0d0;
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mbp-sidebar-toggle:hover {
+  background: rgba(58, 58, 58, 0.95);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+/* Floating vertical toolbar pinned to the canvas's right edge, vertically centered. */
+.mbp-toolbar {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: rgba(42, 42, 42, 0.92);
+  border: 1px solid #444;
+  border-radius: 6px;
+  backdrop-filter: blur(2px);
+}
+
+.mbp-toolbar__btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #d0d0d0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mbp-toolbar__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.mbp-toolbar__btn.is-active {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.mbp-toolbar__btn--danger:hover:not(:disabled) {
+  color: #f4a3a3;
+  background: rgba(196, 61, 61, 0.18);
+}
+
+.mbp-toolbar__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.mbp-toolbar__sep {
+  width: 1px;
+  heightn: 2px 2px;
+  background: #444;
+  align-self: stretch;
+}
+
+.mbp-toolbar__color-wrap {
+  position: relative;
+  display: flex;
+}
+
+.mbp-toolbar__btn--color {
+  position: relative;
+}
+
+.mbp-toolbar__color-dot {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+
+.mbp-toolbar__color-popover {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(42, 42, 42, 0.96);
+  border: 1px solid #444;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+}
+
+.mbp-toolbar__color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #222;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.08s ease-out;
+}
+
+.mbp-toolbar__color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.mbp-toolbar__color-swatch.is-active {
+  box-shadow: 0 0 0 2px #fbbf24, 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+/* Toggle switch row inside Board section. */
+.mbp-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 2px;
+  font-size: 12px;
+  color: #d0d0d0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mbp-toggle-row__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mbp-switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.mbp-switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mbp-switch__track {
+  position: absolute;
+  inset: 0;
+  background: #4a4a4a;
+  border: 1px solid #555;
+  border-radius: 999px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.mbp-switch__thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  background: #d0d0d0;
+  border-radius: 50%;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.mbp-switch.is-on .mbp-switch__track {
+  background: rgba(251, 191, 36, 0.35);
+  border-color: rgba(251, 191, 36, 0.7);
+}
+
+.mbp-switch.is-on .mbp-switch__thumb {
+  transform: translateX(14px);
+  background: #fbbf24;
+}
+
+.mbp-switch input:focus-visible + .mbp-switch__track {
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.45);
+}
+
+.mbp-tools {
+  width: 280px;
+  flex-shrink: 0;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mbp-tools__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mbp-tools__footer {
+  padding: 8px 10px;
+  border-top: 1px solid #444;
+  font-size: 11px;
+  color: #a0a0a0;
+  line-height: 1.5;
+}
+
+.mbp-tools__footer .mbp-kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  background: #1f1f1f;
+  color: #d8dde6;
+  border: 1px solid #444;
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+/* ---------- Section card ---------- */
+
+.mbp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #3a3a3a;
+  border: 1px solid #444;
+  border-radius: 6px;
+}
+
+.mbp-section__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #a0a0a0;
+}
+
+.mbp-section__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Chip-style buttons (replace Tailwind chips) */
+
+.mbp-chip {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  background: #4a4a4a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mbp-chip:hover {
+  background: #5a5a5a;
+  border-color: #666;
+}
+
+.mbp-chip--full {
+  width: 100%;
+  justify-content: center;
+}
+
+.mbp-chip--accent {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
+.mbp-chip--accent:hover {
+  background: rgba(251, 191, 36, 0.28);
+}
+
+.mbp-chip--danger {
+  background: rgba(196, 61, 61, 0.18);
+  border-color: rgba(196, 61, 61, 0.55);
+  color: #f4a3a3;
+}
+
+.mbp-chip--danger:hover {
+  background: rgba(196, 61, 61, 0.3);
+}
+
+/* Tool toggle buttons (single-row, equal width) */
+
+.mbp-tool-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.mbp-tool-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  background: #4a4a4a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mbp-tool-btn:hover {
+  background: #5a5a5a;
+}
+
+.mbp-tool-btn.is-active {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
+/* Inline segmented switch (round / oval, objective / terrain) */
+
+.mbp-segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 5px;
+}
+
+.mbp-segmented__btn {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
+  color: #a0a0a0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mbp-segmented__btn:hover {
+  color: #d0d0d0;
+}
+
+.mbp-segmented__btn.is-active {
+  background: #4a4a4a;
+  color: #fff;
+}
+
+/* Load-board dropdown */
+
+.mbp-load-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.mbp-load-chip {
+  position: relative;
+}
+
+.mbp-load-chip__chevron {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.15s;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.mbp-load-chip__chevron.is-open {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.mbp-load-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  z-index: 30;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.mbp-load-menu__empty {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-style: italic;
+  color: #888;
+}
+
+.mbp-load-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #fff;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+}
+
+.mbp-load-menu__item:last-child {
+  border-bottom: none;
+}
+
+.mbp-load-menu__item:hover {
+  background: #3a3a3a;
+}
+
+.mbp-load-menu__item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mbp-load-menu__item-delete {
+  padding: 2px;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 3px;
+}
+
+.mbp-load-menu__item:hover .mbp-load-menu__item-delete {
+  color: #ccc;
+}
+
+.mbp-load-menu__item-delete:hover {
+  color: #ff8a8a !important;
+  background: rgba(196, 61, 61, 0.15);
+}
+
+/* Selection: color palette + aura input */
+
+.mbp-color-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.mbp-color-swatch {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  border: 1px solid #444;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mbp-color-swatch.is-active {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 1px #fbbf24;
+}
+
+.mbp-sublabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.mbp-aura-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mbp-aura-row input {
+  width: 60px;
+  padding: 4px 6px;
+  font-size: 12px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.mbp-aura-row input:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+}
+
+.mbp-aura-row span {
+  font-size: 11px;
+  color: #a0a0a0;
+}
+
+.mbp-section__note {
+  font-size: 10.5px;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* Responsive: under 960px stack tools below canvas. The button is hidden on
+   mobile from the nav, but keep this graceful in case the route is hit
+   directly via URL. */
+@media (max-width: 960px) {
+  .mbp-page {
+    margin: -24px -16px;
+    padding: 12px;
+    height: auto;
+    min-height: calc(100vh - 80px);
+  }
+
+  .mbp-body {
+    flex-direction: column;
+  }
+
+  .mbp-tools {
+    width: 100%;
+  }
+
+  .mbp-canvas {
+    min-height: 60vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .mbp-page {
+    margin: -16px -12px;
+    padding: 8px;
+  }
+}

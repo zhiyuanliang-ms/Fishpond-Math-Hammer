@@ -7,6 +7,7 @@ import DiceRoller from './components/DiceRoller'
 import Cheatsheet from './components/Cheatsheet'
 import About from './components/About'
 import Footer from './components/Footer'
+import MacroBattleplan from './macro-battleplan/MacroBattleplan'
 
 function AppContent() {
   const navigate = useNavigate()
@@ -22,6 +23,8 @@ function AppContent() {
         return 'dice-roller'
       case '/cheat-sheet':
         return 'cheat-sheet'
+      case '/macro-battleplan':
+        return 'macro-battleplan'
       case '/about':
         return 'about'
       default:
@@ -43,6 +46,9 @@ function AppContent() {
       case 'cheat-sheet':
         navigate('/cheat-sheet')
         break
+      case 'macro-battleplan':
+        navigate('/macro-battleplan')
+        break
       case 'about':
         navigate('/about')
         break
@@ -58,6 +64,7 @@ function AppContent() {
         <main className="main-content">
           <Routes>
             <Route path="/dice-calculator" element={<DiceCalculator />} />
+            <Route path="/macro-battleplan" element={<MacroBattleplan />} />
             <Route path="/attack-simulator" element={<AttackSimulator />} />
             <Route path="/dice-roller" element={<DiceRoller />} />
             <Route path="/cheat-sheet" element={<Cheatsheet />} />
