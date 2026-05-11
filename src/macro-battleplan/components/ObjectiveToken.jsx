@@ -6,7 +6,7 @@ import { useGroupDragMove } from '../hooks/useGroupDragMove'
 
 export function ObjectiveToken({ piece }) {
   const markerRadius = baseRadiusPx(piece.diameterMm)
-  const controlRadius = piece.controlRadiusIn * PX_PER_INCH
+  const controlRadius = markerRadius + piece.controlRadiusIn * PX_PER_INCH
   const selectPiece = useBoardStore((s) => s.selectPiece)
   const toggleSelection = useBoardStore((s) => s.toggleSelection)
   const bringToFront = useBoardStore((s) => s.bringToFront)
@@ -81,7 +81,6 @@ export function ObjectiveToken({ piece }) {
         stroke={selected ? '#fbbf24' : '#e0a93a'}
         strokeWidth={1}
         dash={[6, 4]}
-        listening={false}
       />
       <Circle
         radius={markerRadius}

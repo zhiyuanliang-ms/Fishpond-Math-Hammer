@@ -8,17 +8,21 @@ Pure client-side; no backend.
 ## Tech stack
 - **React 19** + **Vite 7** (ES modules, JSX, no TypeScript).
 - **react-router-dom v7** for client-side routing (`BrowserRouter`).
+- **zustand** for shared Macro Battleplan board state.
+- **react-konva** + **konva** for Macro Battleplan canvas rendering.
 - **react-select 5** for dropdowns (custom dark theme via `selectStyles.js`).
 - **recharts 3** for distribution charts.
 - **react-katex** + **katex** for σ (sigma) symbols in stat cards.
+- **Vitest 4** for pure-logic and selected UI-helper tests.
 - **ESLint 9** flat config (`eslint.config.js`).
 
-No state library, no CSS framework, no test runner is currently configured.
+No CSS framework and no backend.
 
 ## Pages (routes)
 | Route | Component | Purpose |
 |---|---|---|
 | `/` and `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
+| `/macro-battleplan` | `MacroBattleplan` | Interactive 60" × 44" board planner for terrain, objectives, bases, and drawing overlays. |
 | `/attack-simulator` | `AttackSimulator` | Full unit-vs-unit Monte Carlo simulator (multiple weapon profiles vs multiple target profiles, all 10e buffs). |
 | `/dice-roller` | `DiceRoller` | Roll up to 20 D6 and selectively reroll any face value (e.g. "reroll all 1s"). |
 | `/cheat-sheet` | `Cheatsheet` | Static probability tables (1D6 success chances and 2D6 sums) with color-coded risk levels. |
@@ -65,9 +69,32 @@ Results:
 - Per-profile breakdown table (when there are 2+ target profiles)
 - Distribution chart of total models killed
 
+### Macro Battleplan (`MacroBattleplan`)
+Interactive deployment / movement board for a standard 60" × 44" 40k table.
+It supports:
+- **Bases, terrain, and objectives**: round and oval bases, 40 mm objective
+  markers, and the built-in WTC terrain presets.
+- **Board editing tools**: drag/rotate pieces, lock terrain/objectives,
+  mirror the battlefield setup, show live movement distance, and use drawing /
+  ruler overlays on top of the board.
+- **Persistence**: named saved boards in browser storage plus full-board JSON
+  import/export.
+- **Battlefield sharing**: compact text codes for the current terrain and
+  objective layout only.
+
+Battlefield share codes are intentionally narrower than a full board save:
+- They include only **terrain + objective** placement, not bases or drawings.
+- The compact format stores a terrain preset id plus x/y/rotation, and
+  objective x/y placement.
+- Load accepts either the raw code itself or a URL / fragment containing
+  `battlefield=...`.
+- Loading a battlefield code clears the current board pieces, rebuilds the
+  shared terrain/objective layout, and leaves drawings untouched.
+
 ## What the app does NOT do
 - No backend, no analytics, no auth.
-- No test suite (yet).
+- No cloud sync or multiplayer state; saved boards and battlefield sharing are
+  browser-local only.
 - No accessibility audit beyond stock semantic HTML.
 - The Wound Success / Kill Probability calculators do not persist their
-  inputs (only the Attack Simulator does).
+  inputs (Attack Simulator and Macro Battleplan are the persistent tools).

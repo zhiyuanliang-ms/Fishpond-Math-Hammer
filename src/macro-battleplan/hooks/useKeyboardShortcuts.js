@@ -6,11 +6,13 @@ import { useBoardStore } from '../store/boardStore'
  *  Esc                 cursor mode
  *  R / D / S / X       ruler / draw / line / eraser
  *  Q / E               rotate selection ±1°
+ *  Arrow keys          nudge selection by 1 px
  *  Delete / Backspace  remove selected piece
  *  Ctrl/Cmd + Z        undo (last 3 ops)
  *  Ctrl/Cmd + C / V    copy / paste selection
  */
 export function useKeyboardShortcuts() {
+  const commitMoveSelected = useBoardStore((s) => s.commitMoveSelected)
   const rotateSelected = useBoardStore((s) => s.rotateSelected)
   const deleteSelected = useBoardStore((s) => s.deleteSelected)
   const setActiveTool = useBoardStore((s) => s.setActiveTool)
@@ -21,7 +23,15 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     const handler = (e) => {
       const target = e.target
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
 
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
         e.preventDefault()
@@ -53,6 +63,18 @@ export function useKeyboardShortcuts() {
         rotateSelected(-1)
       } else if (e.key === 'e' || e.key === 'E') {
         rotateSelected(1)
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowUp') {
+        commitMoveSelected(0, -1)
+        e.preventDefault()
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowDown') {
+        commitMoveSelected(0, 1)
+        e.preventDefault()
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowLeft') {
+        commitMoveSelected(-1, 0)
+        e.preventDefault()
+      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowRight') {
+        commitMoveSelected(1, 0)
+        e.preventDefault()
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
         deleteSelected()
         e.preventDefault()
@@ -60,5 +82,13 @@ export function useKeyboardShortcuts() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [rotateSelected, deleteSelected, setActiveTool, undo, copySelected, pasteCopied])
+  }, [
+    commitMoveSelected,
+    rotateSelected,
+    deleteSelected,
+    setActiveTool,
+    undo,
+    copySelected,
+    pasteCopied,
+  ])
 }

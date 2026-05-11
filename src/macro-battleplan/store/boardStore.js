@@ -1,7 +1,18 @@
 import { create } from 'zustand'
-import { MAP_X, MAP_Y, MAP_W, MAP_H, PX_PER_INCH, MM_PER_INCH, DEFAULT_DRAW_COLOR } from '../config/board'
+import {
+  MAP_X,
+  MAP_Y,
+  MAP_W,
+  MAP_H,
+  PX_PER_INCH,
+  MM_PER_INCH,
+  DEFAULT_DRAW_COLOR,
+  WTC_TERRAIN,
+} from '../config/board'
 
 export const EXPORT_SCHEMA = 'fishpond-mathhammer-macro-battleplan/v1'
+export const BATTLEFIELD_SHARE_SCHEMA = 'fishpond-mathhammer-macro-battlefield/v1'
+const BATTLEFIELD_SHARE_PREFIX = 'bf1'
 
 const HISTORY_LIMIT = 3
 let clipboard = []
@@ -15,8 +26,203 @@ const centerY = MAP_Y + MAP_H / 2
 const STORAGE_KEY = 'fishpond-mathhammer-macro-battleplan:boards'
 // Legacy key from the standalone app; imported once for continuity.
 const LEGACY_STORAGE_KEY = '40k-macro-battleplan:boards'
+const BATTLEFIELD_KINDS = new Set(['terrain', 'objective'])
+const TERRAIN_PRESET_BY_ID = new Map(WTC_TERRAIN.map((preset) => [preset.id, preset]))
 
 const lastOrNull = (ids) => (ids.length > 0 ? ids[ids.length - 1] : null)
+
+const isBattlefieldPiece = (piece) => BATTLEFIELD_KINDS.has(piece?.kind)
+
+const encodeBattlefieldNumber = (value) => Math.round(value).toString(36)
+
+const decodeBattlefieldNumber = (value) => {
+  const parsed = parseInt(value, 36)
+  return Number.isFinite(parsed) ? parsed : NaN
+}
+
+const normalizeRotation = (value) => {
+  const rounded = Math.round(value ?? 0)
+  return ((rounded % 360) + 360) % 360
+}
+
+const makeObjectivePiece = (x, y) => ({
+  id: newId(),
+  kind: 'objective',
+  x,
+  y,
+  rotation: 0,
+  diameterMm: 40,
+  controlRadiusIn: 3,
+})
+
+const makeTerrainPiece = (preset, x, y, rotation) => ({
+  id: newId(),
+  kind: 'terrain',
+  presetId: preset.id,
+  x,
+  y,
+  rotation,
+  widthIn: preset.widthIn,
+  heightIn: preset.heightIn,
+  label: preset.label,
+  shape: preset.shape,
+  buildingLengthIn: preset.buildingLengthIn,
+  buildingWidthIn: preset.buildingWidthIn,
+  wallThicknessIn: preset.wallThicknessIn,
+  mirrorX: preset.mirrorX,
+  color: preset.color,
+})
+
+function inferTerrainPresetId(piece) {
+  const match = WTC_TERRAIN.find((preset) => (
+    preset.widthIn === piece.widthIn &&
+    preset.heightIn === piece.heightIn &&
+    preset.label === piece.label &&
+    preset.shape === piece.shape &&
+    preset.buildingLengthIn === piece.buildingLengthIn &&
+    preset.buildingWidthIn === piece.buildingWidthIn &&
+    preset.wallThicknessIn === piece.wallThicknessIn &&
+    !!preset.mirrorX === !!piece.mirrorX &&
+    preset.color === piece.color
+  ))
+  return match?.id ?? null
+}
+
+function exportBattlefieldCodeCompact(pieces) {
+  const terrainEntries = []
+  const objectiveEntries = []
+
+  for (const piece of pieces) {
+    if (piece.kind === 'terrain') {
+      const presetId = piece.presetId ?? inferTerrainPresetId(piece)
+      if (!presetId) return null
+      terrainEntries.push(
+        [
+          presetId,
+          encodeBattlefieldNumber(piece.x),
+          encodeBattlefieldNumber(piece.y),
+          encodeBattlefieldNumber(normalizeRotation(piece.rotation)),
+        ].join(','),
+      )
+      continue
+    }
+
+    if (piece.kind === 'objective') {
+      objectiveEntries.push(
+        [encodeBattlefieldNumber(piece.x), encodeBattlefieldNumber(piece.y)].join(','),
+      )
+    }
+  }
+
+  const sections = [BATTLEFIELD_SHARE_PREFIX]
+  if (terrainEntries.length > 0) sections.push(`t=${terrainEntries.join(';')}`)
+  if (objectiveEntries.length > 0) sections.push(`o=${objectiveEntries.join(';')}`)
+  return sections.join('|')
+}
+
+function exportBattlefieldCodeLegacy(pieces) {
+  const payload = pieces.map((piece) => {
+    const { id, ...rest } = piece
+    return rest
+  })
+  return encodeBase64Url(
+    JSON.stringify({
+      schema: BATTLEFIELD_SHARE_SCHEMA,
+      savedAt: Date.now(),
+      pieces: payload,
+    }),
+  )
+}
+
+function importBattlefieldCodeCompact(code) {
+  if (!code.startsWith(`${BATTLEFIELD_SHARE_PREFIX}|`) && code !== BATTLEFIELD_SHARE_PREFIX) {
+    return null
+  }
+
+  const sections = code.split('|').slice(1)
+  const pieces = []
+
+  for (const section of sections) {
+    if (!section) continue
+
+    if (section.startsWith('t=')) {
+      const rawEntries = section.slice(2)
+      if (!rawEntries) continue
+      for (const entry of rawEntries.split(';')) {
+        if (!entry) continue
+        const [presetId, rawX, rawY, rawRotation] = entry.split(',')
+        if (!presetId || rawX === undefined || rawY === undefined || rawRotation === undefined) {
+          return null
+        }
+        const preset = TERRAIN_PRESET_BY_ID.get(presetId)
+        if (!preset) return null
+        const x = decodeBattlefieldNumber(rawX)
+        const y = decodeBattlefieldNumber(rawY)
+        const rotation = decodeBattlefieldNumber(rawRotation)
+        if (![x, y, rotation].every(Number.isFinite)) return null
+        pieces.push(makeTerrainPiece(preset, x, y, rotation))
+      }
+      continue
+    }
+
+    if (section.startsWith('o=')) {
+      const rawEntries = section.slice(2)
+      if (!rawEntries) continue
+      for (const entry of rawEntries.split(';')) {
+        if (!entry) continue
+        const [rawX, rawY] = entry.split(',')
+        if (rawX === undefined || rawY === undefined) return null
+        const x = decodeBattlefieldNumber(rawX)
+        const y = decodeBattlefieldNumber(rawY)
+        if (![x, y].every(Number.isFinite)) return null
+        pieces.push(makeObjectivePiece(x, y))
+      }
+      continue
+    }
+
+    return null
+  }
+
+  return pieces
+}
+
+function importBattlefieldCodeLegacy(code) {
+  try {
+    const data = JSON.parse(decodeBase64Url(code))
+    if (!data || typeof data !== 'object') return null
+    if (data.schema !== BATTLEFIELD_SHARE_SCHEMA) return null
+    if (!Array.isArray(data.pieces)) return null
+
+    return data.pieces
+      .filter((piece) => piece && typeof piece === 'object' && isBattlefieldPiece(piece))
+      .map((piece) => ({ ...piece, id: newId() }))
+  } catch {
+    return null
+  }
+}
+
+function encodeBase64Url(value) {
+  const bytes = new TextEncoder().encode(value)
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+}
+
+function decodeBase64Url(value) {
+  let base64 = value.replace(/-/g, '+').replace(/_/g, '/')
+  while (base64.length % 4) base64 += '='
+  const binary = atob(base64)
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
+}
+
+function normalizeBattlefieldCode(raw) {
+  const trimmed = raw.trim()
+  if (!trimmed) return ''
+  const match = trimmed.match(/(?:^|[#?&])battlefield=([^&#]+)/i)
+  if (match?.[1]) return decodeURIComponent(match[1])
+  return trimmed.replace(/^#/, '')
+}
 
 function readSavedBoards() {
   try {
@@ -122,6 +328,7 @@ export const useBoardStore = create((set, get) => {
         const piece = {
           id: newId(),
           kind: 'terrain',
+          presetId: preset.id,
           x: centerX,
           y: centerY,
           rotation: 0,
@@ -332,6 +539,12 @@ export const useBoardStore = create((set, get) => {
       )
     },
 
+    exportBattlefieldCode: () => {
+      const pieces = get().pieces.filter(isBattlefieldPiece)
+      if (pieces.length === 0) return ''
+      return exportBattlefieldCodeCompact(pieces) ?? exportBattlefieldCodeLegacy(pieces)
+    },
+
     importBoard: (data) => {
       if (!data || typeof data !== 'object') return false
       // Accept both the new schema and the legacy 40k-macro-battleplan/v1 schema.
@@ -345,6 +558,21 @@ export const useBoardStore = create((set, get) => {
         .map((d) => ({ ...d, id: newId() }))
       pushHistory()
       set({ pieces, drawings, selectedIds: [], selectedId: null })
+      return true
+    },
+
+    importBattlefieldCode: (rawCode) => {
+      const code = normalizeBattlefieldCode(rawCode)
+      if (!code) return false
+      const pieces = importBattlefieldCodeCompact(code) ?? importBattlefieldCodeLegacy(code)
+      if (!pieces) return false
+
+      pushHistory()
+      set({
+        pieces,
+        selectedIds: [],
+        selectedId: null,
+      })
       return true
     },
 

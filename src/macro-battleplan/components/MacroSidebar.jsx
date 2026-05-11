@@ -6,13 +6,12 @@ import {
   Lock,
   Unlock,
   Save,
-  FolderOpen,
-  ChevronDown,
-  X,
+  Share2,
   Trash,
   Download,
   Upload,
   Move,
+  Link2,
   PanelRightClose,
   FlipHorizontal2,
 } from 'lucide-react'
@@ -55,12 +54,44 @@ function Chip({ onClick, children, title, variant = 'default', full, className =
   )
 }
 
+function IconAction({
+  onClick,
+  icon,
+  label,
+  title,
+  variant = 'default',
+  disabled = false,
+}) {
+  const cls = [
+    'mbp-icon-action',
+    variant === 'accent' ? 'mbp-icon-action--accent' : '',
+    variant === 'danger' ? 'mbp-icon-action--danger' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={label}
+      className={cls}
+      disabled={disabled}
+    >
+      {icon}
+    </button>
+  )
+}
+
 function ToggleRow({ label, icon, checked, onChange, title }) {
   return (
     <label className="mbp-toggle-row" title={title}>
-      <span className="mbp-toggle-row__label">
-        {icon}
-        <span>{label}</span>
+      <span className="mbp-toggle-row__content">
+        <span className="mbp-toggle-row__icon" aria-hidden="true">
+          {icon}
+        </span>
+        <span className="mbp-toggle-row__label">{label}</span>
       </span>
       <span className={`mbp-switch ${checked ? 'is-on' : ''}`}>
         <input
@@ -91,8 +122,7 @@ function BasesSection({ addBase, addOvalBase }) {
   return (
     <div className="mbp-section">
       <div className="mbp-section__header">
-        <CircleIcon size={12} />
-        <span>Bases (mm)</span>
+        <span>bases</span>
       </div>
       <div className="mbp-segmented">
         {tabBtn('round', 'Round')}
@@ -135,8 +165,7 @@ function ScenerySection({ addObjective, addTerrain }) {
   return (
     <div className="mbp-section">
       <div className="mbp-section__header">
-        <Square size={12} />
-        <span>Scenery</span>
+        <span>Battlefield</span>
       </div>
       <div className="mbp-segmented">
         {tabBtn('objective', 'Objective', <Target size={11} />)}
@@ -146,7 +175,7 @@ function ScenerySection({ addObjective, addTerrain }) {
         {tab === 'objective' ? (
           <Chip
             onClick={() => addObjective()}
-            title="40mm objective marker with 3″ control radius"
+            title="40mm objective marker with a 3″ aura from the marker edge"
             full
           >
             Objective
@@ -176,32 +205,35 @@ function BoardSection() {
   const savedBoards = useBoardStore((s) => s.savedBoards)
   const saveBoard = useBoardStore((s) => s.saveBoard)
   const loadBoard = useBoardStore((s) => s.loadBoard)
-  const deleteSavedBoard = useBoardStore((s) => s.deleteSavedBoard)
   const clearBoard = useBoardStore((s) => s.clearBoard)
   const exportBoard = useBoardStore((s) => s.exportBoard)
   const importBoard = useBoardStore((s) => s.importBoard)
+  const exportBattlefieldCode = useBoardStore((s) => s.exportBattlefieldCode)
+  const importBattlefieldCode = useBoardStore((s) => s.importBattlefieldCode)
   const mirrorScenery = useBoardStore((s) => s.mirrorScenery)
   const pieces = useBoardStore((s) => s.pieces)
 
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
+  const [selectedBoard, setSelectedBoard] = useState('')
   const fileInputRef = useRef(null)
+  const savedBoardNames = savedBoards.map((board) => board.name)
 
   useEffect(() => {
-    if (!menuOpen) return
-    const onDown = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false)
-      }
+    if (selectedBoard && !savedBoards.some((board) => board.name === selectedBoard)) {
+      setSelectedBoard('')
     }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [menuOpen])
+  }, [savedBoards, selectedBoard])
 
   const handleSave = () => {
-    const suggested = `Board ${new Date().toLocaleString()}`
+    const suggested = selectedBoard || `Board ${new Date().toLocaleString()}`
     const name = window.prompt('Save board as:', suggested)
-    if (name && name.trim()) saveBoard(name.trim())
+    if (name === null) return
+    const trimmed = name.trim()
+    if (!trimmed) return
+    if (savedBoardNames.includes(trimmed) && trimmed !== selectedBoard) {
+      if (!window.confirm(`Board "${trimmed}" already exists. Overwrite?`)) return
+    }
+    saveBoard(trimmed)
+    setSelectedBoard(trimmed)
   }
 
   const handleClear = () => {
@@ -212,6 +244,8 @@ function BoardSection() {
   const sceneryCount = pieces.filter(
     (p) => p.kind === 'terrain' || p.kind === 'objective',
   ).length
+  const canMirror = sceneryCount > 0
+  const canClear = pieces.length > 0
 
   const handleMirror = () => {
     if (sceneryCount === 0) return
@@ -225,7 +259,10 @@ function BoardSection() {
   }
 
   const handleLoad = (name) => {
-    setMenuOpen(false)
+    if (!name) {
+      setSelectedBoard('')
+      return
+    }
     if (
       pieces.length > 0 &&
       !window.confirm(`Replace current board with "${name}"?`)
@@ -233,13 +270,7 @@ function BoardSection() {
       return
     }
     loadBoard(name)
-  }
-
-  const handleDelete = (e, name) => {
-    e.stopPropagation()
-    if (window.confirm(`Delete saved board "${name}"?`)) {
-      deleteSavedBoard(name)
-    }
+    setSelectedBoard(name)
   }
 
   const handleExport = () => {
@@ -282,96 +313,113 @@ function BoardSection() {
     }
   }
 
+  const handleShareBattlefield = async () => {
+    const code = exportBattlefieldCode()
+    if (!code) {
+      window.alert('There are no terrain or objective pieces to share yet.')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(code)
+      window.alert('Battlefield share code copied to clipboard.')
+    } catch {
+      window.prompt('Copy this battlefield share code:', code)
+    }
+  }
+
+  const handleLoadBattlefieldCode = () => {
+    const code = window.prompt('Paste battlefield share code:')
+    if (code === null) return
+    const trimmed = code.trim()
+    if (!trimmed) return
+
+    const ok = importBattlefieldCode(trimmed)
+    if (!ok) {
+      window.alert('Import failed: code is not a valid battlefield share code.')
+    }
+  }
+
   return (
-    <Section
-      label="Board"
-      icon={terrainLocked ? <Lock size={12} /> : <Unlock size={12} />}
-    >
-      <ToggleRow
-        label="Lock Terrain"
-        icon={terrainLocked ? <Lock size={12} /> : <Unlock size={12} />}
-        checked={terrainLocked}
-        onChange={() => toggleTerrainLocked()}
-        title={
-          terrainLocked
-            ? 'Unlock terrain & objectives'
-            : 'Lock terrain & objectives in place'
-        }
-      />
+    <Section label="Board">
+      <div className="mbp-board-settings">
+        <ToggleRow
+          label="Lock Terrain & Objectives"
+          icon={terrainLocked ? <Lock size={12} /> : <Unlock size={12} />}
+          checked={terrainLocked}
+          onChange={() => toggleTerrainLocked()}
+          title={
+            terrainLocked
+              ? 'Unlock terrain & objectives'
+              : 'Lock terrain & objectives in place'
+          }
+        />
 
-      <ToggleRow
-        label="Move Distance"
-        icon={<Move size={12} />}
-        checked={showMoveDistance}
-        onChange={() => toggleShowMoveDistance()}
-        title={
-          showMoveDistance
-            ? 'Hide live distance line while dragging a base'
-            : 'Show live distance line while dragging a base'
-        }
-      />
-
-      <Chip
-        onClick={handleMirror}
-        title="Duplicate every terrain & objective to the opposite half (point-symmetric around the map center). Deploy one half, then mirror."
-        full
-      >
-        <FlipHorizontal2 size={13} /> Mirror Board
-      </Chip>
-
-      <Chip onClick={handleSave} title="Save current board to browser storage" full>
-        <Save size={13} /> Save Board
-      </Chip>
-
-      <div className="mbp-load-wrap" ref={menuRef}>
-        <Chip
-          onClick={() => setMenuOpen((v) => !v)}
-          title="Load or delete a saved board"
-          full
-          className="mbp-load-chip"
-        >
-          <FolderOpen size={13} /> Load Board
-          <ChevronDown
-            size={12}
-            className={`mbp-load-chip__chevron ${menuOpen ? 'is-open' : ''}`}
-          />
-        </Chip>
-        {menuOpen && (
-          <div className="mbp-load-menu">
-            {savedBoards.length === 0 ? (
-              <div className="mbp-load-menu__empty">No saved boards yet</div>
-            ) : (
-              savedBoards.map((b) => (
-                <div
-                  key={b.name}
-                  onClick={() => handleLoad(b.name)}
-                  className="mbp-load-menu__item"
-                >
-                  <span className="mbp-load-menu__item-name" title={b.name}>
-                    {b.name}
-                  </span>
-                  <button
-                    onClick={(e) => handleDelete(e, b.name)}
-                    title={`Delete "${b.name}"`}
-                    className="mbp-load-menu__item-delete"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        <ToggleRow
+          label="Show Movement Distance"
+          icon={<Move size={12} />}
+          checked={showMoveDistance}
+          onChange={() => toggleShowMoveDistance()}
+          title={
+            showMoveDistance
+              ? 'Hide live distance line while dragging a base'
+              : 'Show live distance line while dragging a base'
+          }
+        />
       </div>
 
-      <Chip
-        onClick={handleClear}
-        variant="danger"
-        title="Remove all pieces from the board"
-        full
-      >
-        <Trash size={13} /> Clear Board
-      </Chip>
+      <div className="mbp-board-actions">
+        <IconAction
+          onClick={handleMirror}
+          icon={<FlipHorizontal2 size={15} />}
+          label="Mirror board"
+          title="Duplicate every terrain & objective to the opposite half (point-symmetric around the map center). Deploy one half, then mirror."
+          disabled={!canMirror}
+        />
+        <IconAction
+          onClick={handleSave}
+          icon={<Save size={15} />}
+          label="Save board"
+          title="Save current board to browser storage"
+        />
+        <IconAction
+          onClick={handleClear}
+          icon={<Trash size={15} />}
+          label="Clear board"
+          title="Remove all pieces from the board"
+          variant="danger"
+          disabled={!canClear}
+        />
+        <IconAction
+          onClick={handleShareBattlefield}
+          icon={<Share2 size={15} />}
+          label="Share battlefield code"
+          title="Copy a share code for the current terrain and objective layout"
+          disabled={sceneryCount === 0}
+        />
+        <IconAction
+          onClick={handleLoadBattlefieldCode}
+          icon={<Link2 size={15} />}
+          label="Load battlefield code"
+          title="Load terrain and objective layout from a shared code"
+        />
+      </div>
+
+      <div className="mbp-board-load">
+        <select
+          className="toolbar-select mbp-board-load__select"
+          value={selectedBoard}
+          onChange={(e) => handleLoad(e.target.value)}
+          aria-label="Load saved board"
+        >
+          <option value="">Load Board…</option>
+          {savedBoardNames.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="mbp-tool-row">
         <Chip onClick={handleExport} title="Download current board as JSON" full>
