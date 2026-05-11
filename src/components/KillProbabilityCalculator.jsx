@@ -6,9 +6,9 @@ import {
   DistributionChart,
   FormSelect,
   StatCard,
-  StatGrid
+  StatGrid,
+  BuffChipGroup
 } from './ui'
-import BuffChipGroup from './attackSim/BuffChipGroup'
 
 function KillProbabilityCalculator() {
   const [woundedAttacks, setWoundedAttacks] = useState('10')

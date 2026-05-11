@@ -1,10 +1,9 @@
-import { FormSelect } from '../ui'
+import { FormSelect, BuffChipGroup } from '../ui'
 import {
   saveOptions,
   fnpOptions,
   saveRerollOptions
 } from '../../lib/dice/options'
-import BuffChipGroup from './BuffChipGroup'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
 

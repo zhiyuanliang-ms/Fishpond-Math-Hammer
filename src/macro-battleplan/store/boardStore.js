@@ -241,6 +241,27 @@ export const useBoardStore = create((set, get) => {
       set({ pieces: [], selectedIds: [], selectedId: null, drawings: [] })
     },
 
+    // Mirror all terrain & objective pieces by central (point) symmetry
+    // around the map center. Each source piece is duplicated to the
+    // opposite side: (x, y) -> (2*cx - x, 2*cy - y) with rotation +180°.
+    // Bases (models) are intentionally not mirrored.
+    mirrorScenery: () => {
+      const s = get()
+      const sources = s.pieces.filter(
+        (p) => p.kind === 'terrain' || p.kind === 'objective',
+      )
+      if (sources.length === 0) return
+      pushHistory()
+      const mirrored = sources.map((p) => ({
+        ...p,
+        id: newId(),
+        x: 2 * centerX - p.x,
+        y: 2 * centerY - p.y,
+        rotation: (p.rotation ?? 0) + 180,
+      }))
+      set((st) => ({ pieces: [...st.pieces, ...mirrored] }))
+    },
+
     setActiveTool: (tool) =>
       set((s) => ({
         activeTool: tool,

@@ -9,16 +9,20 @@ import {
   toWoundOptions,
   antiOptions,
   rerollOptions,
-  critOptions
+  critOptions,
+  sustainedOptions,
+  sustainedMean,
+  sustainedVariance,
+  sustainedMax
 } from '../lib/dice/options'
 import {
   CalculatorLayout,
   DistributionChart,
   FormSelect,
   StatCard,
-  StatGrid
+  StatGrid,
+  BuffChipGroup
 } from './ui'
-import BuffChipGroup from './attackSim/BuffChipGroup'
 
 const Z_95 = 1.96
 
@@ -26,13 +30,6 @@ const Z_95 = 1.96
 // "Torrent" auto-hits every attack and hides the rest of the hit-roll inputs.
 const TORRENT_OPTION = { value: 'torrent', label: 'Torrent' }
 const toHitWithTorrentOptions = [...toHitOptions, TORRENT_OPTION]
-
-// Inline value options exposed by the SUSTAINED HITS buff chip.
-const sustainedOptions = [
-  { value: '1', label: '1' },
-  { value: '2', label: '2' },
-  { value: '3', label: '3' }
-]
 
 function WoundSuccessCalculator() {
   // Hit Roll State
@@ -60,7 +57,9 @@ function WoundSuccessCalculator() {
     e.preventDefault()
 
     const diceCount = parseInt(numDice) || 0
-    const sustainedValue = parseInt(sustainedHitValue) || 1
+    const sustainedAvg = sustainedHit ? sustainedMean(sustainedHitValue) : 0
+    const sustainedVar = sustainedHit ? sustainedVariance(sustainedHitValue) : 0
+    const sustainedCap = sustainedHit ? sustainedMax(sustainedHitValue) : 0
 
     if (diceCount <= 0) {
       setResult(null)
@@ -86,7 +85,7 @@ function WoundSuccessCalculator() {
     let expectedHits = diceCount * hitChance
     const expectedCrits = diceCount * criticalChance
     if (sustainedHit) {
-      expectedHits += expectedCrits * sustainedValue
+      expectedHits += expectedCrits * sustainedAvg
     }
 
     // Expected wounds (lethal hits => crits auto-wound)
@@ -118,17 +117,22 @@ function WoundSuccessCalculator() {
     }
     const stdDev = Math.sqrt(variance)
 
-    // Std dev for hits (with sustained-hit contribution)
+    // Std dev for hits (with sustained-hit contribution).
+    // Let N = number of crits ~ Binomial(diceCount, criticalChance) and let
+    // D be the per-crit extra-hits roll (D3 or fixed). Then total extras
+    // X = sum_{i=1..N} D_i and by the law of total variance:
+    //   Var(X) = E[N]*Var(D) + E[D]^2 * Var(N)
+    // For fixed values Var(D) = 0 and this collapses to m^2 * Var(N).
     let hitVariance = diceCount * hitChance * (1 - hitChance)
     if (sustainedHit) {
-      const sustainedVariance =
-        sustainedValue * sustainedValue * diceCount * criticalChance * (1 - criticalChance)
-      hitVariance += sustainedVariance
+      const expectedN = diceCount * criticalChance
+      const varN = diceCount * criticalChance * (1 - criticalChance)
+      hitVariance += expectedN * sustainedVar + sustainedAvg * sustainedAvg * varN
     }
     const hitsStdDev = Math.sqrt(hitVariance)
     const hitsCILow = Math.max(0, expectedHits - Z_95 * hitsStdDev)
     const hitsCIHigh = Math.min(
-      diceCount + expectedCrits * (sustainedHit ? sustainedValue : 0),
+      diceCount + expectedCrits * sustainedCap,
       expectedHits + Z_95 * hitsStdDev
     )
 

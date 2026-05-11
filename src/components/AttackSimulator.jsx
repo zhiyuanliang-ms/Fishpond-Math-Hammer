@@ -27,7 +27,7 @@ import {
 } from './ui'
 import WeaponProfileCard from './attackSim/WeaponProfileCard'
 import TargetProfileCard from './attackSim/TargetProfileCard'
-import SavedSetControls from './attackSim/SavedSetControls'
+import SavedSetControls from './ui/SavedSetControls'
 import '../styles/attackSimulator.css'
 
 // ---- factory helpers -------------------------------------------------------

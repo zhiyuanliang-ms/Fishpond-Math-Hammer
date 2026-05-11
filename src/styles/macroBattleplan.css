@@ -5,9 +5,10 @@
 .mbp-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
+  flex: 1;
   min-height: 480px;
-  margin: -40px;
+  min-width: 0;
+  margin: 0;
   padding: 10px;
   gap: 8px;
   box-sizing: border-box;
@@ -148,6 +149,7 @@
   display: flex;
   gap: 8px;
   min-height: 0;
+  min-width: 0;
   position: relative;
 }
 
@@ -165,7 +167,7 @@
 .mbp-canvas {
   flex: 1;
   position: relative;
-  overflow: auto;
+  overflow: hidden;
   background: #1a1a1a;
   border: 1px solid #444;
   border-radius: 8px;
@@ -182,8 +184,7 @@
 }
 
 /* On narrow viewports stack the tools panel below the canvas so both remain
-   usable. The canvas itself becomes horizontally/vertically scrollable when
-   the board (≈1272×952 px) exceeds the viewport. */
+  usable. The board continues to scale to fit the available canvas area. */
 @media (max-width: 720px) {
   .mbp-body {
     flex-direction: column;

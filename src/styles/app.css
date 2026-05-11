@@ -3,11 +3,14 @@
 .app {
   display: flex;
   width: 100%;
+  height: 100vh;
   min-height: 100vh;
 }
 
 .main-wrapper {
   flex: 1;
+  height: 100vh;
+  min-width: 0;
   margin-left: 250px;
   background: #3a3a3a;
   display: flex;
@@ -16,8 +19,15 @@
 
 .main-content {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   padding: 40px;
+}
+
+.main-content--macro-battleplan {
+  display: flex;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* Macro Battleplan can hide the app's left nav for more canvas room. */

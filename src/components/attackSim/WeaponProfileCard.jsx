@@ -1,18 +1,14 @@
-import { FormSelect } from '../ui'
+import { FormSelect, BuffChipGroup } from '../ui'
 import {
   toHitOptions,
   rerollOptions,
   antiOptions,
-  critOptions
+  critOptions,
+  sustainedOptions
 } from '../../lib/dice/options'
 import { isValidDiceExpression } from '../../lib/dice'
-import BuffChipGroup from './BuffChipGroup'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
-const sustainedOptions = [
-  { value: '1', label: '1' },
-  { value: '2', label: '2' }
-]
 
 const toHitWithTorrentOptions = [
   ...toHitOptions,

@@ -12,6 +12,7 @@ import MacroBattleplan from './macro-battleplan/MacroBattleplan'
 function AppContent() {
   const navigate = useNavigate()
   const location = useLocation()
+  const isMacroBattleplan = location.pathname === '/macro-battleplan'
 
   const getPageKey = () => {
     switch (location.pathname) {
@@ -61,7 +62,7 @@ function AppContent() {
     <div className="app">
       <Sidebar currentPage={getPageKey()} onPageChange={handlePageChange} />
       <div className="main-wrapper">
-        <main className="main-content">
+        <main className={`main-content ${isMacroBattleplan ? 'main-content--macro-battleplan' : ''}`}>
           <Routes>
             <Route path="/dice-calculator" element={<DiceCalculator />} />
             <Route path="/macro-battleplan" element={<MacroBattleplan />} />

@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react'
-import { PanelRightOpen } from 'lucide-react'
+import { useRef } from 'react'
 import { MacroSidebar } from './components/MacroSidebar'
 import { BoardCanvas } from './components/BoardCanvas'
 import { MacroToolBar } from './components/MacroToolBar'
@@ -8,30 +7,18 @@ import '../styles/macroBattleplan.css'
 
 export default function MacroBattleplan() {
   const stageContainerRef = useRef(null)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
     <div className="mbp-page">
-      <div className={`mbp-body ${sidebarOpen ? '' : 'mbp-body--collapsed'}`}>
+      <div className="mbp-body">
         <div className="mbp-canvas-wrap">
           <main ref={stageContainerRef} className="mbp-canvas">
             <BoardCanvas containerRef={stageContainerRef} />
+            <MacroToolBar />
+            <TipsButton />
           </main>
-          <MacroToolBar />
-          <TipsButton />
-          {!sidebarOpen && (
-            <button
-              type="button"
-              className="mbp-sidebar-toggle"
-              onClick={() => setSidebarOpen(true)}
-              title="Show panel"
-              aria-label="Show panel"
-            >
-              <PanelRightOpen size={16} />
-            </button>
-          )}
         </div>
-        {sidebarOpen && <MacroSidebar onClose={() => setSidebarOpen(false)} />}
+        <MacroSidebar />
       </div>
     </div>
   )

@@ -27,17 +27,29 @@ export function BoardCanvas({ containerRef }) {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    // Map adapts to the viewport but never shrinks below this lower bound.
-    // Below this size the canvas becomes scrollable instead of scaling further.
-    const MIN_W = 640
-    const MIN_H = 480
-    const update = () =>
+    const syncSize = (width, height) => {
       setSize({
-        width: Math.max(MIN_W, el.clientWidth),
-        height: Math.max(MIN_H, el.clientHeight),
+        width: Math.max(0, Math.round(width)),
+        height: Math.max(0, Math.round(height)),
       })
+    }
+    // Stage always matches the container exactly — the map then scales to
+    // fit (see effect below). This keeps the canvas free of scrollbars and
+    // avoids leaving big black margins outside the map area when the
+    // sidebar is toggled or the window is resized.
+    const update = () => {
+      const rect = el.getBoundingClientRect()
+      syncSize(rect.width, rect.height)
+    }
     update()
-    const ro = new ResizeObserver(update)
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) {
+        update()
+        return
+      }
+      syncSize(entry.contentRect.width, entry.contentRect.height)
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [containerRef])
@@ -48,7 +60,10 @@ export function BoardCanvas({ containerRef }) {
     const RULER_PAD = 36
     const requiredW = MAP_W + RULER_PAD * 2
     const requiredH = MAP_H + RULER_PAD * 2
-    const scale = Math.min(1, size.width / requiredW, size.height / requiredH)
+    // Scale the map to fit the available canvas in both directions while
+    // preserving aspect ratio. We intentionally allow scale > 1 so wide
+    // monitors actually get a bigger battleplan instead of black filler.
+    const scale = Math.min(size.width / requiredW, size.height / requiredH)
     stage.scale({ x: scale, y: scale })
     const centerX = MAP_X + MAP_W / 2
     const centerY = MAP_Y + MAP_H / 2

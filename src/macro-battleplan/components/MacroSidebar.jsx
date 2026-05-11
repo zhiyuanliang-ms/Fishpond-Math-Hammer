@@ -14,6 +14,7 @@ import {
   Upload,
   Move,
   PanelRightClose,
+  FlipHorizontal2,
 } from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
 import { MacroScoreboard } from './MacroScoreboard'
@@ -130,6 +131,7 @@ function ScenerySection({ addObjective, addTerrain }) {
       {label}
     </button>
   )
+
   return (
     <div className="mbp-section">
       <div className="mbp-section__header">
@@ -178,6 +180,7 @@ function BoardSection() {
   const clearBoard = useBoardStore((s) => s.clearBoard)
   const exportBoard = useBoardStore((s) => s.exportBoard)
   const importBoard = useBoardStore((s) => s.importBoard)
+  const mirrorScenery = useBoardStore((s) => s.mirrorScenery)
   const pieces = useBoardStore((s) => s.pieces)
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -204,6 +207,21 @@ function BoardSection() {
   const handleClear = () => {
     if (pieces.length === 0) return
     if (window.confirm('Clear all pieces from the board?')) clearBoard()
+  }
+
+  const sceneryCount = pieces.filter(
+    (p) => p.kind === 'terrain' || p.kind === 'objective',
+  ).length
+
+  const handleMirror = () => {
+    if (sceneryCount === 0) return
+    if (
+      window.confirm(
+        `Mirror ${sceneryCount} terrain/objective piece(s) to the other half (point-symmetric around the map center)?`,
+      )
+    ) {
+      mirrorScenery()
+    }
   }
 
   const handleLoad = (name) => {
@@ -292,6 +310,14 @@ function BoardSection() {
             : 'Show live distance line while dragging a base'
         }
       />
+
+      <Chip
+        onClick={handleMirror}
+        title="Duplicate every terrain & objective to the opposite half (point-symmetric around the map center). Deploy one half, then mirror."
+        full
+      >
+        <FlipHorizontal2 size={13} /> Mirror Board
+      </Chip>
 
       <Chip onClick={handleSave} title="Save current board to browser storage" full>
         <Save size={13} /> Save Board
