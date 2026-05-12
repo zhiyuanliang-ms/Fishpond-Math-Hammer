@@ -16,8 +16,9 @@ const translations = {
     data: 'Data',
     import: 'Import',
     export: 'Export',
-    savedAttackerSets: '— Saved attacker sets —',
-    savedDefenderSets: '— Saved defender sets —',
+    share: 'Share',
+    savedAttackerSets: '— Saved attacker profiles —',
+    savedDefenderSets: '— Saved defender profiles —',
     saveSet: 'Save Set…',
 
     // Sections
@@ -116,8 +117,9 @@ const translations = {
     data: '数据',
     import: '导入',
     export: '导出',
-    savedAttackerSets: '— 已保存攻击方面板 —',
-    savedDefenderSets: '— 已保存防御方面板 —',
+    share: '分享',
+    savedAttackerSets: '— 已保存攻击方配置 —',
+    savedDefenderSets: '— 已保存防御方配置 —',
     saveSet: '保存配置…',
 
     // Sections

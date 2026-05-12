@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Download, Upload, Save, Trash2 } from 'lucide-react'
+import { Download, Upload, Save, Trash2, Link2 } from 'lucide-react'
 import { simulateAttack, isValidDiceExpression } from '../lib/dice'
 import {
   loadScenario,
@@ -18,6 +18,12 @@ import {
   deleteNamedTargetSet,
   StorageQuotaError
 } from '../lib/attackSimStorage'
+import {
+  encodeScenarioCode,
+  decodeScenarioCode,
+  buildShareUrl,
+  SHARE_QUERY_PARAM,
+} from '../lib/attackSimShare'
 import {
   Page,
   StatCard,
@@ -186,6 +192,38 @@ function AttackSimulator() {
   const [isMobile] = useState(detectMobile)
   const fileInputRef = useRef(null)
 
+  // Auto-load a scenario from the URL share link (?s=<code>) on mount.
+  // If a previously auto-saved scenario exists, confirm before overwriting it.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get(SHARE_QUERY_PARAM)
+    if (!code) return
+
+    const stripParam = () => {
+      params.delete(SHARE_QUERY_PARAM)
+      const qs = params.toString()
+      const next =
+        window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash
+      window.history.replaceState(null, '', next)
+    }
+
+    const data = decodeScenarioCode(code)
+    if (!data) {
+      setToast({ kind: 'error', message: 'Shared link is invalid or corrupted.' })
+      stripParam()
+      return
+    }
+
+    setWeapons(data.weapons.map(rehydrateWeapon))
+    setTargets(data.targets.map(rehydrateTarget))
+    if (typeof data.highPrecision === 'boolean') setHighPrecision(data.highPrecision)
+    setResult(null)
+    setError(null)
+    stripParam()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Auto-save (debounced) whenever the scenario changes.
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -249,6 +287,25 @@ function AttackSimulator() {
     })
 
   // ---- import / export ----
+  const handleShare = async () => {
+    const code = encodeScenarioCode({
+      weapons: weapons.map(stripId),
+      targets: targets.map(stripId),
+      highPrecision,
+    })
+    if (!code) {
+      setToast({ kind: 'error', message: 'Could not build share link.' })
+      return
+    }
+    const url = buildShareUrl(code)
+    try {
+      await navigator.clipboard.writeText(url)
+      setToast({ kind: 'success', message: 'Share link copied to clipboard.' })
+    } catch {
+      window.prompt('Copy this share link:', url)
+    }
+  }
+
   const handleExport = () => {
     const payload = {
       version: 1,
@@ -343,7 +400,7 @@ function AttackSimulator() {
 
   const handleSaveWeaponSet = () => {
     const suggested = selectedWeaponSet || ''
-    const name = window.prompt('Save attacker profile set as:', suggested)
+    const name = window.prompt('Save attacker profile as:', suggested)
     if (name === null) return
     const trimmed = name.trim()
     if (!trimmed) {
@@ -351,7 +408,7 @@ function AttackSimulator() {
       return
     }
     if (savedWeaponSets.includes(trimmed) && trimmed !== selectedWeaponSet) {
-      if (!window.confirm(`Attacker set "${trimmed}" already exists. Overwrite?`)) return
+      if (!window.confirm(`Attacker profile "${trimmed}" already exists. Overwrite?`)) return
     }
     let ok
     try {
@@ -369,7 +426,7 @@ function AttackSimulator() {
     if (ok) {
       refreshWeaponSets()
       setSelectedWeaponSet(trimmed)
-      setToast({ kind: 'success', message: `Saved attacker set "${trimmed}".` })
+      setToast({ kind: 'success', message: `Saved attacker profile "${trimmed}".` })
     }
   }
 
@@ -378,29 +435,29 @@ function AttackSimulator() {
     if (!name) return
     const data = loadNamedWeaponSet(name)
     if (!data || !Array.isArray(data.weapons) || data.weapons.length === 0) {
-      setToast({ kind: 'error', message: `Could not load attacker set "${name}".` })
+      setToast({ kind: 'error', message: `Could not load attacker profile "${name}".` })
       return
     }
     for (let i = 0; i < data.weapons.length; i++) {
       const err = validateWeaponShape(data.weapons[i])
       if (err) {
-        setToast({ kind: 'error', message: `Invalid attacker set: weapons[${i}] ${err}.` })
+        setToast({ kind: 'error', message: `Invalid attacker profile: weapons[${i}] ${err}.` })
         return
       }
     }
     setWeapons(data.weapons.map(rehydrateWeapon))
     setResult(null)
     setError(null)
-    setToast({ kind: 'success', message: `Loaded attacker set "${name}".` })
+    setToast({ kind: 'success', message: `Loaded attacker profile "${name}".` })
   }
 
   const handleDeleteWeaponSet = () => {
     if (!selectedWeaponSet) return
-    if (!window.confirm(`Delete saved attacker set "${selectedWeaponSet}"?`)) return
+    if (!window.confirm(`Delete saved attacker profile "${selectedWeaponSet}"?`)) return
     deleteNamedWeaponSet(selectedWeaponSet)
     setSelectedWeaponSet('')
     refreshWeaponSets()
-    setToast({ kind: 'success', message: `Deleted attacker set "${selectedWeaponSet}".` })
+    setToast({ kind: 'success', message: `Deleted attacker profile "${selectedWeaponSet}".` })
   }
 
   // ---- defender profile sets (saved target lists) ----
@@ -408,7 +465,7 @@ function AttackSimulator() {
 
   const handleSaveTargetSet = () => {
     const suggested = selectedTargetSet || ''
-    const name = window.prompt('Save defender profile set as:', suggested)
+    const name = window.prompt('Save defender profile as:', suggested)
     if (name === null) return
     const trimmed = name.trim()
     if (!trimmed) {
@@ -416,7 +473,7 @@ function AttackSimulator() {
       return
     }
     if (savedTargetSets.includes(trimmed) && trimmed !== selectedTargetSet) {
-      if (!window.confirm(`Defender set "${trimmed}" already exists. Overwrite?`)) return
+      if (!window.confirm(`Defender profile "${trimmed}" already exists. Overwrite?`)) return
     }
     let ok
     try {
@@ -434,7 +491,7 @@ function AttackSimulator() {
     if (ok) {
       refreshTargetSets()
       setSelectedTargetSet(trimmed)
-      setToast({ kind: 'success', message: `Saved defender set "${trimmed}".` })
+      setToast({ kind: 'success', message: `Saved defender profile "${trimmed}".` })
     }
   }
 
@@ -443,29 +500,29 @@ function AttackSimulator() {
     if (!name) return
     const data = loadNamedTargetSet(name)
     if (!data || !Array.isArray(data.targets) || data.targets.length === 0) {
-      setToast({ kind: 'error', message: `Could not load defender set "${name}".` })
+      setToast({ kind: 'error', message: `Could not load defender profile "${name}".` })
       return
     }
     for (let i = 0; i < data.targets.length; i++) {
       const err = validateTargetShape(data.targets[i])
       if (err) {
-        setToast({ kind: 'error', message: `Invalid defender set: targets[${i}] ${err}.` })
+        setToast({ kind: 'error', message: `Invalid defender profile: targets[${i}] ${err}.` })
         return
       }
     }
     setTargets(data.targets.map(rehydrateTarget))
     setResult(null)
     setError(null)
-    setToast({ kind: 'success', message: `Loaded defender set "${name}".` })
+    setToast({ kind: 'success', message: `Loaded defender profile "${name}".` })
   }
 
   const handleDeleteTargetSet = () => {
     if (!selectedTargetSet) return
-    if (!window.confirm(`Delete saved defender set "${selectedTargetSet}"?`)) return
+    if (!window.confirm(`Delete saved defender profile "${selectedTargetSet}"?`)) return
     deleteNamedTargetSet(selectedTargetSet)
     setSelectedTargetSet('')
     refreshTargetSets()
-    setToast({ kind: 'success', message: `Deleted defender set "${selectedTargetSet}".` })
+    setToast({ kind: 'success', message: `Deleted defender profile "${selectedTargetSet}".` })
   }
 
   // ---- nuke local storage ----
@@ -575,6 +632,15 @@ function AttackSimulator() {
           </button>
           <button
             type="button"
+            className="toolbar-button"
+            onClick={handleShare}
+            title="Copy a share link for the current scenario"
+          >
+            <Link2 size={14} />
+            <span>{t('share')}</span>
+          </button>
+          <button
+            type="button"
             className="toolbar-button toolbar-button--danger"
             onClick={handleDeleteSlot}
             disabled={!selectedSlot}
@@ -646,12 +712,13 @@ function AttackSimulator() {
             placeholder={t('savedAttackerSets')}
             onChange={handleLoadWeaponSet}
             onSave={handleSaveWeaponSet}
+            saveLabel="Save Profile…"
             onDelete={handleDeleteWeaponSet}
             deleteDisabled={!selectedWeaponSet}
-            deleteTitle={selectedWeaponSet ? `Delete "${selectedWeaponSet}"` : 'Select a saved attacker set to delete'}
-            groupAriaLabel="Saved attacker profile sets"
-            selectAriaLabel="Load saved attacker profile set"
-            deleteAriaLabel="Delete selected attacker set"
+            deleteTitle={selectedWeaponSet ? `Delete "${selectedWeaponSet}"` : 'Select a saved attacker profile to delete'}
+            groupAriaLabel="Saved attacker profiles"
+            selectAriaLabel="Load saved attacker profile"
+            deleteAriaLabel="Delete selected attacker profile"
           />
           <div className="profile-list">
             {weapons.map((w, i) => (
@@ -683,12 +750,13 @@ function AttackSimulator() {
             placeholder={t('savedDefenderSets')}
             onChange={handleLoadTargetSet}
             onSave={handleSaveTargetSet}
+            saveLabel="Save Profile…"
             onDelete={handleDeleteTargetSet}
             deleteDisabled={!selectedTargetSet}
-            deleteTitle={selectedTargetSet ? `Delete "${selectedTargetSet}"` : 'Select a saved defender set to delete'}
-            groupAriaLabel="Saved defender profile sets"
-            selectAriaLabel="Load saved defender profile set"
-            deleteAriaLabel="Delete selected defender set"
+            deleteTitle={selectedTargetSet ? `Delete "${selectedTargetSet}"` : 'Select a saved defender profile to delete'}
+            groupAriaLabel="Saved defender profiles"
+            selectAriaLabel="Load saved defender profile"
+            deleteAriaLabel="Delete selected defender profile"
           />
           <div className="profile-list">
             {targets.map((t, i) => (
