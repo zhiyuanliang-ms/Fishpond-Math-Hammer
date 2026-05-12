@@ -6,6 +6,7 @@ import {
 } from '../../lib/dice/options'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
+import { useT } from './lang'
 
 const invulnOptions = [
   { value: '0', label: '—' },
@@ -15,6 +16,12 @@ const invulnOptions = [
   { value: '5', label: '5+' },
   { value: '6', label: '6+' }
 ]
+
+// Map save reroll option values to lang keys
+const saveRerollLangKeys = {
+  'no-reroll': 'noReroll',
+  'reroll-one': 'rerollOne',
+}
 
 // Editor for a single defending unit "model profile" (a unit can contain
 // several different model types — e.g. squad members + a leader).
@@ -28,12 +35,13 @@ function TargetProfileCard({
   onMoveDown,
   onDuplicate
 }) {
+  const { t } = useT()
   const update = (patch) => onChange({ ...profile, ...patch })
 
   const buffs = [
     {
       key: 'fnp',
-      label: 'FNP',
+      label: t('fnp'),
       active: !!profile.fnp,
       onToggle: () => update({ fnp: profile.fnp ? 0 : 5 }),
       value: (profile.fnp || 5).toString(),
@@ -42,7 +50,7 @@ function TargetProfileCard({
     },
     {
       key: 'fnpMortal',
-      label: 'FNP vs MORTAL',
+      label: t('fnpMortal'),
       active: !!profile.fnpMortal,
       onToggle: () => update({ fnpMortal: profile.fnpMortal ? 0 : 5 }),
       value: (profile.fnpMortal || 5).toString(),
@@ -51,13 +59,13 @@ function TargetProfileCard({
     },
     {
       key: 'minusOneToHit',
-      label: '−1 HIT',
+      label: t('minusOneHit'),
       active: profile.minusOneToHit,
       onToggle: () => update({ minusOneToHit: !profile.minusOneToHit })
     },
     {
       key: 'minusOneToWound',
-      label: '−1 WOUND',
+      label: t('minusOneWound'),
       active: profile.minusOneToWound,
       onToggle: () =>
         update({
@@ -68,7 +76,7 @@ function TargetProfileCard({
     },
     {
       key: 'minusOneToWoundIfStronger',
-      label: '−1 WOUND (S>T)',
+      label: t('minusOneWoundST'),
       active: profile.minusOneToWoundIfStronger,
       onToggle: () =>
         update({
@@ -78,7 +86,7 @@ function TargetProfileCard({
     },
     {
       key: 'halfDamage',
-      label: 'HALF DAMAGE',
+      label: t('halfDamage'),
       active: profile.halfDamage,
       onToggle: () =>
         update({
@@ -90,7 +98,7 @@ function TargetProfileCard({
     },
     {
       key: 'minusOneDamage',
-      label: 'DAMAGE −1',
+      label: t('damageMinus1'),
       active: profile.minusOneDamage,
       onToggle: () =>
         update({
@@ -101,7 +109,7 @@ function TargetProfileCard({
     },
     {
       key: 'damageOne',
-      label: 'DAMAGE = 1',
+      label: t('damageOne'),
       active: profile.damageOne,
       onToggle: () =>
         update({
@@ -112,7 +120,7 @@ function TargetProfileCard({
     },
     {
       key: 'benefitOfCover',
-      label: 'BENEFIT OF COVER',
+      label: t('benefitOfCover'),
       active: profile.benefitOfCover,
       onToggle: () => update({ benefitOfCover: !profile.benefitOfCover })
     }
@@ -120,10 +128,15 @@ function TargetProfileCard({
 
   const findOpt = (opts, v) => opts.find((o) => o.value === v.toString()) || opts[0]
 
+  const localizedSaveRerollOptions = saveRerollOptions.map((o) => ({
+    ...o,
+    label: t(saveRerollLangKeys[o.value] ?? o.value)
+  }))
+
   return (
     <ProfileCardShell
       name={profile.name}
-      placeholder={`Profile ${index + 1}`}
+      placeholder={`${t('thProfile')} ${index + 1}`}
       index={index}
       total={total}
       onNameChange={(name) => update({ name })}
@@ -137,7 +150,7 @@ function TargetProfileCard({
           className="stat-cell"
           title="Number of models in the target unit with this profile (used for Blast and to decide when the unit is wiped)."
         >
-          <label>Models</label>
+          <label>{t('models')}</label>
           <IntInput
             min={1}
             max={50}
@@ -147,7 +160,7 @@ function TargetProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Toughness</label>
+          <label>{t('toughness')}</label>
           <IntInput
             min={1}
             fallback={1}
@@ -156,7 +169,7 @@ function TargetProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Wounds</label>
+          <label>{t('wounds')}</label>
           <IntInput
             min={1}
             max={50}
@@ -166,7 +179,7 @@ function TargetProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Sv</label>
+          <label>{t('sv')}</label>
           <FormSelect
             variant="buff"
             options={saveOptions}
@@ -175,7 +188,7 @@ function TargetProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Inv</label>
+          <label>{t('inv')}</label>
           <FormSelect
             variant="buff"
             options={invulnOptions}
@@ -187,10 +200,10 @@ function TargetProfileCard({
 
       <div className="reroll-row">
         <div className="reroll-cell">
-          <label>Save Reroll</label>
+          <label>{t('saveReroll')}</label>
           <FormSelect
-            options={saveRerollOptions}
-            value={saveRerollOptions.find((o) => o.value === profile.saveReroll) || saveRerollOptions[0]}
+            options={localizedSaveRerollOptions}
+            value={localizedSaveRerollOptions.find((o) => o.value === profile.saveReroll) || localizedSaveRerollOptions[0]}
             onChange={(opt) => update({ saveReroll: opt.value })}
           />
         </div>

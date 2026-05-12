@@ -24,6 +24,46 @@
   margin-bottom: 12px;
 }
 
+/* ---- language toggle ---- */
+
+.lang-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.lang-toggle-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #4a4a4a;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-toggle-btn:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.lang-toggle-btn:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+}
+
+.lang-toggle-btn.active {
+  background: #fbbf24;
+  color: #1a1a1a;
+  border-color: #fbbf24;
+}
+
+.lang-toggle-btn:hover:not(.active) {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
 /* ---- toast ---- */
 
 .attack-sim-toast-row {

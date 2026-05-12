@@ -27,6 +27,7 @@ import {
 import WeaponProfileCard from './attackSim/WeaponProfileCard'
 import TargetProfileCard from './attackSim/TargetProfileCard'
 import SavedSetControls from './ui/SavedSetControls'
+import { LangProvider, useT } from './attackSim/lang'
 import '../styles/attackSimulator.css'
 
 // ---- factory helpers -------------------------------------------------------
@@ -550,25 +551,27 @@ function AttackSimulator() {
     }, 0)
   }
 
+  const { t, lang, setLang } = useT()
+
   return (
-    <Page title="Attack Simulator">
+    <Page title={t('pageTitle')}>
       <div className="attack-sim-toolbar">
         <div className="toolbar-group" role="group" aria-label="Saved scenarios">
-          <span className="toolbar-group-label">Scenario</span>
+          <span className="toolbar-group-label">{t('scenario')}</span>
           <select
             className="toolbar-select"
             value={selectedSlot}
             onChange={(e) => handleLoadSlot(e.target.value)}
             aria-label="Load saved scenario"
           >
-            <option value="">— Saved scenarios —</option>
+            <option value="">{t('savedScenarios')}</option>
             {savedNames.map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
           <button type="button" className="toolbar-button" onClick={handleSaveAs}>
             <Save size={14} />
-            <span>Save As…</span>
+            <span>{t('saveAs')}</span>
           </button>
           <button
             type="button"
@@ -583,19 +586,36 @@ function AttackSimulator() {
         </div>
 
         <div className="toolbar-group" role="group" aria-label="Data">
-          <span className="toolbar-group-label">Data</span>
+          <span className="toolbar-group-label">{t('data')}</span>
           {!isMobile && (
             <>
               <button type="button" className="toolbar-button" onClick={handleImportClick}>
                 <Upload size={14} />
-                <span>Import</span>
+                <span>{t('import')}</span>
               </button>
               <button type="button" className="toolbar-button" onClick={handleExport}>
                 <Download size={14} />
-                <span>Export</span>
+                <span>{t('export')}</span>
               </button>
             </>
           )}
+        </div>
+
+        <div className="toolbar-group lang-toggle-group" role="group" aria-label="Language">
+          <button
+            type="button"
+            className={`lang-toggle-btn ${lang === 'en' ? 'active' : ''}`}
+            onClick={() => setLang('en')}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            className={`lang-toggle-btn ${lang === 'zh' ? 'active' : ''}`}
+            onClick={() => setLang('zh')}
+          >
+            中文
+          </button>
         </div>
 
         <input
@@ -617,15 +637,15 @@ function AttackSimulator() {
       <form onSubmit={handleRun} className="attack-sim-form">
         <section className="attack-sim-section">
           <header className="attack-sim-section-header">
-            <h2>Attacker — Weapon Profiles</h2>
+            <h2>{t('attackerSection')}</h2>
             <button type="button" className="add-button" onClick={addWeapon}>
-              + Add Weapon
+              {t('addWeapon')}
             </button>
           </header>
           <SavedSetControls
             value={selectedWeaponSet}
             options={savedWeaponSets}
-            placeholder="— Saved attacker sets —"
+            placeholder={t('savedAttackerSets')}
             onChange={handleLoadWeaponSet}
             onSave={handleSaveWeaponSet}
             onDelete={handleDeleteWeaponSet}
@@ -654,15 +674,15 @@ function AttackSimulator() {
 
         <section className="attack-sim-section">
           <header className="attack-sim-section-header">
-            <h2>Defender — Target Profiles</h2>
+            <h2>{t('defenderSection')}</h2>
             <button type="button" className="add-button" onClick={addTarget}>
-              + Add Profile
+              {t('addProfile')}
             </button>
           </header>
           <SavedSetControls
             value={selectedTargetSet}
             options={savedTargetSets}
-            placeholder="— Saved defender sets —"
+            placeholder={t('savedDefenderSets')}
             onChange={handleLoadTargetSet}
             onSave={handleSaveTargetSet}
             onDelete={handleDeleteTargetSet}
@@ -693,7 +713,7 @@ function AttackSimulator() {
 
         <div className="run-row">
           <button type="submit" className="calculate-button" disabled={running}>
-            {running ? 'Simulating…' : 'Run Simulation'}
+            {running ? t('simulating') : t('runSim')}
           </button>
           <label className="precision-toggle">
             <input
@@ -705,9 +725,9 @@ function AttackSimulator() {
               <span className="precision-toggle-thumb" />
             </span>
             <span className="precision-toggle-label">
-              High precision
+              {t('highPrecision')}
               <span className="precision-toggle-hint">
-                {highPrecision ? '10,000 iterations' : '1,000 iterations'}
+                {t('iterations', highPrecision ? '10,000' : '1,000')}
               </span>
             </span>
           </label>
@@ -716,11 +736,11 @@ function AttackSimulator() {
 
       {result && (
         <section className="attack-sim-results">
-          <h2 className="results-heading">Results</h2>
+          <h2 className="results-heading">{t('results')}</h2>
           <StatGrid>
             {!(targets.length === 1 && targets[0].models === 1) && (
               <StatCard
-                label="Expected Models Killed"
+                label={t('expectedModelsKilled')}
                 value={result.expectedKills.toFixed(2)}
                 stdDev={result.expectedKillsStdDev.toFixed(2)}
                 ciLow={result.expectedKillsCILow.toFixed(2)}
@@ -729,7 +749,7 @@ function AttackSimulator() {
             )}
             {targets.length === 1 && targets[0].models === 1 && (
               <StatCard
-                label="Expected Damage Dealt"
+                label={t('expectedDamageDealt')}
                 value={result.expectedDamage.toFixed(2)}
                 stdDev={result.expectedDamageStdDev.toFixed(2)}
                 ciLow={result.expectedDamageCILow.toFixed(2)}
@@ -737,7 +757,7 @@ function AttackSimulator() {
               />
             )}
             <StatCard
-              label="Chance to Wipe Unit"
+              label={t('chanceToWipe')}
               value={result.wipeProbability.toFixed(2)}
               valueSuffix="%"
               stdDev={result.wipeProbabilityStdDev.toFixed(2)}
@@ -749,15 +769,15 @@ function AttackSimulator() {
 
           {result.perProfile.length > 1 && (
             <div className="per-profile-table chart-container">
-              <h2>Per-Profile Breakdown</h2>
+              <h2>{t('perProfileBreakdown')}</h2>
               <table>
                 <thead>
                   <tr>
-                    <th>Profile</th>
-                    <th>Models</th>
-                    <th>Expected Kills</th>
+                    <th>{t('thProfile')}</th>
+                    <th>{t('thModels')}</th>
+                    <th>{t('thExpectedKills')}</th>
                     <th>σ</th>
-                    <th>Wipe %</th>
+                    <th>{t('thWipePercent')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -776,13 +796,13 @@ function AttackSimulator() {
           )}
 
           <DistributionChart
-            title="Total Models Killed — Distribution"
+            title={t('totalModelsKilledDist')}
             data={result.distributionData}
             xKey="kills"
             chartKey={result.calculationId}
             footer={
               <p className="simulation-note">
-                * Estimated using Monte Carlo simulation ({result.numSimulations.toLocaleString()} iterations)
+                {t('simulationNote', result.numSimulations.toLocaleString())}
               </p>
             }
           />
@@ -792,4 +812,12 @@ function AttackSimulator() {
   )
 }
 
-export default AttackSimulator
+function AttackSimulatorWithLang() {
+  return (
+    <LangProvider>
+      <AttackSimulator />
+    </LangProvider>
+  )
+}
+
+export default AttackSimulatorWithLang

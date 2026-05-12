@@ -9,11 +9,20 @@ import {
 import { isValidDiceExpression } from '../../lib/dice'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
+import { useT } from './lang'
 
 const toHitWithTorrentOptions = [
   ...toHitOptions,
   { value: 'torrent', label: 'Torrent' }
 ]
+
+// Map reroll option values to lang keys
+const rerollLangKeys = {
+  'no-reroll': 'noReroll',
+  'reroll-one': 'rerollOnes',
+  'reroll-fail': 'rerollFails',
+  'reroll-non-critical': 'rerollNonCritical',
+}
 
 // Editor for a single weapon profile. Shows the basic stat line on top,
 // rerolls in the middle and a chip-style buff selector at the bottom.
@@ -27,6 +36,7 @@ function WeaponProfileCard({
   onMoveDown,
   onDuplicate
 }) {
+  const { t } = useT()
   const update = (patch) => onChange({ ...profile, ...patch })
 
   const attacksValid = isValidDiceExpression(profile.attacks)
@@ -36,25 +46,25 @@ function WeaponProfileCard({
   const buffs = [
     {
       key: 'lethalHits',
-      label: 'LETHAL HITS',
+      label: t('lethalHits'),
       active: profile.lethalHits,
       onToggle: () => update({ lethalHits: !profile.lethalHits })
     },
     {
       key: 'plusOneHit',
-      label: '+1 HIT',
+      label: t('plusOneHit'),
       active: profile.plusOneHit,
       onToggle: () => update({ plusOneHit: !profile.plusOneHit })
     },
     {
       key: 'ignoresCover',
-      label: 'IGNORES COVER',
+      label: t('ignoresCover'),
       active: profile.ignoresCover,
       onToggle: () => update({ ignoresCover: !profile.ignoresCover })
     },
     {
       key: 'critHit',
-      label: 'CRITICAL HIT',
+      label: t('criticalHit'),
       active: profile.critHitEnabled,
       onToggle: () => update({ critHitEnabled: !profile.critHitEnabled }),
       value: profile.critHit?.toString() || '5',
@@ -63,7 +73,7 @@ function WeaponProfileCard({
     },
     {
       key: 'sustainedHits',
-      label: 'SUSTAINED HITS',
+      label: t('sustainedHits'),
       active: profile.sustainedHits && profile.sustainedHits !== 'off',
       onToggle: () =>
         update({ sustainedHits: profile.sustainedHits && profile.sustainedHits !== 'off' ? 'off' : '1' }),
@@ -73,25 +83,25 @@ function WeaponProfileCard({
     },
     {
       key: 'devastating',
-      label: 'DEVASTATING WOUNDS',
+      label: t('devastatingWounds'),
       active: profile.devastatingWounds,
       onToggle: () => update({ devastatingWounds: !profile.devastatingWounds })
     },
     {
       key: 'blast',
-      label: 'BLAST',
+      label: t('blast'),
       active: profile.blast,
       onToggle: () => update({ blast: !profile.blast })
     },
     {
       key: 'plusOneWound',
-      label: '+1 WOUND',
+      label: t('plusOneWound'),
       active: profile.plusOneWound,
       onToggle: () => update({ plusOneWound: !profile.plusOneWound })
     },
     {
       key: 'anti',
-      label: 'ANTI',
+      label: t('anti'),
       active: profile.antiEnabled,
       onToggle: () => update({ antiEnabled: !profile.antiEnabled }),
       value: profile.antiValue?.toString() || '4',
@@ -115,10 +125,19 @@ function WeaponProfileCard({
 
   const findOpt = (opts, v) => opts.find((o) => o.value === v.toString()) || opts[0]
 
+  const localizedToHitOptions = toHitWithTorrentOptions.map((o) =>
+    o.value === 'torrent' ? { ...o, label: t('torrent') } : o
+  )
+
+  const localizedRerollOptions = rerollOptions.map((o) => ({
+    ...o,
+    label: t(rerollLangKeys[o.value] ?? o.value)
+  }))
+
   return (
     <ProfileCardShell
       name={profile.name}
-      placeholder={`Weapon ${index + 1}`}
+      placeholder={`${t('weapons')} ${index + 1}`}
       index={index}
       total={total}
       onNameChange={(name) => update({ name })}
@@ -132,7 +151,7 @@ function WeaponProfileCard({
           className="stat-cell"
           title="Number of weapons firing this profile (e.g. 5 bolters in a squad). Each weapon rolls its Attacks separately."
         >
-          <label>Weapons</label>
+          <label>{t('weapons')}</label>
           <IntInput
             min={1}
             fallback={1}
@@ -141,7 +160,7 @@ function WeaponProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Attacks</label>
+          <label>{t('attacks')}</label>
           <input
             type="text"
             className={attacksValid ? '' : 'invalid'}
@@ -151,13 +170,13 @@ function WeaponProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>BS/WS</label>
+          <label>{t('bsws')}</label>
           <FormSelect
             variant="buff"
-            options={toHitWithTorrentOptions}
+            options={localizedToHitOptions}
             value={
               profile.torrent
-                ? toHitWithTorrentOptions[toHitWithTorrentOptions.length - 1]
+                ? localizedToHitOptions[localizedToHitOptions.length - 1]
                 : findOpt(toHitOptions, profile.toHit)
             }
             onChange={(opt) => {
@@ -170,7 +189,7 @@ function WeaponProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Strength</label>
+          <label>{t('strength')}</label>
           <IntInput
             min={1}
             fallback={1}
@@ -179,7 +198,7 @@ function WeaponProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>AP</label>
+          <label>{t('ap')}</label>
           <IntInput
             min={0}
             max={6}
@@ -189,7 +208,7 @@ function WeaponProfileCard({
           />
         </div>
         <div className="stat-cell">
-          <label>Damage</label>
+          <label>{t('damage')}</label>
           <input
             type="text"
             className={damageValid ? '' : 'invalid'}
@@ -202,19 +221,19 @@ function WeaponProfileCard({
 
       <div className="reroll-row">
         <div className="reroll-cell">
-          <label>Hit Reroll</label>
+          <label>{t('hitReroll')}</label>
           <FormSelect
-            options={rerollOptions}
-            value={rerollOptions.find((o) => o.value === profile.hitReroll) || rerollOptions[0]}
+            options={localizedRerollOptions}
+            value={localizedRerollOptions.find((o) => o.value === profile.hitReroll) || localizedRerollOptions[0]}
             onChange={(opt) => update({ hitReroll: opt.value })}
             isDisabled={profile.torrent}
           />
         </div>
         <div className="reroll-cell">
-          <label>Wound Reroll</label>
+          <label>{t('woundReroll')}</label>
           <FormSelect
-            options={rerollOptions}
-            value={rerollOptions.find((o) => o.value === profile.woundReroll) || rerollOptions[0]}
+            options={localizedRerollOptions}
+            value={localizedRerollOptions.find((o) => o.value === profile.woundReroll) || localizedRerollOptions[0]}
             onChange={(opt) => update({ woundReroll: opt.value })}
           />
         </div>

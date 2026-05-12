@@ -1,4 +1,5 @@
 import { ArrowUp, ArrowDown, Copy, X } from 'lucide-react'
+import { useT } from './lang'
 
 function ProfileCardShell({
   name,
@@ -12,6 +13,7 @@ function ProfileCardShell({
   onRemove,
   children
 }) {
+  const { t } = useT()
   return (
     <div className="profile-card">
       <div className="profile-card-header">
@@ -23,16 +25,16 @@ function ProfileCardShell({
           placeholder={placeholder}
         />
         <div className="profile-card-actions">
-          <button type="button" title="Move up" onClick={onMoveUp} disabled={index === 0}>
+          <button type="button" title={t('moveUp')} onClick={onMoveUp} disabled={index === 0}>
             <ArrowUp size={14} />
           </button>
-          <button type="button" title="Move down" onClick={onMoveDown} disabled={index === total - 1}>
+          <button type="button" title={t('moveDown')} onClick={onMoveDown} disabled={index === total - 1}>
             <ArrowDown size={14} />
           </button>
-          <button type="button" title="Duplicate" onClick={onDuplicate}>
+          <button type="button" title={t('duplicate')} onClick={onDuplicate}>
             <Copy size={14} />
           </button>
-          <button type="button" className="danger" title="Remove" onClick={onRemove}>
+          <button type="button" className="danger" title={t('remove')} onClick={onRemove}>
             <X size={14} />
           </button>
         </div>
