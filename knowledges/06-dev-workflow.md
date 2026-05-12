@@ -64,6 +64,25 @@ cd "c:\Users\zhiyuanliang\Desktop\Warhammer"; npm run lint 2>&1 | Select-Object 
   memory note also flags that `GITHUB_TOKEN` env var can break some CLIs;
   unset with `$env:GITHUB_TOKEN = $null` if auth misbehaves.
 
+## Deployment — Azure Static Web Apps
+
+The app is deployed as an **Azure Static Web App** (`gentle-coast-01db79f0f`).
+
+- **CI/CD workflow:** `.github/workflows/azure-static-web-apps-gentle-coast-01db79f0f.yml`
+  triggers on pushes to `master` and on PRs against `master`.
+- **Build:** `Azure/static-web-apps-deploy@v1` builds at `/` and deploys `dist/`.
+- **SPA fallback routing:** `staticwebapp.config.json` at the repo root
+  configures `navigationFallback` to rewrite all paths to `/index.html`
+  (excluding `/assets/*`). This is **required** so that direct navigation to
+  any client-side route (e.g. `/macro-battleplan`, `/dice-calculator`,
+  `/attack-simulator`, `/dice-roller`, `/cheat-sheet`, `/about`) works instead
+  of returning a 404 from the CDN.
+- **Deploy token secret:** `AZURE_STATIC_WEB_APPS_API_TOKEN_GENTLE_COAST_01DB79F0F`
+  stored in GitHub repo secrets.
+
+If you add a new page route in `App.jsx`, no extra config is needed — the
+`navigationFallback` catch-all already covers it.
+
 ## Git
 - Default branch is `main` (or whatever the user is on — check `git status`).
 - The user commits manually with short messages (e.g. `"refactor"`). Don't
