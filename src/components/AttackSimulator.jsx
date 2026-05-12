@@ -585,21 +585,19 @@ function AttackSimulator() {
           </button>
         </div>
 
-        <div className="toolbar-group" role="group" aria-label="Data">
-          <span className="toolbar-group-label">{t('data')}</span>
-          {!isMobile && (
-            <>
-              <button type="button" className="toolbar-button" onClick={handleImportClick}>
-                <Upload size={14} />
-                <span>{t('import')}</span>
-              </button>
-              <button type="button" className="toolbar-button" onClick={handleExport}>
-                <Download size={14} />
-                <span>{t('export')}</span>
-              </button>
-            </>
-          )}
-        </div>
+        {!isMobile && (
+          <div className="toolbar-group" role="group" aria-label="Data">
+            <span className="toolbar-group-label">{t('data')}</span>
+            <button type="button" className="toolbar-button" onClick={handleImportClick}>
+              <Upload size={14} />
+              <span>{t('import')}</span>
+            </button>
+            <button type="button" className="toolbar-button" onClick={handleExport}>
+              <Download size={14} />
+              <span>{t('export')}</span>
+            </button>
+          </div>
+        )}
 
         <div className="toolbar-group lang-toggle-group" role="group" aria-label="Language">
           <button
