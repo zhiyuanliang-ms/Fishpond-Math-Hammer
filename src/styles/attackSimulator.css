@@ -260,6 +260,7 @@
 }
 
 .precision-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -269,6 +270,7 @@
 
 .precision-toggle input {
   position: absolute;
+  inset: 0;
   opacity: 0;
   pointer-events: none;
 }
