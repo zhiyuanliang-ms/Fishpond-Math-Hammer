@@ -23,6 +23,7 @@ import {
   BASE_COLOR_PALETTE,
   DEFAULT_BASE_COLOR,
   DEPLOYMENT_ZONES,
+  MM_PER_INCH,
 } from '../config/board'
 
 const DEPLOYMENT_ZONE_LABELS = new Map(
@@ -120,8 +121,10 @@ function ToggleRow({ label, icon, checked, onChange, title }) {
   )
 }
 
-function BasesSection({ addBase, addOvalBase }) {
+function BasesSection({ addBase, addOvalBase, addRectBase }) {
   const [tab, setTab] = useState('round')
+  const [rectWidth, setRectWidth] = useState('2')
+  const [rectHeight, setRectHeight] = useState('1')
   const tabBtn = (id, label) => (
     <button
       type="button"
@@ -131,6 +134,42 @@ function BasesSection({ addBase, addOvalBase }) {
       {label}
     </button>
   )
+
+  const parseDim = (raw) => {
+    const n = Number(raw)
+    if (!Number.isFinite(n)) return null
+    // Inches, 0.25–12, snapped to 0.25" (a quarter inch).
+    const snapped = Math.round(n * 4) / 4
+    return Math.min(12, Math.max(0.25, snapped))
+  }
+
+  const formatIn = (v) => {
+    const fixed = v.toFixed(2)
+    return fixed.replace(/\.?0+$/, '')
+  }
+
+  const handleAddRect = () => {
+    const wIn = parseDim(rectWidth)
+    const hIn = parseDim(rectHeight)
+    if (wIn === null || hIn === null) return
+    setRectWidth(formatIn(wIn))
+    setRectHeight(formatIn(hIn))
+    const widthMm = Math.round(wIn * MM_PER_INCH)
+    const heightMm = Math.round(hIn * MM_PER_INCH)
+    addRectBase(widthMm, heightMm)
+  }
+
+  // Tabletop vehicle footprint presets (length × width, top-down).
+  const RECT_PRESETS = [
+    { id: 'rhino', label: 'Rhino', lengthIn: 4.5, widthIn: 3 },
+  ]
+
+  const handleAddPreset = (preset) => {
+    const widthMm = Math.round(preset.lengthIn * MM_PER_INCH)
+    const heightMm = Math.round(preset.widthIn * MM_PER_INCH)
+    addRectBase(widthMm, heightMm)
+  }
+
   return (
     <div className="mbp-section">
       <div className="mbp-section__header">
@@ -139,24 +178,96 @@ function BasesSection({ addBase, addOvalBase }) {
       <div className="mbp-segmented">
         {tabBtn('round', 'Round')}
         {tabBtn('oval', 'Oval')}
+        {tabBtn('rect', 'Rect')}
       </div>
-      <div className="mbp-section__row">
-        {tab === 'round'
-          ? BASE_SIZES_MM.map((mm) => (
-              <Chip key={mm} onClick={() => addBase(mm)} title={`${mm} mm round base`}>
-                {mm}
-              </Chip>
-            ))
-          : OVAL_BASE_SIZES_MM.map((o) => (
+      {tab === 'rect' ? (
+        <div className="mbp-rect-base">
+          <div className="mbp-rect-base__row">
+            <label className="mbp-rect-base__field">
+              <span>W</span>
+              <input
+                type="number"
+                min={0.25}
+                max={12}
+                step={0.25}
+                value={rectWidth}
+                onChange={(e) => setRectWidth(e.target.value)}
+                onBlur={(e) => {
+                  const v = parseDim(e.target.value)
+                  if (v !== null) setRectWidth(formatIn(v))
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddRect()
+                    e.target.blur()
+                  }
+                }}
+              />
+            </label>
+            <span className="mbp-rect-base__x">×</span>
+            <label className="mbp-rect-base__field">
+              <span>H</span>
+              <input
+                type="number"
+                min={0.25}
+                max={12}
+                step={0.25}
+                value={rectHeight}
+                onChange={(e) => setRectHeight(e.target.value)}
+                onBlur={(e) => {
+                  const v = parseDim(e.target.value)
+                  if (v !== null) setRectHeight(formatIn(v))
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddRect()
+                    e.target.blur()
+                  }
+                }}
+              />
+            </label>
+            <span className="mbp-rect-base__unit">inch</span>
+          </div>
+          <Chip
+            onClick={handleAddRect}
+            title={`Add ${rectWidth}×${rectHeight}″ rectangular base`}
+            variant="accent"
+            full
+          >
+            Add {rectWidth}×{rectHeight}″
+          </Chip>
+          <div className="mbp-rect-base__presets">
+            {RECT_PRESETS.map((p) => (
               <Chip
-                key={o.label}
-                onClick={() => addOvalBase(o.widthMm, o.heightMm)}
-                title={`${o.widthMm}×${o.heightMm} mm oval base`}
+                key={p.id}
+                onClick={() => handleAddPreset(p)}
+                title={`${p.label} footprint: ${p.lengthIn}″ × ${p.widthIn}″`}
+                full
               >
-                {o.label}
+                {p.label}
               </Chip>
             ))}
-      </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mbp-section__row">
+          {tab === 'round'
+            ? BASE_SIZES_MM.map((mm) => (
+                <Chip key={mm} onClick={() => addBase(mm)} title={`${mm} mm round base`}>
+                  {mm}
+                </Chip>
+              ))
+            : OVAL_BASE_SIZES_MM.map((o) => (
+                <Chip
+                  key={o.label}
+                  onClick={() => addOvalBase(o.widthMm, o.heightMm)}
+                  title={`${o.widthMm}×${o.heightMm} mm oval base`}
+                >
+                  {o.label}
+                </Chip>
+              ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -574,6 +685,8 @@ function SelectionSection() {
     piece.kind === 'base'
       ? piece.shape === 'oval' && piece.widthMm && piece.heightMm
         ? `Oval ${piece.widthMm}×${piece.heightMm}`
+        : piece.shape === 'rect' && piece.widthMm && piece.heightMm
+        ? `Rect ${piece.widthMm}×${piece.heightMm}`
         : `Base ${piece.diameterMm}mm`
       : piece.kind === 'objective'
       ? 'Objective'
@@ -656,6 +769,7 @@ function SelectionSection() {
 export function MacroSidebar({ onClose }) {
   const addBase = useBoardStore((s) => s.addBase)
   const addOvalBase = useBoardStore((s) => s.addOvalBase)
+  const addRectBase = useBoardStore((s) => s.addRectBase)
   const addTerrain = useBoardStore((s) => s.addTerrain)
   const addObjective = useBoardStore((s) => s.addObjective)
 
@@ -676,7 +790,7 @@ export function MacroSidebar({ onClose }) {
       )}
       <div className="mbp-tools__scroll">
         <MacroScoreboard />
-        <BasesSection addBase={addBase} addOvalBase={addOvalBase} />
+        <BasesSection addBase={addBase} addOvalBase={addOvalBase} addRectBase={addRectBase} />
         <SelectionSection />
         <ScenerySection addObjective={addObjective} addTerrain={addTerrain} />
         <BoardSection />

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Circle, Ellipse, Group, Line, Text } from 'react-konva'
+import { Circle, Ellipse, Group, Line, Rect, Text } from 'react-konva'
 import { useBoardStore, baseRadiusPx } from '../store/boardStore'
 import { PX_PER_INCH, MM_PER_INCH, DEFAULT_BASE_COLOR } from '../config/board'
 import { useGroupDragMove } from '../hooks/useGroupDragMove'
@@ -8,9 +8,10 @@ const mmToPx = (mm) => (mm / MM_PER_INCH) * PX_PER_INCH
 
 export function BaseToken({ piece }) {
   const isOval = piece.shape === 'oval' && piece.widthMm && piece.heightMm
+  const isRect = piece.shape === 'rect' && piece.widthMm && piece.heightMm
   const radius = baseRadiusPx(piece.diameterMm)
-  const radiusX = isOval ? mmToPx(piece.widthMm) / 2 : radius
-  const radiusY = isOval ? mmToPx(piece.heightMm) / 2 : radius
+  const radiusX = isOval || isRect ? mmToPx(piece.widthMm) / 2 : radius
+  const radiusY = isOval || isRect ? mmToPx(piece.heightMm) / 2 : radius
   const fillColor = piece.color ?? DEFAULT_BASE_COLOR
   const auraPx = piece.auraIn ? piece.auraIn * PX_PER_INCH : 0
 
@@ -113,6 +114,19 @@ export function BaseToken({ piece }) {
               dash={[6, 4]}
               listening={false}
             />
+          ) : isRect ? (
+            <Rect
+              x={-(radiusX + auraPx)}
+              y={-(radiusY + auraPx)}
+              width={(radiusX + auraPx) * 2}
+              height={(radiusY + auraPx) * 2}
+              cornerRadius={auraPx}
+              fill="rgba(196, 61, 61, 0.10)"
+              stroke="rgba(255, 120, 120, 0.7)"
+              strokeWidth={1}
+              dash={[6, 4]}
+              listening={false}
+            />
           ) : (
             <Circle
               radius={radius + auraPx}
@@ -128,6 +142,16 @@ export function BaseToken({ piece }) {
           <Ellipse
             radiusX={radiusX}
             radiusY={radiusY}
+            fill={fillColor}
+            stroke={selected ? '#fbbf24' : '#1a1a1a'}
+            strokeWidth={1}
+          />
+        ) : isRect ? (
+          <Rect
+            x={-radiusX}
+            y={-radiusY}
+            width={radiusX * 2}
+            height={radiusY * 2}
             fill={fillColor}
             stroke={selected ? '#fbbf24' : '#1a1a1a'}
             strokeWidth={1}

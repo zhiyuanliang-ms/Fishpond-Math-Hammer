@@ -326,6 +326,24 @@ export const useBoardStore = create((set, get) => {
       })
     },
 
+    addRectBase: (widthMm, heightMm) => {
+      pushHistory()
+      set((s) => {
+        const piece = {
+          id: newId(),
+          kind: 'base',
+          x: centerX,
+          y: centerY,
+          rotation: 0,
+          diameterMm: Math.max(widthMm, heightMm),
+          shape: 'rect',
+          widthMm,
+          heightMm,
+        }
+        return { pieces: [...s.pieces, piece], selectedIds: [piece.id], selectedId: piece.id }
+      })
+    },
+
     addObjective: () => {
       pushHistory()
       set((s) => {
