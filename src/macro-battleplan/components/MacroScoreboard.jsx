@@ -1,36 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useBoardStore } from '../store/boardStore'
 
-const STORAGE_KEY = 'fishpond-mathhammer-macro-battleplan:scoreboard'
-const LEGACY_STORAGE_KEY = '40k-macro-battleplan:scoreboard'
 const ROUNDS = [1, 2, 3, 4, 5]
-
-const emptyRounds = () => ({ 1: '', 2: '', 3: '', 4: '', 5: '' })
-
-const initialState = () => ({
-  primaryName: '',
-  playerName: 'You',
-  opponentName: 'Opponent',
-  scores: { player: emptyRounds(), opponent: emptyRounds() },
-})
-
-function loadState() {
-  try {
-    let raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) raw = localStorage.getItem(LEGACY_STORAGE_KEY)
-    if (!raw) return initialState()
-    const parsed = JSON.parse(raw)
-    return {
-      ...initialState(),
-      ...parsed,
-      scores: {
-        player: { ...emptyRounds(), ...(parsed.scores?.player ?? {}) },
-        opponent: { ...emptyRounds(), ...(parsed.scores?.opponent ?? {}) },
-      },
-    }
-  } catch {
-    return initialState()
-  }
-}
 
 function clamp(n) {
   if (Number.isNaN(n)) return 0
@@ -40,15 +10,8 @@ function clamp(n) {
 }
 
 export function MacroScoreboard() {
-  const [state, setState] = useState(() => loadState())
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    } catch {
-      // ignore quota errors
-    }
-  }, [state])
+  const state = useBoardStore((s) => s.scoreboard)
+  const setScoreboard = useBoardStore((s) => s.setScoreboard)
 
   const total = (side) =>
     ROUNDS.reduce(
@@ -57,7 +20,7 @@ export function MacroScoreboard() {
     )
 
   const setScore = (side, round, raw) => {
-    setState((s) => {
+    setScoreboard((s) => {
       const next = {
         ...s,
         scores: {
@@ -99,7 +62,9 @@ export function MacroScoreboard() {
         type="text"
         placeholder="Primary Mission"
         value={state.primaryName}
-        onChange={(e) => setState((s) => ({ ...s, primaryName: e.target.value }))}
+        onChange={(e) =>
+          setScoreboard((s) => ({ ...s, primaryName: e.target.value }))
+        }
       />
 
       <table className="mbp-scoretable">
@@ -122,7 +87,7 @@ export function MacroScoreboard() {
                     type="text"
                     value={side === 'player' ? state.playerName : state.opponentName}
                     onChange={(e) =>
-                      setState((s) => ({
+                      setScoreboard((s) => ({
                         ...s,
                         [side === 'player' ? 'playerName' : 'opponentName']: e.target.value,
                       }))

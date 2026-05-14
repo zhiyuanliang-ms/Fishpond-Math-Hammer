@@ -32,6 +32,8 @@ const centerY = MAP_Y + MAP_H / 2
 const STORAGE_KEY = 'fishpond-mathhammer-macro-battleplan:boards'
 // Legacy key from the standalone app; imported once for continuity.
 const LEGACY_STORAGE_KEY = '40k-macro-battleplan:boards'
+const SCOREBOARD_STORAGE_KEY = 'fishpond-mathhammer-macro-battleplan:scoreboard'
+const LEGACY_SCOREBOARD_STORAGE_KEY = '40k-macro-battleplan:scoreboard'
 const BATTLEFIELD_KINDS = new Set(['terrain', 'objective'])
 const TERRAIN_PRESET_BY_ID = new Map(WTC_TERRAIN.map((preset) => [preset.id, preset]))
 
@@ -264,6 +266,66 @@ function writeSavedBoards(boards) {
   }
 }
 
+const SCOREBOARD_ROUNDS = [1, 2, 3, 4, 5]
+
+const emptyScoreboardRounds = () => ({ 1: '', 2: '', 3: '', 4: '', 5: '' })
+
+const initialScoreboard = () => ({
+  primaryName: '',
+  playerName: 'You',
+  opponentName: 'Opponent',
+  scores: { player: emptyScoreboardRounds(), opponent: emptyScoreboardRounds() },
+})
+
+function sanitizeScoreboardRounds(raw) {
+  const base = emptyScoreboardRounds()
+  if (!raw || typeof raw !== 'object') return base
+  for (const r of SCOREBOARD_ROUNDS) {
+    const v = raw[r]
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      base[r] = v
+    } else if (typeof v === 'string' && v !== '') {
+      const n = Number.parseInt(v, 10)
+      base[r] = Number.isFinite(n) ? n : ''
+    }
+  }
+  return base
+}
+
+function sanitizeScoreboard(raw) {
+  const def = initialScoreboard()
+  if (!raw || typeof raw !== 'object') return def
+  return {
+    primaryName: typeof raw.primaryName === 'string' ? raw.primaryName : def.primaryName,
+    playerName: typeof raw.playerName === 'string' ? raw.playerName : def.playerName,
+    opponentName:
+      typeof raw.opponentName === 'string' ? raw.opponentName : def.opponentName,
+    scores: {
+      player: sanitizeScoreboardRounds(raw.scores?.player),
+      opponent: sanitizeScoreboardRounds(raw.scores?.opponent),
+    },
+  }
+}
+
+function readScoreboard() {
+  try {
+    let raw = localStorage.getItem(SCOREBOARD_STORAGE_KEY)
+    if (!raw) raw = localStorage.getItem(LEGACY_SCOREBOARD_STORAGE_KEY)
+    if (!raw) return initialScoreboard()
+    return sanitizeScoreboard(JSON.parse(raw))
+  } catch {
+    return initialScoreboard()
+  }
+}
+
+function writeScoreboard(scoreboard) {
+  try {
+    localStorage.setItem(SCOREBOARD_STORAGE_KEY, JSON.stringify(scoreboard))
+  } catch {
+    // Ignore quota / serialization errors.
+  }
+}
+
 export const useBoardStore = create((set, get) => {
   const pushHistory = () => {
     const s = get()
@@ -289,6 +351,16 @@ export const useBoardStore = create((set, get) => {
     drawColor: DEFAULT_DRAW_COLOR,
     deploymentZone: DEFAULT_DEPLOYMENT_ZONE,
     history: [],
+    scoreboard: readScoreboard(),
+
+    setScoreboard: (updater) =>
+      set((s) => {
+        const next =
+          typeof updater === 'function' ? updater(s.scoreboard) : updater
+        const sanitized = sanitizeScoreboard(next)
+        writeScoreboard(sanitized)
+        return { scoreboard: sanitized }
+      }),
 
     setDeploymentZone: (id) => set({ deploymentZone: sanitizeDeploymentZone(id) }),
 
@@ -542,6 +614,7 @@ export const useBoardStore = create((set, get) => {
         pieces: get().pieces,
         drawings: get().drawings,
         deploymentZone: get().deploymentZone,
+        scoreboard: get().scoreboard,
       }
       const others = get().savedBoards.filter((b) => b.name !== trimmed)
       const next = [entry, ...others]
@@ -555,6 +628,8 @@ export const useBoardStore = create((set, get) => {
       pushHistory()
       const pieces = board.pieces.map((p) => ({ ...p, id: newId() }))
       const drawings = (board.drawings ?? []).map((d) => ({ ...d, id: newId() }))
+      const scoreboard = sanitizeScoreboard(board.scoreboard)
+      writeScoreboard(scoreboard)
       set({
         pieces,
         drawings,
@@ -562,6 +637,7 @@ export const useBoardStore = create((set, get) => {
         selectedId: null,
         terrainLocked: true,
         deploymentZone: sanitizeDeploymentZone(board.deploymentZone),
+        scoreboard,
       })
     },
 
@@ -575,12 +651,12 @@ export const useBoardStore = create((set, get) => {
       try {
         localStorage.removeItem(STORAGE_KEY)
         localStorage.removeItem(LEGACY_STORAGE_KEY)
-        localStorage.removeItem('fishpond-mathhammer-macro-battleplan:scoreboard')
-        localStorage.removeItem('40k-macro-battleplan:scoreboard')
+        localStorage.removeItem(SCOREBOARD_STORAGE_KEY)
+        localStorage.removeItem(LEGACY_SCOREBOARD_STORAGE_KEY)
       } catch {
         /* ignore */
       }
-      set({ savedBoards: [] })
+      set({ savedBoards: [], scoreboard: initialScoreboard() })
     },
 
     exportBoard: () => {
@@ -592,6 +668,7 @@ export const useBoardStore = create((set, get) => {
           pieces: s.pieces,
           drawings: s.drawings,
           deploymentZone: s.deploymentZone,
+          scoreboard: s.scoreboard,
         },
         null,
         2,
@@ -620,6 +697,8 @@ export const useBoardStore = create((set, get) => {
       const drawings = (Array.isArray(data.drawings) ? data.drawings : [])
         .filter((d) => d && Array.isArray(d.points))
         .map((d) => ({ ...d, id: newId() }))
+      const scoreboard = sanitizeScoreboard(data.scoreboard)
+      writeScoreboard(scoreboard)
       pushHistory()
       set({
         pieces,
@@ -628,6 +707,7 @@ export const useBoardStore = create((set, get) => {
         selectedId: null,
         terrainLocked: true,
         deploymentZone: sanitizeDeploymentZone(data.deploymentZone),
+        scoreboard,
       })
       return true
     },
