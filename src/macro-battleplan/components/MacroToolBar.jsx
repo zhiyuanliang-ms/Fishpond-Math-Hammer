@@ -165,7 +165,13 @@ export function MacroToolBar() {
           <button
             key={id}
             type="button"
-            onClick={() => setActiveTool(id)}
+            onClick={(e) => {
+              setActiveTool(id)
+              // Drop focus so a later hotkey switch doesn't leave a stale
+              // focus outline on the previously-clicked tool, which would
+              // make two buttons look selected at once.
+              e.currentTarget.blur()
+            }}
             title={title}
             aria-label={title}
             aria-pressed={active}
