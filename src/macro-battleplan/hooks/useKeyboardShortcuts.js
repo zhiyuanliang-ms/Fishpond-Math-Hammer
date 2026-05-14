@@ -3,8 +3,8 @@ import { useBoardStore } from '../store/boardStore'
 
 /**
  * Global keyboard shortcuts:
- *  Esc                 cursor mode
- *  R / D / S / X       ruler / draw / line / eraser
+ *  Esc / A             cursor mode
+ *  F / D / S / X       ruler / draw / line / eraser
  *  Q / E               rotate selection ±1°
  *  Arrow keys          nudge selection by 1 px
  *  Delete / Backspace  remove selected piece
@@ -49,9 +49,9 @@ export function useKeyboardShortcuts() {
         return
       }
 
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.key === 'a' || e.key === 'A') {
         setActiveTool('cursor')
-      } else if (e.key === 'r' || e.key === 'R') {
+      } else if (e.key === 'f' || e.key === 'F') {
         setActiveTool('ruler')
       } else if (e.key === 'd' || e.key === 'D') {
         setActiveTool('draw')

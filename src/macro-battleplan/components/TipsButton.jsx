@@ -14,7 +14,7 @@ export function TipsButton() {
         <div className="mbp-tips__title">Hotkeys</div>
         <ul className="mbp-tips__list">
           <li>
-            <span className="mbp-kbd">Esc</span> cursor
+            <span className="mbp-kbd">Esc</span> / <span className="mbp-kbd">A</span> cursor
           </li>
           <li>
             <span className="mbp-kbd">Del</span> delete

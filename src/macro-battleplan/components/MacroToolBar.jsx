@@ -14,8 +14,8 @@ import { useBoardStore } from '../store/boardStore'
 import { DRAW_COLOR_PALETTE } from '../config/board'
 
 const TOOLS = [
-  { id: 'cursor', icon: MousePointer2, title: 'Cursor (Esc)' },
-  { id: 'ruler', icon: Ruler, title: 'Ruler (R)' },
+  { id: 'cursor', icon: MousePointer2, title: 'Cursor (Esc / A)' },
+  { id: 'ruler', icon: Ruler, title: 'Ruler (F)' },
   { id: 'draw', icon: Pencil, title: 'Draw (D)' },
   { id: 'line', icon: Slash, title: 'Line (S)' },
   { id: 'eraser', icon: Eraser, title: 'Eraser (X)' },
