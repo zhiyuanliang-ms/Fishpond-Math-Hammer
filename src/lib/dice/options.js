@@ -61,6 +61,23 @@ export const saveRerollOptions = [
   { value: 'reroll-one', label: 'Reroll One' }
 ]
 
+// Reroll options for random Attacks / Damage dice. Only the "reroll 1-3s"
+// threshold is exposed because it is the only one that yields a positive
+// expected-value gain on a fair d6 (rerolling 1s or 1-2s is neutral or
+// negative on average).
+export const randomRerollOptions = [
+  { value: 'no-reroll', label: 'No Reroll' },
+  { value: 'reroll-1-2-3', label: 'Reroll ≤3' }
+]
+
+// Scope toggle shared by every reroll select in the Attack Simulator.
+// 'all'    → every qualifying die in the rolling event gets one reroll
+// 'single' → only one qualifying die (the lowest) is rerolled
+export const rerollScopeOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'single', label: 'One' }
+]
+
 // SUSTAINED HITS values shared by the Attack Simulator and the Wound Success
 // Calculator. Single-digit fixed integers generate that many extra hits per
 // crit; D3 and D6 roll that die each crit.

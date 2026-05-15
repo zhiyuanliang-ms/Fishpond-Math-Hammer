@@ -20,8 +20,8 @@
 // lost). We model this by buffering DW damage rolls during the per-weapon
 // loop and draining them once all weapons in `weapons[]` have resolved.
 
-import { DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES } from './constants'
-import { parseDiceExpression, rollDiceExpr } from './diceExpression'
+import { DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES, REROLL_SCOPE, randomRerollThreshold } from './constants'
+import { parseDiceExpression, rollDiceExpr, rollDiceExprWithReroll } from './diceExpression'
 
 // ---- helpers ---------------------------------------------------------------
 
@@ -42,7 +42,7 @@ const woundThresholdFromST = (S, T) => {
 //   critThreshold: natural value at/above which the roll counts as a critical
 //                  success (default 6). Critical successes always succeed
 //                  (per 10e rules). Natural 1 always fails.
-const rollD6WithReroll = (threshold, rerollMode, critThreshold = 6) => {
+const rollD6WithReroll = (threshold, rerollMode, critThreshold = 6, budget = null) => {
   const doRoll = () => Math.floor(Math.random() * 6) + 1
 
   const evaluate = (nat) => {
@@ -64,13 +64,19 @@ const rollD6WithReroll = (threshold, rerollMode, critThreshold = 6) => {
     return false
   })()
 
-  if (shouldReroll) {
+  if (shouldReroll && (!budget || budget.remaining > 0)) {
+    if (budget) budget.remaining -= 1
     nat = doRoll()
     ;({ success, isCrit } = evaluate(nat))
   }
 
   return { success, isCrit, natural: nat }
 }
+
+// Make a fresh reroll-budget for one rolling event. `single` scope gets exactly
+// one reroll; everything else (including missing/legacy values) is unlimited.
+const makeRerollBudget = (scope) =>
+  scope === REROLL_SCOPE.SINGLE ? { remaining: 1 } : { remaining: Infinity }
 
 // FNP roll: returns true if the wound is ignored.
 const fnpRoll = (fnpThreshold) => {
@@ -138,6 +144,29 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
   if (!attacksParsed || !damageParsed) return 0
   let damageDealt = 0
 
+  // Reroll budgets — one per rolling event for this weapon firing. With
+  // `scope === 'single'` the budget caps total rerolls at 1 across all of
+  // this weapon's attacks; otherwise it is effectively unlimited.
+  const hitBudget = makeRerollBudget(weapon.hitRerollScope)
+  const woundBudget = makeRerollBudget(weapon.woundRerollScope)
+  // Save reroll budgets are per defending profile, but only for the duration
+  // of this weapon's firing — so different weapons get fresh budgets and the
+  // 'single' scope is correctly per-weapon-volley.
+  const saveBudgets = new Map()
+  const getSaveBudget = (profileIdx, profile) => {
+    let b = saveBudgets.get(profileIdx)
+    if (!b) {
+      b = makeRerollBudget(profile.saveRerollScope)
+      saveBudgets.set(profileIdx, b)
+    }
+    return b
+  }
+  // Random-value rerolls (Attacks / Damage)
+  const attackRerollT = randomRerollThreshold(weapon.attackReroll)
+  const damageRerollT = randomRerollThreshold(weapon.damageReroll)
+  const attackScope = weapon.attackRerollScope === REROLL_SCOPE.SINGLE ? REROLL_SCOPE.SINGLE : REROLL_SCOPE.ALL
+  const damageScope = weapon.damageRerollScope === REROLL_SCOPE.SINGLE ? REROLL_SCOPE.SINGLE : REROLL_SCOPE.ALL
+
   // Blast: "every five models that were in the target unit when you selected
   // it as the target". The shooting unit selects all of its targets BEFORE
   // any of its weapons resolve, so use the unit's size from the start of
@@ -147,10 +176,50 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
   // Each weapon instance rolls its attack dice independently (so D3+1 with
   // weaponCount 2 gives two separate rolls), and Blast adds its bonus to
   // every roll.
+  //
+  // Random-Attacks reroll: with `single` scope, only ONE attack-die in this
+  // entire pool may be rerolled — pick the lowest qualifying roll across all
+  // weapon instances and reroll it. With `all` scope, every die that came up
+  // <= threshold is rerolled once.
   const weaponCount = Math.max(1, weapon.modelsFiring || 1)
   let totalAttacks = 0
-  for (let i = 0; i < weaponCount; i++) {
-    totalAttacks += Math.max(0, rollDiceExpr(attacksParsed) + blastBonus)
+  if (attackRerollT > 0 && attacksParsed.count > 0 && attackScope === REROLL_SCOPE.SINGLE) {
+    // Roll all instances first, find the single lowest qualifying die, reroll it.
+    const allRolls = []
+    for (let i = 0; i < weaponCount; i++) {
+      const rolls = []
+      for (let j = 0; j < attacksParsed.count; j++) {
+        rolls.push(Math.floor(Math.random() * attacksParsed.sides) + 1)
+      }
+      allRolls.push(rolls)
+    }
+    let bestI = -1
+    let bestJ = -1
+    let bestVal = Infinity
+    for (let i = 0; i < allRolls.length; i++) {
+      for (let j = 0; j < allRolls[i].length; j++) {
+        const v = allRolls[i][j]
+        if (v <= attackRerollT && v < bestVal) {
+          bestVal = v
+          bestI = i
+          bestJ = j
+        }
+      }
+    }
+    if (bestI >= 0) {
+      allRolls[bestI][bestJ] = Math.floor(Math.random() * attacksParsed.sides) + 1
+    }
+    for (let i = 0; i < allRolls.length; i++) {
+      const sum = allRolls[i].reduce((s, x) => s + x, attacksParsed.flat)
+      totalAttacks += Math.max(0, sum + blastBonus)
+    }
+  } else {
+    for (let i = 0; i < weaponCount; i++) {
+      const rolled = attackRerollT > 0
+        ? rollDiceExprWithReroll(attacksParsed, attackRerollT, attackScope)
+        : rollDiceExpr(attacksParsed)
+      totalAttacks += Math.max(0, rolled + blastBonus)
+    }
   }
 
   for (let a = 0; a < totalAttacks; a++) {
@@ -170,7 +239,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       if (hitMod < -1) hitMod = -1
       const hitThr = clampThreshold(weapon.toHit + hitMod)
       const critHitThr = weapon.critHitEnabled && weapon.critHit ? weapon.critHit : 6
-      const hr = rollD6WithReroll(hitThr, weapon.hitReroll, critHitThr)
+      const hr = rollD6WithReroll(hitThr, weapon.hitReroll, critHitThr, hitBudget)
       if (!hr.success) continue
       hitIsCrit = hr.isCrit
     }
@@ -214,7 +283,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
           baseThr = Math.min(baseThr, weapon.antiValue)
         }
         const woundThr = clampThreshold(baseThr + mod)
-        const wr = rollD6WithReroll(woundThr, weapon.woundReroll, clampThreshold(critWoundThr))
+        const wr = rollD6WithReroll(woundThr, weapon.woundReroll, clampThreshold(critWoundThr), woundBudget)
         if (!wr.success) continue
         woundIsCrit = wr.isCrit
       }
@@ -225,7 +294,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       // roll the damage now and queue it; allocation happens after the weapon
       // loop in `simulateAttack`.
       if (woundIsCrit && weapon.devastatingWounds) {
-        deferredDevWounds.push(rollDiceExpr(damageParsed))
+        deferredDevWounds.push(rollDiceExprWithReroll(damageParsed, damageRerollT, damageScope))
         continue
       }
 
@@ -244,12 +313,16 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       const invuln = (t.invulnSave && t.invulnSave >= 2 && t.invulnSave <= 6) ? t.invulnSave : 7
       const effSave = Math.min(armorMod, invuln)
       if (effSave <= 6) {
-        const sr = rollD6WithReroll(effSave, t.saveReroll, 7) // crit doesn't apply to saves
+        const saveBudget = getSaveBudget(unitState.activeProfile, t)
+        const sr = rollD6WithReroll(effSave, t.saveReroll, 7, saveBudget) // crit doesn't apply to saves
         if (sr.success) continue
       }
 
       // 4. Damage
-      const dmg = modifyDamage(rollDiceExpr(damageParsed), t.halfDamage, t.minusOneDamage, t.damageOne)
+      const rawDmg = damageRerollT > 0
+        ? rollDiceExprWithReroll(damageParsed, damageRerollT, damageScope)
+        : rollDiceExpr(damageParsed)
+      const dmg = modifyDamage(rawDmg, t.halfDamage, t.minusOneDamage, t.damageOne)
       damageDealt += applyDamageToUnit(unitState, dmg, false)
     }
   }

@@ -64,6 +64,8 @@ const translations = {
     damage: 'Damage',
     hitReroll: 'Hit Reroll',
     woundReroll: 'Wound Reroll',
+    attackReroll: 'Attacks Reroll',
+    damageReroll: 'Damage Reroll',
 
     // Weapon buff chips
     lethalHits: 'LETHAL HITS',
@@ -101,6 +103,14 @@ const translations = {
     rerollFails: 'Reroll Fails',
     rerollNonCritical: 'Reroll Non-Critical',
     rerollOne: 'Reroll One',
+
+    // Random-value reroll labels (Attacks / Damage)
+    rerollLow123: 'Reroll ≤3',
+
+    // Reroll scope toggle
+    rerollScopeAll: 'All',
+    rerollScopeSingle: 'One',
+    rerollScopeTooltip: 'All dice: every qualifying die gets one reroll. One die: only a single die may be rerolled.',
 
     // Torrent
     torrent: 'Torrent',
@@ -165,6 +175,8 @@ const translations = {
     damage: '伤害',
     hitReroll: '命中重投',
     woundReroll: '造伤重投',
+    attackReroll: '攻击次数重投',
+    damageReroll: '伤害重投',
 
     // Weapon buff chips
     lethalHits: '致命一击',
@@ -202,6 +214,14 @@ const translations = {
     rerollFails: '重投失败',
     rerollNonCritical: '重投非暴击',
     rerollOne: '重投一',
+
+    // Random-value reroll labels (Attacks / Damage)
+    rerollLow123: '重投 ≤3',
+
+    // Reroll scope toggle
+    rerollScopeAll: '全部',
+    rerollScopeSingle: '一颗',
+    rerollScopeTooltip: '全部：每个符合条件的骰子重投一次。一颗：仅一颗骰子可以重投。',
 
     // Torrent
     torrent: '洪流',

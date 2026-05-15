@@ -560,3 +560,161 @@ describe('simulateAttack — Devastating Wounds (10e RAW)', () => {
     expect(r.expectedKills).toBeLessThan(73)
   })
 })
+
+// ---- Reroll guarantees ----------------------------------------------------
+//
+// These tests lock in the contract that "reroll" rules only ever reroll dice
+// that actually qualify. A successful hit/wound must NEVER be rerolled by
+// `reroll-fail`, a critical hit/wound must NEVER be rerolled by ANY mode,
+// and a random Attacks/Damage roll must only be rerolled when it came up
+// at or below the threshold.
+
+describe('simulateAttack — reroll never fires when not needed', () => {
+  it('reroll-fail never rerolls a successful hit (closed-form match)', () => {
+    // BS 2+ means hits succeed on 2-6 (5/6). Native fail rate = 1/6 (nat 1).
+    // With reroll-fail, the success rate becomes 5/6 + 1/6 * 5/6 = 35/36.
+    // If the implementation also rerolled successes the rate would change
+    // (e.g. dropping back toward 5/6 because second rolls would average lower
+    // than the surviving original successes).
+    // Pipeline: 36 attacks * 35/36 hit * auto-wound (S15 vs T1) * 5/6 wound
+    //   (clamp floor) * sv7+ * 1 dmg = 36 * 35/36 * 5/6 ≈ 29.17
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '36',
+        toHit: 2,
+        hitReroll: 'reroll-fail',
+        strength: 15
+      })],
+      [baseTarget({ models: 100, toughness: 1, save: 7 })],
+      5000
+    )
+    expect(r.expectedDamage).toBeGreaterThan(28)
+    expect(r.expectedDamage).toBeLessThan(30.5)
+  })
+
+  it('reroll-non-critical does NOT reroll critical hits', () => {
+    // Set crit hit to 5+ (Lethal-style). With reroll-non-critical, every non-
+    // crit roll (success OR fail) is rerolled, but crits are NEVER rerolled.
+    // BS 3+, crit on 5+:
+    //   crit faces        = {5,6} → 2/6
+    //   non-crit success  = {3,4} → 2/6 (rerolled away!)
+    //   fail              = {1,2} → 2/6
+    // After the reroll-pool of 4/6 attempts (everything non-crit) is rolled
+    // again with the same distribution:
+    //   final crit       = 2/6 + 4/6 * 2/6 = 20/36
+    //   final non-crit hit = 4/6 * 2/6 = 8/36
+    //   final fail       = 4/6 * 2/6 = 8/36
+    // Lethal Hits ON: crits auto-wound. Non-crit hits still roll wound (S4
+    // vs T4 = 4+, i.e. 3/6). Damage 1, sv 7+.
+    //   per-attack E[dmg] = 20/36 * 1 + 8/36 * 3/6 = 24/36 ≈ 0.667
+    //   100 attacks      ≈ 66.7
+    // If crits were ALSO rerolled, crit rate would drop and Lethal damage
+    // would crater — the 60+ floor proves crits were preserved.
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '100',
+        toHit: 3,
+        hitReroll: 'reroll-non-critical',
+        critHitEnabled: true,
+        critHit: 5,
+        lethalHits: true,
+        strength: 4 // wound roll skipped on crits via Lethal Hits
+      })],
+      [baseTarget({ models: 200, toughness: 4, save: 7 })],
+      5000
+    )
+    expect(r.expectedDamage).toBeGreaterThan(63)
+    expect(r.expectedDamage).toBeLessThan(70)
+  })
+
+  it('damage reroll is harmless when damage is a flat value', () => {
+    // Flat damage "1" has no die to reroll — the reroll setting must be a
+    // no-op regardless of threshold/scope.
+    const baseline = simulateAttack(
+      [baseWeapon({ attacks: '100', torrent: true, strength: 15, damage: '1' })],
+      [baseTarget({ models: 200, toughness: 1, save: 7 })],
+      5000
+    )
+    const withReroll = simulateAttack(
+      [baseWeapon({
+        attacks: '100',
+        torrent: true,
+        strength: 15,
+        damage: '1',
+        damageReroll: 'reroll-1-2-3',
+        damageRerollScope: 'all'
+      })],
+      [baseTarget({ models: 200, toughness: 1, save: 7 })],
+      5000
+    )
+    // Both should converge to the same expectation (5/6 wounds, 1 dmg each).
+    expect(Math.abs(withReroll.expectedDamage - baseline.expectedDamage)).toBeLessThan(2)
+  })
+
+  it('damage reroll ≤3 strictly improves expected damage on a D6 weapon', () => {
+    // D6 mean = 3.5. Rerolling all 1-3s lifts the mean to roughly:
+    //   3/6 * 3.5 (kept high faces 4-6 average = 5)... actually:
+    //   E = (4+5+6)/6 + (3/6)*3.5 = 15/6 + 1.75 = 2.5 + 1.75 = 4.25
+    // For "all" scope on a single D6, ≈4.25 vs 3.5 baseline.
+    // Auto-hit, S15 vs T1, sv7+, 50 attacks, D6 damage.
+    const baseline = simulateAttack(
+      [baseWeapon({ attacks: '50', torrent: true, strength: 15, damage: 'D6' })],
+      [baseTarget({ models: 500, toughness: 1, save: 7, wounds: 100 })],
+      5000
+    )
+    const buffed = simulateAttack(
+      [baseWeapon({
+        attacks: '50',
+        torrent: true,
+        strength: 15,
+        damage: 'D6',
+        damageReroll: 'reroll-1-2-3',
+        damageRerollScope: 'all'
+      })],
+      [baseTarget({ models: 500, toughness: 1, save: 7, wounds: 100 })],
+      5000
+    )
+    // baseline ≈ 50 * 5/6 * 3.5 ≈ 145.8
+    // buffed   ≈ 50 * 5/6 * 4.25 ≈ 177.1
+    expect(buffed.expectedDamage).toBeGreaterThan(baseline.expectedDamage + 15)
+  })
+
+  it('attack reroll with single scope rerolls at most one die per weapon', () => {
+    // Compare single vs all on a 5x D6 attack pool. Single can only swap one
+    // die per shooting; all swaps every qualifying die. So `all` mean MUST
+    // exceed `single` mean meaningfully.
+    // Each weapon firing (modelsFiring=1, attacks=2D6) per resolveWeapon call
+    // gets ONE reroll under single scope across the whole pool.
+    const single = simulateAttack(
+      [baseWeapon({
+        attacks: '5D6',
+        torrent: true,
+        strength: 15,
+        damage: '1',
+        attackReroll: 'reroll-1-2-3',
+        attackRerollScope: 'single'
+      })],
+      [baseTarget({ models: 1000, toughness: 1, save: 7 })],
+      4000
+    )
+    const all = simulateAttack(
+      [baseWeapon({
+        attacks: '5D6',
+        torrent: true,
+        strength: 15,
+        damage: '1',
+        attackReroll: 'reroll-1-2-3',
+        attackRerollScope: 'all'
+      })],
+      [baseTarget({ models: 1000, toughness: 1, save: 7 })],
+      4000
+    )
+    // Single-scope buff is small (only ONE die rerolled per pool); all-scope
+    // buff is large (each qualifying die rerolled). The all-scope mean must
+    // strictly exceed single by a meaningful margin.
+    expect(all.expectedDamage).toBeGreaterThan(single.expectedDamage + 1)
+  })
+})
+
+
+

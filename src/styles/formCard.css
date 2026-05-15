@@ -120,6 +120,59 @@
   letter-spacing: 0.4px;
 }
 
+/* Inner row: select + scope toggle stacked / wrapped together. */
+.reroll-cell-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reroll-cell-controls > div[class*="-container"] {
+  flex: 1 1 140px;
+  min-width: 140px;
+}
+
+/* Pill-style segmented toggle: All / One. Sized to be compact on desktop
+   so it can sit next to the select; on narrow viewports the parent flex
+   wraps it onto its own line, keeping mobile layout intact. */
+.reroll-scope-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid #4a4a4a;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #2a2a2a;
+  flex: 0 0 auto;
+}
+
+.reroll-scope-option {
+  background: transparent;
+  border: none;
+  color: #b0b0b0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: color 0.15s, background 0.15s;
+}
+
+.reroll-scope-option + .reroll-scope-option {
+  border-left: 1px solid #4a4a4a;
+}
+
+.reroll-scope-option:hover {
+  color: #fbbf24;
+}
+
+.reroll-scope-option.selected {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.10));
+  color: #fbbf24;
+}
+
 /* ---- buff chips ---- */
 
 .buff-row {

@@ -2,11 +2,13 @@ import { FormSelect, BuffChipGroup } from '../ui'
 import {
   toHitOptions,
   rerollOptions,
+  randomRerollOptions,
+  rerollScopeOptions,
   antiOptions,
   critOptions,
   sustainedOptions
 } from '../../lib/dice/options'
-import { isValidDiceExpression } from '../../lib/dice'
+import { isValidDiceExpression, parseDiceExpression } from '../../lib/dice'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
 import { useT } from './lang'
@@ -22,6 +24,18 @@ const rerollLangKeys = {
   'reroll-one': 'rerollOnes',
   'reroll-fail': 'rerollFails',
   'reroll-non-critical': 'rerollNonCritical',
+}
+
+// Map random-reroll values (Attacks/Damage) to lang keys
+const randomRerollLangKeys = {
+  'no-reroll': 'noReroll',
+  'reroll-1-2-3': 'rerollLow123',
+}
+
+// Lang keys for the scope toggle
+const scopeLangKeys = {
+  all: 'rerollScopeAll',
+  single: 'rerollScopeSingle',
 }
 
 // Editor for a single weapon profile. Shows the basic stat line on top,
@@ -41,6 +55,13 @@ function WeaponProfileCard({
 
   const attacksValid = isValidDiceExpression(profile.attacks)
   const damageValid = isValidDiceExpression(profile.damage)
+
+  // Random-value reroll cells are meaningful only when the expression has
+  // at least one die to reroll — a flat "4" or "1" can never qualify.
+  const attacksParsed = attacksValid ? parseDiceExpression(profile.attacks) : null
+  const damageParsed = damageValid ? parseDiceExpression(profile.damage) : null
+  const showAttackReroll = !!(attacksParsed && attacksParsed.count > 0)
+  const showDamageReroll = !!(damageParsed && damageParsed.count > 0)
 
 
   const buffs = [
@@ -134,6 +155,59 @@ function WeaponProfileCard({
     label: t(rerollLangKeys[o.value] ?? o.value)
   }))
 
+  const localizedRandomRerollOptions = randomRerollOptions.map((o) => ({
+    ...o,
+    label: t(randomRerollLangKeys[o.value] ?? o.value)
+  }))
+
+  const localizedScopeOptions = rerollScopeOptions.map((o) => ({
+    ...o,
+    label: t(scopeLangKeys[o.value] ?? o.value)
+  }))
+
+  // Single-row reroll cell: a labeled select plus an All-Dice / One-Die scope
+  // toggle that is hidden (not just disabled) when the cell is set to
+  // "no reroll" — there's nothing to scope when no rerolls happen.
+  const renderRerollCell = (label, value, scope, options, onValueChange, onScopeChange) => {
+    const active = value && value !== 'no-reroll'
+    return (
+      <div className="reroll-cell">
+        <label>{label}</label>
+        <div className="reroll-cell-controls">
+          <FormSelect
+            options={options}
+            value={options.find((o) => o.value === value) || options[0]}
+            onChange={(opt) => onValueChange(opt.value)}
+          />
+          {active && (
+            <div
+              className="reroll-scope-toggle"
+              role="radiogroup"
+              aria-label={label}
+              title={t('rerollScopeTooltip')}
+            >
+              {localizedScopeOptions.map((opt) => {
+                const selected = (scope || 'all') === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className={`reroll-scope-option${selected ? ' selected' : ''}`}
+                    onClick={() => onScopeChange(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ProfileCardShell
       name={profile.name}
@@ -181,7 +255,10 @@ function WeaponProfileCard({
             }
             onChange={(opt) => {
               if (opt.value === 'torrent') {
-                update({ torrent: true })
+                // Torrent auto-hits, so any hit reroll setting is dead weight.
+                // Reset it so the (now-hidden) cell can't keep a stale value
+                // that would re-appear when Torrent is turned off.
+                update({ torrent: true, hitReroll: 'no-reroll', hitRerollScope: 'all' })
               } else {
                 update({ torrent: false, toHit: parseInt(opt.value, 10) })
               }
@@ -220,23 +297,38 @@ function WeaponProfileCard({
       </div>
 
       <div className="reroll-row">
-        <div className="reroll-cell">
-          <label>{t('hitReroll')}</label>
-          <FormSelect
-            options={localizedRerollOptions}
-            value={localizedRerollOptions.find((o) => o.value === profile.hitReroll) || localizedRerollOptions[0]}
-            onChange={(opt) => update({ hitReroll: opt.value })}
-            isDisabled={profile.torrent}
-          />
-        </div>
-        <div className="reroll-cell">
-          <label>{t('woundReroll')}</label>
-          <FormSelect
-            options={localizedRerollOptions}
-            value={localizedRerollOptions.find((o) => o.value === profile.woundReroll) || localizedRerollOptions[0]}
-            onChange={(opt) => update({ woundReroll: opt.value })}
-          />
-        </div>
+        {!profile.torrent && renderRerollCell(
+          t('hitReroll'),
+          profile.hitReroll,
+          profile.hitRerollScope,
+          localizedRerollOptions,
+          (v) => update({ hitReroll: v }),
+          (v) => update({ hitRerollScope: v })
+        )}
+        {renderRerollCell(
+          t('woundReroll'),
+          profile.woundReroll,
+          profile.woundRerollScope,
+          localizedRerollOptions,
+          (v) => update({ woundReroll: v }),
+          (v) => update({ woundRerollScope: v })
+        )}
+        {showAttackReroll && renderRerollCell(
+          t('attackReroll'),
+          profile.attackReroll,
+          profile.attackRerollScope,
+          localizedRandomRerollOptions,
+          (v) => update({ attackReroll: v }),
+          (v) => update({ attackRerollScope: v })
+        )}
+        {showDamageReroll && renderRerollCell(
+          t('damageReroll'),
+          profile.damageReroll,
+          profile.damageRerollScope,
+          localizedRandomRerollOptions,
+          (v) => update({ damageReroll: v }),
+          (v) => update({ damageRerollScope: v })
+        )}
       </div>
 
       <div className="buff-row">

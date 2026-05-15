@@ -44,6 +44,48 @@ export function rollDiceExpr(parsed) {
   return total
 }
 
+// Roll a parsed dice expression with an optional "reroll low values" rule.
+//
+//   threshold: highest face that triggers a reroll (1, 2, 3). 0 disables.
+//   scope:     'all'    → every die that came up <= threshold is rerolled once
+//              'single' → only ONE die (the lowest qualifying) is rerolled once
+//
+// Flat numeric expressions (e.g. "4") have no dice to reroll, so the result
+// is the same as `rollDiceExpr`.
+export function rollDiceExprWithReroll(parsed, threshold = 0, scope = 'all') {
+  if (!parsed) return 0
+  if (parsed.count <= 0 || threshold <= 0) return rollDiceExpr(parsed)
+
+  const rolls = []
+  for (let i = 0; i < parsed.count; i++) {
+    rolls.push(Math.floor(Math.random() * parsed.sides) + 1)
+  }
+
+  if (scope === 'single') {
+    let idx = -1
+    let min = Infinity
+    for (let i = 0; i < rolls.length; i++) {
+      if (rolls[i] <= threshold && rolls[i] < min) {
+        min = rolls[i]
+        idx = i
+      }
+    }
+    if (idx >= 0) {
+      rolls[idx] = Math.floor(Math.random() * parsed.sides) + 1
+    }
+  } else {
+    for (let i = 0; i < rolls.length; i++) {
+      if (rolls[i] <= threshold) {
+        rolls[i] = Math.floor(Math.random() * parsed.sides) + 1
+      }
+    }
+  }
+
+  let total = parsed.flat
+  for (const r of rolls) total += r
+  return total
+}
+
 export function expectedDiceExpr(parsed) {
   if (!parsed) return 0
   return parsed.flat + parsed.count * (parsed.sides + 1) / 2

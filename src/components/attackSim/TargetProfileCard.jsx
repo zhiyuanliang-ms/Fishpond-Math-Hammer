@@ -2,7 +2,8 @@ import { FormSelect, BuffChipGroup } from '../ui'
 import {
   saveOptions,
   fnpOptions,
-  saveRerollOptions
+  saveRerollOptions,
+  rerollScopeOptions
 } from '../../lib/dice/options'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
@@ -21,6 +22,11 @@ const invulnOptions = [
 const saveRerollLangKeys = {
   'no-reroll': 'noReroll',
   'reroll-one': 'rerollOne',
+}
+
+const scopeLangKeys = {
+  all: 'rerollScopeAll',
+  single: 'rerollScopeSingle',
 }
 
 // Editor for a single defending unit "model profile" (a unit can contain
@@ -133,6 +139,13 @@ function TargetProfileCard({
     label: t(saveRerollLangKeys[o.value] ?? o.value)
   }))
 
+  const localizedScopeOptions = rerollScopeOptions.map((o) => ({
+    ...o,
+    label: t(scopeLangKeys[o.value] ?? o.value)
+  }))
+
+  const saveRerollActive = profile.saveReroll && profile.saveReroll !== 'no-reroll'
+
   return (
     <ProfileCardShell
       name={profile.name}
@@ -201,11 +214,37 @@ function TargetProfileCard({
       <div className="reroll-row">
         <div className="reroll-cell">
           <label>{t('saveReroll')}</label>
-          <FormSelect
-            options={localizedSaveRerollOptions}
-            value={localizedSaveRerollOptions.find((o) => o.value === profile.saveReroll) || localizedSaveRerollOptions[0]}
-            onChange={(opt) => update({ saveReroll: opt.value })}
-          />
+          <div className="reroll-cell-controls">
+            <FormSelect
+              options={localizedSaveRerollOptions}
+              value={localizedSaveRerollOptions.find((o) => o.value === profile.saveReroll) || localizedSaveRerollOptions[0]}
+              onChange={(opt) => update({ saveReroll: opt.value })}
+            />
+            {saveRerollActive && (
+              <div
+                className="reroll-scope-toggle"
+                role="radiogroup"
+                aria-label={t('saveReroll')}
+                title={t('rerollScopeTooltip')}
+              >
+                {localizedScopeOptions.map((opt) => {
+                  const selected = (profile.saveRerollScope || 'all') === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      className={`reroll-scope-option${selected ? ' selected' : ''}`}
+                      onClick={() => update({ saveRerollScope: opt.value })}
+                    >
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
