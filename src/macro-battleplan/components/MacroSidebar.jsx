@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
 import { MacroScoreboard } from './MacroScoreboard'
+import { TipsBanner } from './TipsBanner'
 import {
   BASE_SIZES_MM,
   WTC_TERRAIN,
@@ -789,6 +790,7 @@ export function MacroSidebar({ onClose }) {
         </div>
       )}
       <div className="mbp-tools__scroll">
+        <TipsBanner />
         <MacroScoreboard />
         <BasesSection addBase={addBase} addOvalBase={addOvalBase} addRectBase={addRectBase} />
         <SelectionSection />
