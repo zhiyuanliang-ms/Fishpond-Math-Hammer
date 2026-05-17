@@ -58,7 +58,8 @@ export const critOptions = [
 
 export const saveRerollOptions = [
   { value: 'no-reroll', label: 'No Reroll' },
-  { value: 'reroll-one', label: 'Reroll One' }
+  { value: 'reroll-one', label: 'Reroll One' },
+  { value: 'reroll-fail', label: 'Reroll Fails' }
 ]
 
 // Reroll options for random Attacks / Damage dice. Only the "reroll 1-3s"

@@ -1,9 +1,7 @@
 import { FormSelect, BuffChipGroup } from '../ui'
 import {
   saveOptions,
-  fnpOptions,
-  saveRerollOptions,
-  rerollScopeOptions
+  fnpOptions
 } from '../../lib/dice/options'
 import IntInput from './IntInput'
 import ProfileCardShell from './ProfileCardShell'
@@ -17,17 +15,6 @@ const invulnOptions = [
   { value: '5', label: '5+' },
   { value: '6', label: '6+' }
 ]
-
-// Map save reroll option values to lang keys
-const saveRerollLangKeys = {
-  'no-reroll': 'noReroll',
-  'reroll-one': 'rerollOne',
-}
-
-const scopeLangKeys = {
-  all: 'rerollScopeAll',
-  single: 'rerollScopeSingle',
-}
 
 // Editor for a single defending unit "model profile" (a unit can contain
 // several different model types — e.g. squad members + a leader).
@@ -62,6 +49,16 @@ function TargetProfileCard({
       value: (profile.fnpMortal || 5).toString(),
       valueOptions: fnpOptions,
       onValueChange: (v) => update({ fnpMortal: parseInt(v, 10) })
+    },
+    // Save Reroll 1s — aura/banner style ability that rerolls every natural
+    // 1 on the save die. Lives next to FNP because it is a permanent
+    // defensive trait (unlike a CP-style "reroll one fail" which is a
+    // limited-use stratagem we model separately).
+    {
+      key: 'rerollSaveOnes',
+      label: t('rerollSaveOnes'),
+      active: !!profile.rerollSaveOnes,
+      onToggle: () => update({ rerollSaveOnes: !profile.rerollSaveOnes })
     },
     {
       key: 'minusOneToHit',
@@ -134,18 +131,6 @@ function TargetProfileCard({
 
   const findOpt = (opts, v) => opts.find((o) => o.value === v.toString()) || opts[0]
 
-  const localizedSaveRerollOptions = saveRerollOptions.map((o) => ({
-    ...o,
-    label: t(saveRerollLangKeys[o.value] ?? o.value)
-  }))
-
-  const localizedScopeOptions = rerollScopeOptions.map((o) => ({
-    ...o,
-    label: t(scopeLangKeys[o.value] ?? o.value)
-  }))
-
-  const saveRerollActive = profile.saveReroll && profile.saveReroll !== 'no-reroll'
-
   return (
     <ProfileCardShell
       name={profile.name}
@@ -208,43 +193,6 @@ function TargetProfileCard({
             value={findOpt(invulnOptions, profile.invulnSave || 0)}
             onChange={(opt) => update({ invulnSave: parseInt(opt.value, 10) })}
           />
-        </div>
-      </div>
-
-      <div className="reroll-row">
-        <div className="reroll-cell">
-          <label>{t('saveReroll')}</label>
-          <div className="reroll-cell-controls">
-            <FormSelect
-              options={localizedSaveRerollOptions}
-              value={localizedSaveRerollOptions.find((o) => o.value === profile.saveReroll) || localizedSaveRerollOptions[0]}
-              onChange={(opt) => update({ saveReroll: opt.value })}
-            />
-            {saveRerollActive && (
-              <div
-                className="reroll-scope-toggle"
-                role="radiogroup"
-                aria-label={t('saveReroll')}
-                title={t('rerollScopeTooltip')}
-              >
-                {localizedScopeOptions.map((opt) => {
-                  const selected = (profile.saveRerollScope || 'all') === opt.value
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      className={`reroll-scope-option${selected ? ' selected' : ''}`}
-                      onClick={() => update({ saveRerollScope: opt.value })}
-                    >
-                      {opt.label}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

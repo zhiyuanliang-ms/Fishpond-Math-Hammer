@@ -149,18 +149,6 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
   // this weapon's attacks; otherwise it is effectively unlimited.
   const hitBudget = makeRerollBudget(weapon.hitRerollScope)
   const woundBudget = makeRerollBudget(weapon.woundRerollScope)
-  // Save reroll budgets are per defending profile, but only for the duration
-  // of this weapon's firing — so different weapons get fresh budgets and the
-  // 'single' scope is correctly per-weapon-volley.
-  const saveBudgets = new Map()
-  const getSaveBudget = (profileIdx, profile) => {
-    let b = saveBudgets.get(profileIdx)
-    if (!b) {
-      b = makeRerollBudget(profile.saveRerollScope)
-      saveBudgets.set(profileIdx, b)
-    }
-    return b
-  }
   // Random-value rerolls (Attacks / Damage)
   const attackRerollT = randomRerollThreshold(weapon.attackReroll)
   const damageRerollT = randomRerollThreshold(weapon.damageReroll)
@@ -313,8 +301,11 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       const invuln = (t.invulnSave && t.invulnSave >= 2 && t.invulnSave <= 6) ? t.invulnSave : 7
       const effSave = Math.min(armorMod, invuln)
       if (effSave <= 6) {
-        const saveBudget = getSaveBudget(unitState.activeProfile, t)
-        const sr = rollD6WithReroll(effSave, t.saveReroll, 7, saveBudget) // crit doesn't apply to saves
+        // Save reroll is a simple buff: when `rerollSaveOnes` is set the
+        // defender rerolls every natural 1 on the save die (aura/banner-style
+        // ability). No budget — these effects fire on every die.
+        const saveRerollMode = t.rerollSaveOnes ? REROLL_VALUES.REROLL_ONE : REROLL_VALUES.NO_REROLL
+        const sr = rollD6WithReroll(effSave, saveRerollMode, 7) // crit doesn't apply to saves
         if (sr.success) continue
       }
 

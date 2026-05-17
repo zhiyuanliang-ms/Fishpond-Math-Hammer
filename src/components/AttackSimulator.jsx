@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Download, Upload, Save, Trash2, Link2 } from 'lucide-react'
+import { Download, Upload, Save, Trash2, Link2, ClipboardCopy } from 'lucide-react'
 import { simulateAttack, isValidDiceExpression } from '../lib/dice'
 import {
   loadScenario,
@@ -74,27 +74,36 @@ const makeWeapon = (overrides = {}) => ({
   ...overrides
 })
 
-const makeTarget = (overrides = {}) => ({
-  id: uid(),
-  name: '',
-  models: 5,
-  toughness: 4,
-  wounds: 2,
-  save: 3,
-  invulnSave: 0,
-  saveReroll: 'no-reroll',
-  saveRerollScope: 'all',
-  fnp: 0,
-  fnpMortal: 0,
-  minusOneToHit: false,
-  minusOneToWound: false,
-  minusOneToWoundIfStronger: false,
-  halfDamage: false,
-  minusOneDamage: false,
-  damageOne: false,
-  benefitOfCover: false,
-  ...overrides
-})
+const makeTarget = (overrides = {}) => {
+  // Legacy migration: older saved scenarios stored a `saveReroll` select with
+  // 'reroll-one' (== reroll natural 1s) and 'reroll-fail'. The dropdown is now
+  // gone; reroll-1s lives on as a defensive buff chip. Other legacy values are
+  // dropped because the UI no longer surfaces them.
+  const { saveReroll: legacySaveReroll, saveRerollScope: _ignored, ...rest } = overrides
+  const inferredRerollOnes =
+    rest.rerollSaveOnes ?? (legacySaveReroll === 'reroll-one')
+  return {
+    id: uid(),
+    name: '',
+    models: 5,
+    toughness: 4,
+    wounds: 2,
+    save: 3,
+    invulnSave: 0,
+    rerollSaveOnes: false,
+    fnp: 0,
+    fnpMortal: 0,
+    minusOneToHit: false,
+    minusOneToWound: false,
+    minusOneToWoundIfStronger: false,
+    halfDamage: false,
+    minusOneDamage: false,
+    damageOne: false,
+    benefitOfCover: false,
+    ...rest,
+    rerollSaveOnes: inferredRerollOnes,
+  }
+}
 
 // ---- list helpers ----------------------------------------------------------
 
@@ -168,6 +177,112 @@ const detectMobile = () => {
   return /Android|iPhone|iPad|iPod|IEMobile|BlackBerry|Opera Mini/i.test(
     navigator.userAgent || ''
   )
+}
+
+// ---- human-readable report builder ----------------------------------------
+// Produces a compact plain-text summary of the current scenario + simulation
+// results, suitable for pasting into chat / notes. `t` is the translator from
+// the LangProvider so headings & buff names follow the current UI language.
+
+const rerollLabel = (mode, t) => {
+  switch (mode) {
+    case 'reroll-one': return t('rerollOnes')
+    case 'reroll-fail': return t('rerollFails')
+    case 'reroll-non-critical': return t('rerollNonCritical')
+    case 'reroll-1-2-3': return t('rerollLow123')
+    default: return null
+  }
+}
+
+const describeWeapon = (w, t) => {
+  const tag = (v) => (typeof v === 'string' ? v.toUpperCase() : v)
+  const head = `${w.modelsFiring}× A${tag(w.attacks)} BS/WS${w.toHit}+ S${w.strength} AP-${w.ap} D${tag(w.damage)}`
+
+  const abilities = []
+  if (w.torrent) abilities.push(t('torrent'))
+  if (w.lethalHits) abilities.push(t('lethalHits'))
+  if (w.sustainedHits && w.sustainedHits !== 'off')
+    abilities.push(`${t('sustainedHits')} ${w.sustainedHits.toUpperCase()}`)
+  if (w.devastatingWounds) abilities.push(t('devastatingWounds'))
+  if (w.blast) abilities.push(t('blast'))
+  if (w.plusOneHit) abilities.push(t('plusOneHit'))
+  if (w.plusOneWound) abilities.push(t('plusOneWound'))
+  if (w.ignoresCover) abilities.push(t('ignoresCover'))
+  if (w.critHitEnabled) abilities.push(`${t('criticalHit')} ${w.critHit}+`)
+  if (w.antiEnabled) abilities.push(`${t('anti')} ${w.antiValue}+`)
+
+  const rerolls = []
+  const pushReroll = (mode, scope, label) => {
+    const r = rerollLabel(mode, t)
+    if (!r) return
+    const scopeTag = scope === 'single' ? ` (${t('rerollScopeSingle')})` : ''
+    rerolls.push(`${label}: ${r}${scopeTag}`)
+  }
+  pushReroll(w.hitReroll, w.hitRerollScope, t('hitReroll'))
+  pushReroll(w.woundReroll, w.woundRerollScope, t('woundReroll'))
+  pushReroll(w.attackReroll, w.attackRerollScope, t('attackReroll'))
+  pushReroll(w.damageReroll, w.damageRerollScope, t('damageReroll'))
+
+  const extras = [...abilities, ...rerolls]
+  return head + (extras.length ? ` [${extras.join(', ')}]` : '')
+}
+
+const describeTarget = (target, t) => {
+  const inv = target.invulnSave > 0 ? `/${target.invulnSave}++` : ''
+  const head = `${target.models}× T${target.toughness} W${target.wounds} Sv${target.save}+${inv}`
+
+  const buffs = []
+  if (target.fnp > 0) buffs.push(`${t('fnp')} ${target.fnp}+`)
+  if (target.fnpMortal > 0) buffs.push(`${t('fnpMortal')} ${target.fnpMortal}+`)
+  if (target.rerollSaveOnes) buffs.push(t('rerollSaveOnes'))
+  if (target.minusOneToHit) buffs.push(t('minusOneHit'))
+  if (target.minusOneToWound) buffs.push(t('minusOneWound'))
+  if (target.minusOneToWoundIfStronger) buffs.push(t('minusOneWoundST'))
+  if (target.halfDamage) buffs.push(t('halfDamage'))
+  if (target.minusOneDamage) buffs.push(t('damageMinus1'))
+  if (target.damageOne) buffs.push(t('damageOne'))
+  if (target.benefitOfCover) buffs.push(t('benefitOfCover'))
+
+  return head + (buffs.length ? ` [${buffs.join(', ')}]` : '')
+}
+
+const buildReport = (weapons, targets, result, t) => {
+  const lines = []
+  lines.push(`# ${t('pageTitle')}`)
+  lines.push('')
+  lines.push(`## ${t('reportAttacker')}`)
+  weapons.forEach((w, i) => {
+    const name = w.name?.trim() || `Weapon ${i + 1}`
+    lines.push(`- ${name}: ${describeWeapon(w, t)}`)
+  })
+  lines.push('')
+  lines.push(`## ${t('reportDefender')}`)
+  targets.forEach((tg, i) => {
+    const name = tg.name?.trim() || `Profile ${i + 1}`
+    lines.push(`- ${name}: ${describeTarget(tg, t)}`)
+  })
+
+  if (result) {
+    const singleModel = targets.length === 1 && targets[0].models === 1
+    lines.push('')
+    lines.push(`## ${t('reportResults')} (${t('reportIterations', result.numSimulations.toLocaleString())})`)
+    if (singleModel) {
+      lines.push(`- ${t('reportExpectedDamage')}: ${result.expectedDamage.toFixed(2)} (±${result.expectedDamageStdDev.toFixed(2)}, 95% CI ${result.expectedDamageCILow.toFixed(2)}–${result.expectedDamageCIHigh.toFixed(2)})`)
+    } else {
+      lines.push(`- ${t('reportExpectedKills')}: ${result.expectedKills.toFixed(2)} (±${result.expectedKillsStdDev.toFixed(2)}, 95% CI ${result.expectedKillsCILow.toFixed(2)}–${result.expectedKillsCIHigh.toFixed(2)})`)
+    }
+    lines.push(`- ${t('reportWipeChance')}: ${result.wipeProbability.toFixed(2)}% (±${result.wipeProbabilityStdDev.toFixed(2)}%, 95% CI ${result.wipeProbabilityCILow.toFixed(2)}–${result.wipeProbabilityCIHigh.toFixed(2)}%)`)
+
+    if (result.perProfile.length > 1) {
+      lines.push('')
+      lines.push(`## ${t('perProfileBreakdown')}`)
+      result.perProfile.forEach((p) => {
+        lines.push(`- ${p.name} (${p.models}): ${p.expectedKills.toFixed(2)} ${t('reportExpectedKills').toLowerCase()} (±${p.stdDev.toFixed(2)}), ${p.wipeProbability.toFixed(1)}% ${t('reportWipeChance').toLowerCase()}`)
+      })
+    }
+  }
+
+  return lines.join('\n')
 }
 
 function AttackSimulator() {
@@ -261,37 +376,66 @@ function AttackSimulator() {
     return `${prefix} ${list.length + 1}`
   }
 
+  // Adding/removing/reordering a profile invalidates any previously-rendered
+  // simulation results. Leaving the stale results section mounted keeps the
+  // page artificially tall (StatGrid + per-profile table + DistributionChart),
+  // which shows up as a phantom scroll area / blank space at the bottom after
+  // the user shrinks the profile list. Clearing here keeps the layout in sync
+  // with the current inputs.
+  const invalidateResult = () => {
+    setResult(null)
+    setError(null)
+  }
+
   // ---- weapon list mutators ----
   const updateWeapon = (i, next) =>
     setWeapons((ws) => ws.map((w, idx) => (idx === i ? next : w)))
-  const addWeapon = () =>
+  const addWeapon = () => {
     setWeapons((ws) => [...ws, makeWeapon({ name: nextDefaultName(ws, 'Weapon') })])
-  const removeWeapon = (i) =>
+    invalidateResult()
+  }
+  const removeWeapon = (i) => {
     setWeapons((ws) => (ws.length === 1 ? ws : ws.filter((_, idx) => idx !== i)))
-  const moveWeapon = (i, dir) => setWeapons((ws) => moveItem(ws, i, i + dir))
-  const dupWeapon = (i) =>
+    invalidateResult()
+  }
+  const moveWeapon = (i, dir) => {
+    setWeapons((ws) => moveItem(ws, i, i + dir))
+    invalidateResult()
+  }
+  const dupWeapon = (i) => {
     setWeapons((ws) => {
       const copy = { ...ws[i], id: uid(), name: ws[i].name ? `${ws[i].name} (copy)` : '' }
       const next = ws.slice()
       next.splice(i + 1, 0, copy)
       return next
     })
+    invalidateResult()
+  }
 
   // ---- target list mutators ----
   const updateTarget = (i, next) =>
     setTargets((ts) => ts.map((t, idx) => (idx === i ? next : t)))
-  const addTarget = () =>
+  const addTarget = () => {
     setTargets((ts) => [...ts, makeTarget({ name: nextDefaultName(ts, 'Profile') })])
-  const removeTarget = (i) =>
+    invalidateResult()
+  }
+  const removeTarget = (i) => {
     setTargets((ts) => (ts.length === 1 ? ts : ts.filter((_, idx) => idx !== i)))
-  const moveTarget = (i, dir) => setTargets((ts) => moveItem(ts, i, i + dir))
-  const dupTarget = (i) =>
+    invalidateResult()
+  }
+  const moveTarget = (i, dir) => {
+    setTargets((ts) => moveItem(ts, i, i + dir))
+    invalidateResult()
+  }
+  const dupTarget = (i) => {
     setTargets((ts) => {
       const copy = { ...ts[i], id: uid(), name: ts[i].name ? `${ts[i].name} (copy)` : '' }
       const next = ts.slice()
       next.splice(i + 1, 0, copy)
       return next
     })
+    invalidateResult()
+  }
 
   // ---- import / export ----
   const handleShare = async () => {
@@ -617,6 +761,21 @@ function AttackSimulator() {
 
   const { t, lang, setLang } = useT()
 
+  const handleCopyReport = async () => {
+    if (!result) return
+    const text = buildReport(weapons, targets, result, t)
+    try {
+      await navigator.clipboard.writeText(text)
+      setToast({ kind: 'success', message: t('reportCopied') })
+    } catch {
+      try {
+        window.prompt(t('reportCopied'), text)
+      } catch {
+        setToast({ kind: 'error', message: t('reportCopyFailed') })
+      }
+    }
+  }
+
   return (
     <Page title={t('pageTitle')}>
       <div className="attack-sim-toolbar">
@@ -809,7 +968,18 @@ function AttackSimulator() {
 
       {result && (
         <section className="attack-sim-results">
-          <h2 className="results-heading">{t('results')}</h2>
+          <header className="attack-sim-section-header">
+            <h2>{t('results')}</h2>
+            <button
+              type="button"
+              className="add-button add-button--with-icon"
+              onClick={handleCopyReport}
+              title={t('copyReport')}
+            >
+              <ClipboardCopy size={14} />
+              <span>{t('copyReport')}</span>
+            </button>
+          </header>
           <StatGrid>
             {!(targets.length === 1 && targets[0].models === 1) && (
               <StatCard

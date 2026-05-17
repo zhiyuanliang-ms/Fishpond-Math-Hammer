@@ -134,6 +134,12 @@
   background: rgba(251, 191, 36, 0.12);
 }
 
+.add-button--with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .profile-list {
   display: flex;
   flex-direction: column;

@@ -43,6 +43,18 @@ const translations = {
     simulationNote: (n) =>
       `* Estimated using Monte Carlo simulation (${n} iterations)`,
 
+    // Report
+    copyReport: 'Copy Report',
+    reportCopied: 'Report copied to clipboard.',
+    reportCopyFailed: 'Could not copy report to clipboard.',
+    reportAttacker: 'Attacker',
+    reportDefender: 'Defender',
+    reportResults: 'Results',
+    reportExpectedKills: 'Expected kills',
+    reportExpectedDamage: 'Expected damage',
+    reportWipeChance: 'Wipe chance',
+    reportIterations: (n) => `Monte Carlo, ${n} iterations`,
+
     // Per-profile table headers
     thProfile: 'Profile',
     thModels: 'Models',
@@ -89,6 +101,7 @@ const translations = {
     // Target buff chips
     fnp: 'FNP',
     fnpMortal: 'FNP vs MORTAL',
+    rerollSaveOnes: 'REROLL SAVE 1',
     minusOneHit: '−1 HIT',
     minusOneWound: '−1 WOUND',
     minusOneWoundST: '−1 WOUND (S>T)',
@@ -154,6 +167,18 @@ const translations = {
     simulationNote: (n) =>
       `* 通过蒙特卡洛模拟估算（${n} 次模拟）`,
 
+    // Report
+    copyReport: '复制战报',
+    reportCopied: '战报已复制到剪贴板。',
+    reportCopyFailed: '无法复制战报到剪贴板。',
+    reportAttacker: '攻击方',
+    reportDefender: '防御方',
+    reportResults: '结果',
+    reportExpectedKills: '预期击杀',
+    reportExpectedDamage: '预期伤害',
+    reportWipeChance: '全歼概率',
+    reportIterations: (n) => `蒙特卡洛模拟 ${n} 次`,
+
     // Per-profile table headers
     thProfile: '配置',
     thModels: '模型数',
@@ -200,6 +225,7 @@ const translations = {
     // Target buff chips
     fnp: '不怕疼',
     fnpMortal: '对致命伤不怕疼',
+    rerollSaveOnes: '保护重投1',
     minusOneHit: '−1 命中',
     minusOneWound: '−1 造伤',
     minusOneWoundST: '−1 造伤 (S>T)',
