@@ -168,9 +168,9 @@ const translations = {
       `* 通过蒙特卡洛模拟估算（${n} 次模拟）`,
 
     // Report
-    copyReport: '复制战报',
+    copyReport: '复制报告',
     reportCopied: '战报已复制到剪贴板。',
-    reportCopyFailed: '无法复制战报到剪贴板。',
+    reportCopyFailed: '无法复制报告到剪贴板。',
     reportAttacker: '攻击方',
     reportDefender: '防御方',
     reportResults: '结果',
