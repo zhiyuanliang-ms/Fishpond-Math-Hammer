@@ -56,17 +56,26 @@ body.app-nav-hidden .main-wrapper {
 }
 
 @media (max-width: 960px) {
+  /* Switch to a single-scrollbar layout: the sidebar stacks above the main
+   * wrapper, so keeping `.app` and `.main-wrapper` at a fixed `100vh` would
+   * push total height to `sidebar + 100vh`, forcing the page (html/body) to
+   * scroll on top of the `.main-content` internal scroll — visible as two
+   * vertical scrollbars and a blank gap below the footer. */
   .app {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
   }
 
   .main-wrapper {
     margin-left: 0;
     width: 100%;
+    height: auto;
   }
 
   .main-content {
     padding: 24px 16px;
+    overflow-y: visible;
   }
 }
 
