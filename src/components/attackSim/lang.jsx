@@ -59,6 +59,7 @@ const translations = {
     thProfile: 'Profile',
     thModels: 'Models',
     thExpectedKills: 'Expected Kills',
+    thStdDev: 'Std Dev',
     thWipePercent: 'Wipe %',
 
     // Profile card actions
@@ -182,8 +183,7 @@ const translations = {
     // Per-profile table headers
     thProfile: '配置',
     thModels: '模型数',
-    thExpectedKills: '预期击杀',
-    thWipePercent: '全歼 %',
+    thExpectedKills: '预期击杀',    thStdDev: '标准差',    thWipePercent: '全歼 %',
 
     // Profile card actions
     moveUp: '上移',

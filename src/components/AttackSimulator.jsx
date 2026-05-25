@@ -74,36 +74,26 @@ const makeWeapon = (overrides = {}) => ({
   ...overrides
 })
 
-const makeTarget = (overrides = {}) => {
-  // Legacy migration: older saved scenarios stored a `saveReroll` select with
-  // 'reroll-one' (== reroll natural 1s) and 'reroll-fail'. The dropdown is now
-  // gone; reroll-1s lives on as a defensive buff chip. Other legacy values are
-  // dropped because the UI no longer surfaces them.
-  const { saveReroll: legacySaveReroll, saveRerollScope: _ignored, ...rest } = overrides
-  const inferredRerollOnes =
-    rest.rerollSaveOnes ?? (legacySaveReroll === 'reroll-one')
-  return {
-    id: uid(),
-    name: '',
-    models: 5,
-    toughness: 4,
-    wounds: 2,
-    save: 3,
-    invulnSave: 0,
-    rerollSaveOnes: false,
-    fnp: 0,
-    fnpMortal: 0,
-    minusOneToHit: false,
-    minusOneToWound: false,
-    minusOneToWoundIfStronger: false,
-    halfDamage: false,
-    minusOneDamage: false,
-    damageOne: false,
-    benefitOfCover: false,
-    ...rest,
-    rerollSaveOnes: inferredRerollOnes,
-  }
-}
+const makeTarget = (overrides = {}) => ({
+  id: uid(),
+  name: '',
+  models: 5,
+  toughness: 4,
+  wounds: 2,
+  save: 3,
+  invulnSave: 0,
+  fnp: 0,
+  fnpMortal: 0,
+  rerollSaveOnes: false,
+  minusOneToHit: false,
+  minusOneToWound: false,
+  minusOneToWoundIfStronger: false,
+  halfDamage: false,
+  minusOneDamage: false,
+  damageOne: false,
+  benefitOfCover: false,
+  ...overrides,
+})
 
 // ---- list helpers ----------------------------------------------------------
 
@@ -1019,7 +1009,7 @@ function AttackSimulator() {
                     <th>{t('thProfile')}</th>
                     <th>{t('thModels')}</th>
                     <th>{t('thExpectedKills')}</th>
-                    <th>σ</th>
+                    <th>{t('thStdDev')}</th>
                     <th>{t('thWipePercent')}</th>
                   </tr>
                 </thead>
