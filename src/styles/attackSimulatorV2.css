@@ -1,0 +1,311 @@
+/* ============================================================
+ * Attack Simulator V2 — overrides and additions on top of the
+ * shared attackSimulator.css primitives.
+ *   • Unit Buffs subsection
+ *   • Slim weapon-card summary row
+ *   • Weapon-buffs modal dialog
+ * ============================================================ */
+
+/* ---- Unit Buff group ----
+ * The amber-tinted container wraps both the unit-buff editor and every
+ * weapon profile card, so the visual scope of "these buffs apply to every
+ * weapon below" is obvious without needing a hint paragraph. */
+
+.attack-sim-unit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 4px 0;
+  padding: 14px 14px 16px;
+  background: rgba(244, 185, 66, 0.04);
+  border: 1px solid rgba(244, 185, 66, 0.22);
+  border-radius: 10px;
+}
+
+.attack-sim-unit-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attack-sim-unit-group-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f4b942;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.attack-sim-unit-group-divider {
+  height: 1px;
+  margin: 4px -14px 2px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(244, 185, 66, 0.25) 12%,
+    rgba(244, 185, 66, 0.25) 88%,
+    transparent
+  );
+}
+
+.attack-sim-unit-group .profile-list {
+  /* Weapon cards inside the group don't need their own background tint;
+     keep them on the panel background so the amber wrapper reads as the
+     scope indicator. */
+  margin: 0;
+}
+
+/* V2 sits inside the amber unit-group wrapper, so the tile borrows that
+   slightly warmer amber to feel like part of the same panel. The base
+   styles for `.add-profile-tile` live in attackSimulator.css. */
+.attack-sim-unit-group .add-profile-tile {
+  color: rgba(244, 185, 66, 0.85);
+  border-color: rgba(244, 185, 66, 0.45);
+}
+
+.attack-sim-unit-group .add-profile-tile:hover,
+.attack-sim-unit-group .add-profile-tile:focus-visible {
+  background: rgba(244, 185, 66, 0.08);
+  border-color: rgba(244, 185, 66, 0.75);
+  color: #f4b942;
+}
+
+.unit-buffs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.unit-buffs-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.unit-buffs-rerolls {
+  /* Limit to two columns max on wider screens since we only ever have
+     Hit Reroll and Wound Reroll here. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.unit-buffs-rerolls .reroll-cell {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+/* ---- Weapon card summary row ---- */
+
+.weapon-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #2a2a2a;
+}
+
+.weapon-summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.weapon-summary-empty {
+  font-size: 12px;
+  color: #777;
+  font-style: italic;
+  line-height: 26px;
+}
+
+.summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #f4b942;
+  background: rgba(244, 185, 66, 0.1);
+  border: 1px solid rgba(244, 185, 66, 0.35);
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.summary-chip--reroll {
+  color: #c0c0c0;
+  background: rgba(200, 200, 200, 0.06);
+  border-color: rgba(200, 200, 200, 0.25);
+}
+
+.summary-chip--upgraded {
+  color: #1a1a1a;
+  background: #f4b942;
+  border-color: #f4b942;
+  box-shadow: 0 0 0 1px rgba(244, 185, 66, 0.4);
+}
+
+.summary-chip-mark {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.weapon-edit-buffs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ddd;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.weapon-edit-buffs-btn:hover {
+  color: #fff;
+  background: #333;
+  border-color: #f4b942;
+}
+
+/* ---- Weapon Buffs modal dialog ---- */
+
+.weapon-buffs-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  animation: weapon-buffs-fade 0.12s ease-out;
+}
+
+@keyframes weapon-buffs-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.weapon-buffs-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 48px);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  outline: none;
+}
+
+.weapon-buffs-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.weapon-buffs-dialog-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.weapon-buffs-dialog-subtitle {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.weapon-buffs-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  color: #aaa;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.weapon-buffs-dialog-close:hover {
+  color: #fff;
+  background: #2a2a2a;
+}
+
+.weapon-buffs-dialog-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  min-height: 0;
+  /* Reserve space so portaled <select> menus opening downward have room
+     before they flip upward, and so option lists never collide with the
+     dialog footer when the dialog itself is short. */
+}
+
+.weapon-buffs-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weapon-buffs-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid #2a2a2a;
+}
+
+.weapon-buffs-dialog-done {
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #f4b942;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.weapon-buffs-dialog-done:hover {
+  background: #f7c25e;
+}
+
+@media (max-width: 560px) {
+  .weapon-buffs-dialog-backdrop {
+    padding: 0;
+    align-items: stretch;
+  }
+  .weapon-buffs-dialog {
+    max-width: none;
+    max-height: 100vh;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}

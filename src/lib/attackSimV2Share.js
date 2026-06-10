@@ -1,15 +1,9 @@
-// Share-code helpers for the Attack Simulator.
-//
-// A scenario (weapons + targets + global toggles) is JSON-serialised, then
-// base64url-encoded so it can ride along in a URL query string:
-//
-//   /attack-simulator?s=<code>
-//
-// The schema is versioned via the `s` field so older codes can keep working
-// if the payload shape ever changes.
+// Share-code helpers for Attack Simulator V2. Independent from v1 so the
+// `s` and `s2` query params can coexist without confusion: a v2 link won't
+// accidentally load in v1 and silently drop the unit-buffs layer.
 
 const SHARE_SCHEMA = 1
-export const SHARE_QUERY_PARAM = 's'
+export const SHARE_QUERY_PARAM = 's2'
 
 const stripId = (entry = {}) => {
   const next = { ...entry }
@@ -33,7 +27,7 @@ function decodeBase64Url(value) {
   return new TextDecoder().decode(bytes)
 }
 
-export function encodeScenarioCode({ weapons, targets, highPrecision, unitBuffs }) {
+export function encodeScenarioCode({ weapons, targets, highPrecision, unitBuffs, defenderUnitBuffs }) {
   if (!Array.isArray(weapons) || !Array.isArray(targets)) return null
   const payload = {
     s: SHARE_SCHEMA,
@@ -41,9 +35,9 @@ export function encodeScenarioCode({ weapons, targets, highPrecision, unitBuffs 
     t: targets.map(stripId),
     hp: !!highPrecision,
   }
-  if (unitBuffs && typeof unitBuffs === 'object') {
-    payload.u = unitBuffs
-  }
+  if (unitBuffs && typeof unitBuffs === 'object') payload.u = unitBuffs
+  if (defenderUnitBuffs && typeof defenderUnitBuffs === 'object')
+    payload.d = defenderUnitBuffs
   return encodeBase64Url(JSON.stringify(payload))
 }
 
@@ -59,6 +53,7 @@ export function decodeScenarioCode(code) {
       targets: data.t,
       highPrecision: !!data.hp,
       unitBuffs: data.u && typeof data.u === 'object' ? data.u : null,
+      defenderUnitBuffs: data.d && typeof data.d === 'object' ? data.d : null,
     }
   } catch {
     return null

@@ -8,6 +8,7 @@ const translations = {
   en: {
     // Page
     pageTitle: 'Attack Simulator',
+    editionTooltip: 'Based on Warhammer 40,000 10th Edition rules',
 
     // Toolbar
     scenario: 'Scenario',
@@ -22,10 +23,23 @@ const translations = {
     saveSet: 'Save Set…',
 
     // Sections
-    attackerSection: 'Attacker — Weapon Profiles',
-    defenderSection: 'Defender — Target Profiles',
+    attackerSection: 'Attacker Profiles',
+    defenderSection: 'Defender Profiles',
     addWeapon: '+ Add Weapon',
     addProfile: '+ Add Profile',
+
+    // Unit buffs
+    unitBuffsSection: 'Unit Buffs',
+    noUnitBuffs: 'No unit buffs.',
+    unitUpgradedTag: 'Upgraded by unit buff',
+    unitGrantedTag: 'Granted by unit buff',
+
+    // Weapon card popover
+    editBuffs: 'Edit buffs…',
+    closeBuffs: 'Done',
+    buffsDialogTitle: 'Weapon Buffs',
+    targetBuffsDialogTitle: 'Target Buffs',
+    noWeaponBuffs: 'No buffs configured.',
 
     // Run / precision
     runSim: 'Run Simulation',
@@ -133,6 +147,7 @@ const translations = {
   zh: {
     // Page
     pageTitle: '攻击模拟器',
+    editionTooltip: '基于战锤40K 第10版规则',
 
     // Toolbar
     scenario: '方案',
@@ -147,10 +162,23 @@ const translations = {
     saveSet: '保存配置…',
 
     // Sections
-    attackerSection: '攻击方 — 武器面板',
+    attackerSection: '攻击方面板',
     defenderSection: '防御方 — 目标面板',
     addWeapon: '+ 添加武器',
     addProfile: '+ 添加面板',
+
+    // Unit buffs
+    unitBuffsSection: '单位加成',
+    noUnitBuffs: '当前没有启用任何单位加成。',
+    unitUpgradedTag: '由单位加成强化',
+    unitGrantedTag: '由单位加成提供',
+
+    // Weapon card popover
+    editBuffs: '编辑加成…',
+    closeBuffs: '完成',
+    buffsDialogTitle: '武器加成',
+    targetBuffsDialogTitle: '目标加成',
+    noWeaponBuffs: '尚未配置加成。',
 
     // Run / precision
     runSim: '运行模拟',

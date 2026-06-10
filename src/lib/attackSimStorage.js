@@ -172,10 +172,19 @@ const deleteFromCollection = (key, name) => {
 }
 
 // ---- weapon-set library (named attacker profile sets) ----------------------
+// Saved attacker profiles bundle both the weapon list and the unit-wide
+// buffs (passed in as a single { weapons, unitBuffs } object so older
+// callers that only pass weapons still work).
 
 export const listSavedWeaponSets = () => listCollection(KEY_WEAPON_SETS)
-export const saveNamedWeaponSet = (name, weapons) =>
-  saveInCollection(KEY_WEAPON_SETS, name, { weapons })
+export const saveNamedWeaponSet = (name, payload) => {
+  // Tolerate the legacy "raw array" call shape just in case any caller
+  // still passes a plain weapons array.
+  const data = Array.isArray(payload)
+    ? { weapons: payload }
+    : { weapons: payload?.weapons, unitBuffs: payload?.unitBuffs }
+  return saveInCollection(KEY_WEAPON_SETS, name, data)
+}
 export const loadNamedWeaponSet = (name) =>
   loadFromCollection(KEY_WEAPON_SETS, name)
 export const deleteNamedWeaponSet = (name) =>

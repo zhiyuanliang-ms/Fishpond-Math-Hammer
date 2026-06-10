@@ -18,6 +18,16 @@ export { calculateKillProbability } from './killProbability'
 
 export { simulateAttack } from './attackSimulation'
 export {
+  makeUnitBuffs,
+  isUnitBuffsEmpty,
+  mergeWeaponWithUnit,
+  describeUpgrades,
+  makeTargetUnitBuffs,
+  isTargetUnitBuffsEmpty,
+  mergeTargetWithUnit,
+  describeTargetUpgrades,
+} from './unitBuffMerge'
+export {
   parseDiceExpression,
   rollDiceExpr,
   expectedDiceExpr,

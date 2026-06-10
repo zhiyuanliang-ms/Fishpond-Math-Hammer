@@ -53,6 +53,12 @@ export const selectStyles = {
       width: '16px',
       height: '16px'
     }
+  }),
+  // Only used when a consumer passes menuPortalTarget; ensures the floating
+  // menu renders above modal dialogs (z-index 1000 in attackSimulatorV2.css).
+  menuPortal: (baseStyles) => ({
+    ...baseStyles,
+    zIndex: 2000
   })
 }
 

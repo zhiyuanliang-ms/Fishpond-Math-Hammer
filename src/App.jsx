@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-ro
 import './styles/app.css'
 import Sidebar from './components/Sidebar'
 import DiceCalculator from './components/DiceCalculator'
-import AttackSimulator from './components/AttackSimulator'
+import AttackSimulatorRouter from './components/AttackSimulatorRouter'
 import DiceRoller from './components/DiceRoller'
 import Cheatsheet from './components/Cheatsheet'
 import About from './components/About'
@@ -66,11 +66,11 @@ function AppContent() {
           <Routes>
             <Route path="/dice-calculator" element={<DiceCalculator />} />
             <Route path="/macro-battleplan" element={<MacroBattleplan />} />
-            <Route path="/attack-simulator" element={<AttackSimulator />} />
+            <Route path="/attack-simulator" element={<AttackSimulatorRouter />} />
             <Route path="/dice-roller" element={<DiceRoller />} />
             <Route path="/cheat-sheet" element={<Cheatsheet />} />
             <Route path="/about" element={<About />} />
-            <Route path="/" element={<AttackSimulator />} />
+            <Route path="/" element={<AttackSimulatorRouter />} />
           </Routes>
         </main>
         <Footer onCopyrightClick={() => navigate('/about')} />

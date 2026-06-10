@@ -11,6 +11,29 @@
   gap: 24px;
 }
 
+/* ---- page title + edition badge ---- */
+
+.attack-sim-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.attack-sim-edition-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #f4b942;
+  background: rgba(244, 185, 66, 0.12);
+  border: 1px solid rgba(244, 185, 66, 0.4);
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
 /* ---- toolbar (scenarios / data) ----
  * The .toolbar-group / .toolbar-button / .toolbar-select / .profile-set-controls
  * primitives live in uiShared.css so the Macro Battleplan sidebar can reuse
@@ -144,6 +167,36 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Tile-style "+ Add Profile" sitting at the end of a profile list. Reads
+   as a footer slot for the list rather than a section-header action, so it
+   shows up exactly where the new card will appear. */
+.add-profile-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: transparent;
+  color: rgba(251, 191, 36, 0.85);
+  border: 1px dashed rgba(251, 191, 36, 0.45);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.add-profile-tile:hover,
+.add-profile-tile:focus-visible {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.75);
+  color: #fbbf24;
+  outline: none;
 }
 
 /* ---- profile card ---- */
