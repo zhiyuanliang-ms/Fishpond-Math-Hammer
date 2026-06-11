@@ -234,10 +234,6 @@ button.die:disabled {
   font-size: 26px;
   line-height: 1;
   color: #fbbf24;
-  /* Unicode dice glyphs (U+2680–U+2685) sit slightly above the line-box
-     center, which makes a centered digit look lower than the glyph. Nudge
-     the glyph down a hair so the two share an optical midline. */
-  transform: translateY(0.015em);
 }
 
 .face-count-value {
