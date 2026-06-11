@@ -231,17 +231,25 @@ button.die:disabled {
 }
 
 .face-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
   font-size: 26px;
   line-height: 1;
   color: #fbbf24;
 }
 
 .face-count-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 1.6em;
   color: #fbbf24;
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
-  min-width: 1.2em;
   text-align: center;
 }
 
@@ -342,6 +350,15 @@ button.die:disabled {
   line-height: 1;
 }
 
+/* Equal-height boxes for every child of the selection summary so the
+   label, dice glyph(s), and count all share a centered midline. */
+.dice-selection-summary > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+}
+
 .dice-selection-label {
   color: #a0a0a0;
   text-transform: uppercase;
@@ -352,6 +369,7 @@ button.die:disabled {
 
 .dice-selection-summary .face-glyph {
   font-size: 22px;
+  height: 26px;
 }
 
 .dice-selection-count {
@@ -384,10 +402,12 @@ button.die:disabled {
 
   .face-glyph {
     font-size: 22px;
+    height: 28px;
   }
 
   .face-count-value {
     font-size: 16px;
+    height: 28px;
   }
 
   .dice-selection-bar {
