@@ -209,7 +209,7 @@ function DiceRoller() {
           <div className="dice-section-header">
             <h3>Dice Pool</h3>
             <span className="dice-count-badge">
-              {pool.length} {pool.length === 1 ? 'die' : 'dice'}
+              {pool.length} dice
             </span>
           </div>
 
@@ -310,8 +310,7 @@ function DiceRoller() {
                   </span>
                 ))}
                 <span className="dice-selection-count">
-                  ({selectedDiceCount}{' '}
-                  {selectedDiceCount === 1 ? 'die' : 'dice'})
+                  ({selectedDiceCount} dice)
                 </span>
               </div>
               <div className="dice-selection-actions">
@@ -402,7 +401,7 @@ function DiceRoller() {
             <div className="dice-section-header">
               <h3>Kept</h3>
               <span className="dice-count-badge">
-                {kept.length} {kept.length === 1 ? 'die' : 'dice'}
+                {kept.length} dice
               </span>
             </div>
 

@@ -200,6 +200,11 @@ button.die:disabled {
   font-family: inherit;
   cursor: pointer;
   transition: border-color 120ms ease, background 120ms ease;
+  /* Force both children onto the same baseline by giving the row a
+     single line-box height; align-items:center then centers each child
+     within that box, so the unicode dice glyph and the digit don't
+     drift apart on mobile where their font-sizes are closer. */
+  line-height: 1;
 }
 
 .face-count-button:disabled {
@@ -229,12 +234,17 @@ button.die:disabled {
   font-size: 26px;
   line-height: 1;
   color: #fbbf24;
+  /* Unicode dice glyphs (U+2680–U+2685) sit slightly above the line-box
+     center, which makes a centered digit look lower than the glyph. Nudge
+     the glyph down a hair so the two share an optical midline. */
+  transform: translateY(0.015em);
 }
 
 .face-count-value {
   color: #fbbf24;
   font-size: 18px;
   font-weight: 700;
+  line-height: 1;
   min-width: 1.2em;
   text-align: center;
 }
@@ -333,6 +343,7 @@ button.die:disabled {
   flex-wrap: wrap;
   color: #d0d0d0;
   font-size: 14px;
+  line-height: 1;
 }
 
 .dice-selection-label {
@@ -340,6 +351,7 @@ button.die:disabled {
   text-transform: uppercase;
   font-size: 12px;
   letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .dice-selection-summary .face-glyph {
@@ -349,6 +361,7 @@ button.die:disabled {
 .dice-selection-count {
   color: #fbbf24;
   font-weight: 600;
+  line-height: 1;
 }
 
 .dice-selection-actions {
@@ -384,10 +397,24 @@ button.die:disabled {
   .dice-selection-bar {
     flex-direction: column;
     align-items: stretch;
+    padding: 10px 12px;
+    gap: 10px;
   }
 
   .dice-selection-actions {
-    justify-content: flex-end;
+    justify-content: stretch;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  /* Compact buttons on mobile so all four selection actions fit in one row
+     on common phone widths (e.g. iPhone 15 = 393 CSS px). */
+  .dice-selection-actions .secondary-button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 6px;
+    font-size: 13px;
+    text-align: center;
   }
 }
 
