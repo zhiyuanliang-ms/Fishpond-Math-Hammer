@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Page } from './ui'
-import { DICE_FACES, DIE_GLYPHS, rollD6 } from '../lib/dice'
+import { DICE_FACES, rollD6 } from '../lib/dice'
+import DieFace from './DieFace'
 import '../styles/diceRoller.css'
 
 const MAX_POOL = 100
@@ -236,7 +237,7 @@ function DiceRoller() {
                     aria-pressed={isSelected}
                     disabled={isBlank}
                   >
-                    {isBlank ? '' : DIE_GLYPHS[d.face]}
+                    {isBlank ? null : <DieFace face={d.face} />}
                   </button>
                 )
               })}
@@ -271,7 +272,7 @@ function DiceRoller() {
                       aria-pressed={isSelected}
                     >
                       <span className={`face-glyph die-face-${face}`}>
-                        {DIE_GLYPHS[face]}
+                        <DieFace face={face} />
                       </span>
                       <span className="face-count-value">
                         {isPartial
@@ -306,7 +307,7 @@ function DiceRoller() {
                 <span className="dice-selection-label">Selected</span>
                 {selectedFaceList.map((f) => (
                   <span key={f} className={`face-glyph die-face-${f}`}>
-                    {DIE_GLYPHS[f]}
+                    <DieFace face={f} />
                   </span>
                 ))}
                 <span className="dice-selection-count">
@@ -412,7 +413,7 @@ function DiceRoller() {
                   className={`die die-face-${d.face}`}
                   title={`Kept die ${idx + 1}: ${d.face}`}
                 >
-                  {DIE_GLYPHS[d.face]}
+                  <DieFace face={d.face} />
                 </span>
               ))}
             </div>
@@ -428,7 +429,7 @@ function DiceRoller() {
                   <li key={face} className="face-count-row static">
                     <div className="face-count-button" aria-hidden="true">
                       <span className={`face-glyph die-face-${face}`}>
-                        {DIE_GLYPHS[face]}
+                        <DieFace face={face} />
                       </span>
                       <span className="face-count-value">{count}</span>
                     </div>
