@@ -225,8 +225,10 @@
   color: #fbbf24;
 }
 
-.buff-chip-toggle:hover {
-  color: #fbbf24;
+@media (hover: hover) {
+  .buff-chip-toggle:hover {
+    color: #fbbf24;
+  }
 }
 
 .buff-chip-picker {
@@ -281,8 +283,10 @@
   color: rgba(254, 202, 202, 0.72);
 }
 
-.buff-chip:hover {
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .buff-chip:hover {
+    transform: translateY(-1px);
+  }
 }
 
 @media (max-width: 768px) {

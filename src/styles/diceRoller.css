@@ -142,8 +142,10 @@ button.die:disabled {
   cursor: default;
 }
 
-.die:hover:not(:disabled):not(.die-selected) {
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .die:hover:not(:disabled):not(.die-selected) {
+    transform: translateY(-2px);
+  }
 }
 
 .die.die-selected {
@@ -210,14 +212,15 @@ button.die:disabled {
   cursor: not-allowed;
 }
 
-.face-count-button:hover:not(:disabled) {
-  border-color: #fbbf24;
+@media (hover: hover) {
+  .face-count-button:hover:not(:disabled) {
+    border-color: #fbbf24;
+  }
 }
 
 .face-count-row.selected .face-count-button {
   border-color: #fbbf24;
   background: #3a3a3a;
-  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
 }
 
 .face-count-row.partial .face-count-button {
