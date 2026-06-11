@@ -1,29 +1,42 @@
-/* Dice Roller page — visually consistent with diceCalculator.css.
-   Reuses .calculator-form, .form-row, .form-group, .calculate-button. */
+/* Dice Roller page — pool-centric layout.
+   Reuses .calculate-button from shared calculator styles. */
 
 .dice-roller {
   --dice-roller-inline-gutter: 10px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
-.dice-roller-form {
-  max-width: 420px;
-}
-
-/* Match the shared calculator submit-button spacing even though the Dice
-   Roller wraps its actions in a row instead of placing the button directly
-   under .calculator-form. */
-.dice-roller-form > .dice-roller-actions {
-  margin-top: 16px;
-}
-
-.dice-roller-actions {
+/* ----- Sections ----- */
+.dice-pool-section,
+.dice-kept-section {
+  width: 100%;
+  padding-inline: var(--dice-roller-inline-gutter);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dice-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.dice-section-header h3 {
+  color: #fff;
+  font-size: 18px;
+  margin: 0;
+}
+
+.dice-count-badge {
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .dice-roller-hint {
@@ -34,6 +47,14 @@
 
 .dice-roller-hint.warn {
   color: #f87171;
+}
+
+/* ----- Shared action row ----- */
+.dice-roller-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .secondary-button {
@@ -47,45 +68,41 @@
   font-family: inherit;
 }
 
-.secondary-button:hover {
+.secondary-button:hover:not(:disabled) {
   border-color: #fbbf24;
   color: #fbbf24;
 }
 
-.dice-tray-section {
-  width: 100%;
-  padding-inline: var(--dice-roller-inline-gutter);
+.secondary-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-.dice-counts-section {
-  width: 100%;
-  padding-inline: var(--dice-roller-inline-gutter);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.secondary-button.danger:hover:not(:disabled) {
+  border-color: #f87171;
+  color: #f87171;
 }
 
-.dice-section-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.dice-section-header h3 {
-  color: #fff;
-  font-size: 16px;
-  margin: 0;
-}
-
-/* The actual dice tray. 20 dice per row, scaled to fit container width. */
+/* ----- Dice tray ----- */
 .dice-tray {
   display: grid;
   grid-template-columns: repeat(20, minmax(0, 1fr));
   gap: 8px;
-  /* fade-in when key changes (after a roll) */
-  animation: dice-fade-in 220ms ease-out;
+}
+
+/* The pool tray is the page's hero: translucent amber container matching
+   the Attack Simulator v2 wrapper style. Stays visible when empty. */
+.dice-pool-section .dice-tray {
+  padding: 14px;
+  background: rgba(244, 185, 66, 0.04);
+  border: 1px solid rgba(244, 185, 66, 0.22);
+  border-radius: 10px;
+  min-height: 88px;
+  align-content: center;
+}
+
+.dice-tray-kept {
+  gap: 6px;
 }
 
 @keyframes dice-fade-in {
@@ -99,7 +116,6 @@
   justify-content: center;
   width: 100%;
   aspect-ratio: 1 / 1;
-  /* Glyph scales with cell size; clamp keeps it readable on small/large screens. */
   font-size: clamp(18px, 2.4vw, 36px);
   line-height: 1;
   background: #2a2a2a;
@@ -107,89 +123,244 @@
   border-radius: 8px;
   color: #fbbf24;
   user-select: none;
-  transition: transform 120ms ease, border-color 120ms ease;
+  transition: transform 120ms ease, border-color 120ms ease,
+    background 120ms ease;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  /* Animation runs each time a die mounts. Pool dice get a fresh key on every
+     reroll (id+version), so only the dice that were actually rerolled pop;
+     untouched dice stay perfectly still. Kept and blank dice mount once. */
+  animation: dice-fade-in 180ms ease-out;
 }
 
-.die:hover {
+button.die {
+  appearance: none;
+}
+
+button.die:disabled {
+  cursor: default;
+}
+
+.die:hover:not(:disabled) {
   transform: translateY(-2px);
 }
 
-/* Visually mark dice whose face is selected for reroll.
-   Reuses the app-wide amber hover accent for visual consistency. */
 .die.die-selected {
   border-color: #fbbf24;
+  background: #3a3a3a;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
 }
 
-/* Face counts list */
+.die.die-blank {
+  color: transparent;
+  background: repeating-linear-gradient(
+    135deg,
+    #232323,
+    #232323 6px,
+    #2a2a2a 6px,
+    #2a2a2a 12px
+  );
+  border-style: dashed;
+}
+
+/* ----- Face counts list ----- */
 .face-count-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.face-count-list-compact {
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
 }
 
 .face-count-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: #2a2a2a;
-  border: 1px solid #4a4a4a;
-  border-radius: 8px;
-  transition: border-color 120ms ease, background 120ms ease;
-}
-
-.face-count-row.selected {
-  border-color: #fbbf24;
-  background: #3a3a3a;
 }
 
 .face-count-row.empty {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
-.face-count-label {
+.face-count-button {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 14px;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 8px;
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
   color: #d0d0d0;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
 }
 
-.face-count-row.empty .face-count-label {
+.face-count-button:disabled {
   cursor: not-allowed;
 }
 
-.face-count-label input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: #fbbf24;
-  cursor: inherit;
+.face-count-button:hover:not(:disabled) {
+  border-color: #fbbf24;
+}
+
+.face-count-row.selected .face-count-button {
+  border-color: #fbbf24;
+  background: #3a3a3a;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
+}
+
+.face-count-row.partial .face-count-button {
+  border-color: rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.06);
+}
+
+.face-count-row.static .face-count-button {
+  cursor: default;
 }
 
 .face-glyph {
-  font-size: 28px;
+  font-size: 26px;
   line-height: 1;
   color: #fbbf24;
 }
 
 .face-count-value {
   color: #fbbf24;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
+  min-width: 1.2em;
+  text-align: center;
 }
 
-/* Responsive */
+/* ----- Pool size controls ----- */
+.dice-pool-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px dashed #3a3a3a;
+}
+
+.dice-pool-controls-label {
+  color: #a0a0a0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dice-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #2a2a2a;
+}
+
+.stepper-button {
+  padding: 6px 14px;
+  min-width: 40px;
+  background: transparent;
+  color: #fbbf24;
+  border: 0;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.stepper-button:hover:not(:disabled) {
+  background: #3a3a3a;
+}
+
+.stepper-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dice-pool-size-input {
+  width: 56px;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid #4a4a4a;
+  border-right: 1px solid #4a4a4a;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  font-family: inherit;
+  padding: 4px 0;
+  -moz-appearance: textfield;
+}
+
+.dice-pool-size-input::-webkit-outer-spin-button,
+.dice-pool-size-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.dice-pool-size-input:focus {
+  outline: 1px solid #fbbf24;
+  outline-offset: -1px;
+}
+
+/* ----- Selection action bar ----- */
+.dice-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: #2a2a2a;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  animation: dice-fade-in 160ms ease-out;
+}
+
+.dice-selection-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #d0d0d0;
+  font-size: 14px;
+}
+
+.dice-selection-label {
+  color: #a0a0a0;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.dice-selection-summary .face-glyph {
+  font-size: 22px;
+}
+
+.dice-selection-count {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.dice-selection-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ----- Responsive ----- */
 @media (max-width: 768px) {
   .dice-roller {
     --dice-roller-inline-gutter: 14px;
-  }
-
-  .dice-roller-form {
-    max-width: none;
   }
 
   .dice-tray {
@@ -197,12 +368,26 @@
     gap: 6px;
   }
 
+  .dice-tray-kept {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 5px;
+  }
+
   .face-glyph {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .face-count-value {
-    font-size: 20px;
+    font-size: 16px;
+  }
+
+  .dice-selection-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dice-selection-actions {
+    justify-content: flex-end;
   }
 }
 
@@ -212,7 +397,20 @@
     gap: 5px;
   }
 
+  .dice-tray-kept {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+
   .face-count-list {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .face-count-button {
+    padding: 8px 4px;
+    gap: 6px;
+  }
+
+  .dice-pool-controls {
+    justify-content: space-between;
   }
 }
