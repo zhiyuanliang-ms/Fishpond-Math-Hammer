@@ -66,6 +66,7 @@
   font-size: 14px;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .secondary-button:hover:not(:disabled) {
@@ -270,6 +271,7 @@ button.die:disabled {
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 .dice-stepper {
@@ -430,6 +432,15 @@ button.die:disabled {
     font-size: 13px;
     text-align: center;
   }
+
+  .dice-pool-controls {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .dice-pool-size-input {
+    width: 40px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -453,5 +464,17 @@ button.die:disabled {
 
   .dice-pool-controls {
     justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .dice-pool-size-input {
+    width: 32px;
+    font-size: 15px;
+  }
+
+  .stepper-button {
+    min-width: 30px;
+    padding: 6px 8px;
   }
 }
