@@ -226,6 +226,7 @@ const describeWeapon = (w, t) => {
 const describeUnitBuffs = (u, t) => {
   const parts = []
   if (u.plusOneAttack) parts.push(t('plusOneAttack'))
+  if (u.plusOneDamage) parts.push(t('plusOneDamage'))
   if (u.plusOneHit) parts.push(t('plusOneHit'))
   if (u.plusOneWound) parts.push(t('plusOneWound'))
   if (u.hitReroll && u.hitReroll !== 'no-reroll')

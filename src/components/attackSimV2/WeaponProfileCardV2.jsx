@@ -40,6 +40,7 @@ function buildSummary(profile, upgrades, t) {
   if (profile.torrent) push('torrent', t('torrent'))
   if (profile.lethalHits) push('lethalHits', t('lethalHits'))
   if (profile.plusOneAttack) push('plusOneAttack', t('plusOneAttack'))
+  if (profile.plusOneDamage) push('plusOneDamage', t('plusOneDamage'))
   if (profile.plusOneHit) push('plusOneHit', t('plusOneHit'))
   if (profile.critHitEnabled)
     push('critHit', `${t('criticalHit')} ${profile.critHit}+`)

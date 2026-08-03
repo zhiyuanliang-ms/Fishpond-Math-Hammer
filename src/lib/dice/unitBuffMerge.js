@@ -37,12 +37,12 @@ const SUSTAINED_RANK = {
   D6: 3.5,
 }
 
-const addOneAttack = (attacks) => {
-  const parsed = parseDiceExpression(attacks)
-  if (!parsed) return attacks
+const addOneToDiceExpression = (expression) => {
+  const parsed = parseDiceExpression(expression)
+  if (!parsed) return expression
   if (parsed.count === 0) {
     const next = parsed.flat + 1
-    return typeof attacks === 'number' ? next : next.toString()
+    return typeof expression === 'number' ? next : next.toString()
   }
 
   const dice = `${parsed.count === 1 ? '' : parsed.count}D${parsed.sides}`
@@ -55,6 +55,7 @@ export const makeUnitBuffs = (overrides = {}) => ({
   hitReroll: 'no-reroll',
   woundReroll: 'no-reroll',
   plusOneAttack: false,
+  plusOneDamage: false,
   plusOneHit: false,
   plusOneWound: false,
   sustainedHits: 'off',
@@ -72,6 +73,7 @@ export const isUnitBuffsEmpty = (u) => {
     (u.hitReroll || 'no-reroll') === 'no-reroll' &&
     (u.woundReroll || 'no-reroll') === 'no-reroll' &&
     !u.plusOneAttack &&
+    !u.plusOneDamage &&
     !u.plusOneHit &&
     !u.plusOneWound &&
     (!u.sustainedHits || u.sustainedHits === 'off') &&
@@ -122,8 +124,12 @@ export const mergeWeaponWithUnit = (weapon, unit) => {
   }
 
   if (unit.plusOneAttack) {
-    merged.attacks = addOneAttack(weapon.attacks)
+    merged.attacks = addOneToDiceExpression(weapon.attacks)
     merged.plusOneAttack = true
+  }
+  if (unit.plusOneDamage) {
+    merged.damage = addOneToDiceExpression(weapon.damage)
+    merged.plusOneDamage = true
   }
   if (unit.plusOneHit) merged.plusOneHit = true
   if (unit.plusOneWound) merged.plusOneWound = true
@@ -159,6 +165,7 @@ export const describeUpgrades = (weapon, unit) => {
   if (!weapon.torrent && merged.hitReroll !== weapon.hitReroll) out.hitReroll = true
   if (merged.woundReroll !== weapon.woundReroll) out.woundReroll = true
   if (unit.plusOneAttack) out.plusOneAttack = true
+  if (unit.plusOneDamage) out.plusOneDamage = true
   if (unit.plusOneHit && !weapon.plusOneHit) out.plusOneHit = true
   if (unit.plusOneWound && !weapon.plusOneWound) out.plusOneWound = true
   if (merged.sustainedHits !== (weapon.sustainedHits || 'off')) out.sustainedHits = true
