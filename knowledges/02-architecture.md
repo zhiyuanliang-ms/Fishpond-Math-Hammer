@@ -76,13 +76,17 @@ src/
 │   └── Footer.jsx
 │   ├── macro-battleplan/
 │   │   ├── MacroBattleplan.jsx     # Edition shell (11e / legacy 10e tabs)
-│   │   ├── MacroBattleplan11e.jsx  # 11e battleplans — placeholder
+│   │   ├── MacroBattleplan11e.jsx  # 11e board page
 │   │   ├── MacroBattleplan10e.jsx  # Deprecated 10e board-planning page
 │   │   ├── legacyEdition.js        # 10e opt-in flag (toggled from About)
+│   │   ├── board11e/               # 11e-only canvas, sidebar, layout reference
 │   │   ├── components/             # Board canvas, sidebar, toolbar, tokens
 │   │   ├── config/board.js         # Map geometry, base sizes, terrain presets
+│   │   ├── config/battleplans11e.js # 45 official 11e maps + board geometry
 │   │   ├── hooks/                  # Feature-scoped keyboard / drag helpers
-│   │   └── store/boardStore.js     # Zustand state + persistence + history
+│   │   ├── store/boardStore.js     # 10e Zustand state + persistence + history
+│   │   ├── store/board11eStore.js  # 11e Zustand state (bases, drawings, setup)
+│   │   └── store/boardContext.jsx  # Picks which store the shared components use
 └── styles/                     # Per-page CSS — see 05-styling-and-responsive.md
   ├── app.css                 # App shell; imports uiShared.css globally
   ├── uiShared.css            # Shared Tabs / form / stats / chart primitives

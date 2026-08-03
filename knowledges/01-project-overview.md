@@ -74,8 +74,18 @@ Results:
 
 | Tab | Component | Status |
 |---|---|---|
-| 11th Edition (default) | `MacroBattleplan11e` | Placeholder. Will ship the official GW battleplans with the matchup-specific (primary-task colour vs colour) terrain layouts built in. |
+| 11th Edition (default) | `MacroBattleplan11e` | The official GW battleplan for the chosen Force Disposition pairing is the board, with the shared base / drawing / ruler tools on top. |
 | 10th Edition | `MacroBattleplan10e` | Deprecated. Hidden unless the user opts in. |
+
+**11e battleplans**
+- 5 Force Dispositions × 15 pairings × 3 terrain layouts (A/B/C) = 45 official maps,
+  indexed in `src/macro-battleplan/config/battleplans11e.js`.
+- Two image variants per map in `public/battleplans-11e/`, built by
+  `tools/build_11e_map_assets.py`: `map_XX.webp` is the clean board (880×1200 =
+  20 px/inch, matching `PX_PER_INCH`) and `map_XX_ref.webp` is the original
+  annotated page map shown by the reference pop-up on the canvas.
+- Terrain, objectives and deployment zones are part of the printed layout and
+  are not user-editable; only bases and drawings are.
 
 **Legacy 10e opt-in**
 - Toggled from the **Legacy Content** checkbox on the About page.

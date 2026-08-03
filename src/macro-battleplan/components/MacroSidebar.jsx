@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
 import { useBoard } from '../store/boardContext'
+import { FormSelect } from '../../components/ui'
 import { MacroScoreboard } from './MacroScoreboard'
 import { TipsBanner } from './TipsBanner'
 import {
@@ -39,6 +40,11 @@ const SORTED_DEPLOYMENT_ZONES = [
     a.label.localeCompare(b.label),
   ),
 ]
+
+const DEPLOYMENT_ZONE_OPTIONS = SORTED_DEPLOYMENT_ZONES.map((z) => ({
+  value: z.id,
+  label: z.label.toUpperCase(),
+}))
 
 function Section({ label, icon, children }) {
   return (
@@ -295,19 +301,14 @@ function ScenerySection({ addObjective, addTerrain }) {
         <span>Battlefield</span>
       </div>
       <div className="mbp-board-load" style={{ marginBottom: 6 }}>
-        <select
-          className="toolbar-select mbp-board-load__select"
-          value={deploymentZone}
-          onChange={(e) => setDeploymentZone(e.target.value)}
+        <FormSelect
+          className="mbp-board-load__select"
+          options={DEPLOYMENT_ZONE_OPTIONS}
+          value={DEPLOYMENT_ZONE_OPTIONS.find((o) => o.value === deploymentZone) ?? null}
+          onChange={(option) => setDeploymentZone(option.value)}
+          menuPortalTarget={document.body}
           aria-label="Deployment zone"
-          title="Highlight a Pariah Nexus deployment zone boundary on the map"
-        >
-          {SORTED_DEPLOYMENT_ZONES.map((z) => (
-            <option key={z.id} value={z.id}>
-              {z.label.toUpperCase()}
-            </option>
-          ))}
-        </select>
+        />
       </div>
       <div className="mbp-segmented">
         {tabBtn('objective', 'Objective')}
@@ -591,19 +592,16 @@ function BoardSection() {
       )}
 
       <div className="mbp-board-load">
-        <select
-          className="toolbar-select mbp-board-load__select"
-          value={selectedBoard}
-          onChange={(e) => handleLoad(e.target.value)}
+        <FormSelect
+          className="mbp-board-load__select"
+          options={savedBoardNames.map((name) => ({ value: name, label: name }))}
+          value={selectedBoard ? { value: selectedBoard, label: selectedBoard } : null}
+          onChange={(option) => handleLoad(option?.value ?? '')}
+          placeholder="Load Board…"
+          isClearable
+          menuPortalTarget={document.body}
           aria-label="Load saved board"
-        >
-          <option value="">Load Board…</option>
-          {savedBoardNames.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       <div className="mbp-tool-row">

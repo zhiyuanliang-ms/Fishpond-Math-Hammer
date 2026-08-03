@@ -6,16 +6,28 @@
 import { useRef } from 'react'
 import { Board11eCanvas } from './board11e/Board11eCanvas'
 import { Board11eSidebar } from './board11e/Board11eSidebar'
+import { MapReferenceButton } from './board11e/MapReferenceButton'
 import { MacroToolBar } from './components/MacroToolBar'
 import { TipsButton } from './components/TipsButton'
 import { BoardStoreProvider } from './store/boardContext'
 import { useBoard11eStore } from './store/board11eStore'
-import { findBattleplan, mapImageUrl } from './config/battleplans11e'
+import {
+  findBattleplan,
+  getDisposition,
+  mapImageUrl,
+  mapReferenceUrl,
+} from './config/battleplans11e'
 
 export default function MacroBattleplan11e() {
   const stageContainerRef = useRef(null)
   const setup = useBoard11eStore((s) => s.setup)
   const battleplan = findBattleplan(setup.mine, setup.theirs, setup.layout)
+
+  const referenceTitle = battleplan
+    ? `${getDisposition(battleplan.mine.disposition)?.label} vs ${
+        getDisposition(battleplan.theirs.disposition)?.label
+      } · Layout ${battleplan.layout}`
+    : ''
 
   return (
     <BoardStoreProvider store={useBoard11eStore}>
@@ -28,6 +40,10 @@ export default function MacroBattleplan11e() {
             />
             <MacroToolBar />
             <TipsButton />
+            <MapReferenceButton
+              src={battleplan ? mapReferenceUrl(battleplan.map) : null}
+              title={referenceTitle}
+            />
           </main>
         </div>
         <Board11eSidebar />

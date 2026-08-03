@@ -1,34 +1,42 @@
 import { useRef } from 'react'
 import { Download, Move, PanelRightClose, RotateCcw, Upload } from 'lucide-react'
+import { FormSelect } from '../../components/ui'
 import { MacroScoreboard } from '../components/MacroScoreboard'
 import { BasesSection, SelectionSection } from '../components/MacroSidebar'
 import { useBoard } from '../store/boardContext'
-import { FORCE_DISPOSITIONS, LAYOUTS, getDisposition } from '../config/battleplans11e'
+import { FORCE_DISPOSITIONS, LAYOUTS } from '../config/battleplans11e'
+
+const DISPOSITION_OPTIONS = FORCE_DISPOSITIONS.map((d) => ({
+  value: d.id,
+  label: d.label,
+  color: d.color,
+}))
+
+const formatDispositionOption = (option) => (
+  <span className="mbp11-option">
+    <span
+      className="mbp11-swatch"
+      style={{ backgroundColor: option.color }}
+      aria-hidden="true"
+    />
+    {option.label}
+  </span>
+)
 
 function DispositionSelect({ label, value, onChange }) {
-  const disposition = getDisposition(value)
   return (
-    <label className="mbp11-field">
+    <div className="mbp11-field">
       <span className="mbp11-field__label">{label}</span>
-      <span className="mbp11-field__control">
-        <span
-          className="mbp11-swatch"
-          style={{ backgroundColor: disposition?.color }}
-          aria-hidden="true"
-        />
-        <select
-          className="toolbar-select mbp11-select"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {FORCE_DISPOSITIONS.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.label}
-            </option>
-          ))}
-        </select>
-      </span>
-    </label>
+      <FormSelect
+        className="mbp11-select"
+        options={DISPOSITION_OPTIONS}
+        value={DISPOSITION_OPTIONS.find((o) => o.value === value) ?? null}
+        onChange={(option) => onChange(option.value)}
+        formatOptionLabel={formatDispositionOption}
+        menuPortalTarget={document.body}
+        aria-label={label}
+      />
+    </div>
   )
 }
 

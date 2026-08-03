@@ -88,6 +88,9 @@ export const getDisposition = (id) => DISPOSITION_BY_ID.get(id) ?? null
 
 export const mapImageUrl = (map) => `${MAP_11E_ASSET_BASE}/${map}.webp`
 
+// The original page map, with deployment shading and printed measurements.
+export const mapReferenceUrl = (map) => `${MAP_11E_ASSET_BASE}/${map}_ref.webp`
+
 /**
  * Resolve the official battleplan for a pairing. `mine` / `theirs` are
  * disposition ids; the printed page lists each pairing in a fixed order, so
