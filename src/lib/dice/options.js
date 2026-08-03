@@ -23,6 +23,13 @@ export const antiOptions = [
   { value: '5', label: '5+' }
 ]
 
+// CLEAVE X values. Each adds X extra attack dice per five models in the target
+// unit (single-target only). Mirrors BLAST but with a variable amount.
+export const cleaveOptions = Array.from({ length: 6 }, (_, index) => {
+  const value = (index + 1).toString()
+  return { value, label: value }
+})
+
 export const rerollOptions = [
   { value: 'no-reroll', label: 'No Reroll' },
   { value: 'reroll-one', label: 'Reroll Ones' },

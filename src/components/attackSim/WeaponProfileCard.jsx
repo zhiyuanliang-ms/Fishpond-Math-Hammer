@@ -6,7 +6,8 @@ import {
   rerollScopeOptions,
   antiOptions,
   critOptions,
-  sustainedOptions
+  sustainedOptions,
+  cleaveOptions
 } from '../../lib/dice/options'
 import { isValidDiceExpression, parseDiceExpression } from '../../lib/dice'
 import IntInput from './IntInput'
@@ -113,6 +114,15 @@ function WeaponProfileCard({
       label: t('blast'),
       active: profile.blast,
       onToggle: () => update({ blast: !profile.blast })
+    },
+    {
+      key: 'cleave',
+      label: t('cleave'),
+      active: profile.cleaveEnabled,
+      onToggle: () => update({ cleaveEnabled: !profile.cleaveEnabled }),
+      value: profile.cleaveValue?.toString() || '1',
+      valueOptions: cleaveOptions,
+      onValueChange: (v) => update({ cleaveValue: parseInt(v, 10) })
     },
     {
       key: 'plusOneWound',

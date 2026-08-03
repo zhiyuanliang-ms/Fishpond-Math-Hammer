@@ -46,8 +46,9 @@ For each attack:
 | **Anti-X N+** | `antiBuff`, `antiEnabled` + `antiValue` | Wound roll uses N+ (or better) against the keyword (e.g. Anti-Vehicle 4+). |
 | **Lance** | `lance` | +1 to the wound roll (treated as the bearer charging). Floored at 2+ by `clampThreshold`. |
 | **Blast** | `blast` | +`floor(target_models / 5)` to every attack roll. Snapshotted at trial start, not live. |
+| **Cleave X** | `cleaveEnabled` + `cleaveValue` | +`X × floor(target_models / 5)` attack dice (single target only — always true in this sim). Snapshotted at trial start, like Blast. |
 | **Ignores Cover** | `ignoresCover` | Cancels the target's Benefit of Cover. |
-| **Benefit of Cover** | `benefitOfCover` (target) | +1 to armor save (never invuln). Doesn't apply to Sv 3+ vs AP 0. |
+| **Benefit of Cover** | `benefitOfCover` (target) | 11e: worsens the attacker's BS by 1 (−1 to hit), not the save. A characteristic modifier, so it **stacks** on top of −1 to Hit and is not subject to the ±1 roll cap. Negated by Ignores Cover; no effect under Torrent. |
 | **Reroll 1s / Reroll Failed / Reroll Non-Crit** | `REROLL_VALUES` | Reroll policies for hit/wound/save rolls. |
 | **Weapons (count)** | `modelsFiring` | Number of weapons firing this profile. Each rolls its attack dice independently. |
 

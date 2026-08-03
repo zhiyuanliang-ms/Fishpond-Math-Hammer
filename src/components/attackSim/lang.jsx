@@ -8,7 +8,7 @@ const translations = {
   en: {
     // Page
     pageTitle: 'Attack Simulator',
-    editionTooltip: 'Based on Warhammer 40,000 10th Edition rules',
+    editionTooltip: 'Based on Warhammer 40,000 11th Edition rules',
 
     // Toolbar
     scenario: 'Scenario',
@@ -99,6 +99,7 @@ const translations = {
     sustainedHits: 'SUSTAINED HITS',
     devastatingWounds: 'DEVASTATING WOUNDS',
     blast: 'BLAST',
+    cleave: 'CLEAVE',
     plusOneHit: '+1 HIT',
     plusOneWound: '+1 WOUND',
     ignoresCover: 'IGNORES COVER',
@@ -147,7 +148,7 @@ const translations = {
   zh: {
     // Page
     pageTitle: '攻击模拟器',
-    editionTooltip: '基于战锤40K 第10版规则',
+    editionTooltip: '基于战锤40K 第11版规则',
 
     // Toolbar
     scenario: '方案',
@@ -236,6 +237,7 @@ const translations = {
     sustainedHits: '连击',
     devastatingWounds: '毁灭伤害',
     blast: '爆炸',
+    cleave: '劈砍',
     plusOneHit: '+1 命中',
     plusOneWound: '+1 造伤',
     ignoresCover: '无视掩体',

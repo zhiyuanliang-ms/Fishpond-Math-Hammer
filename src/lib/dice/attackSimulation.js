@@ -1,7 +1,7 @@
-// Monte Carlo simulator for the full Warhammer 40k 10e attack sequence.
+// Monte Carlo simulator for the full Warhammer 40k 11e attack sequence.
 //
 // Models the standard sequence per attack:
-//   1. Hit roll (with optional torrent / -1 to hit / rerolls / lethal hits / sustained hits)
+//   1. Hit roll (with optional torrent / -1 to hit / benefit of cover / rerolls / lethal hits / sustained hits)
 //   2. Wound roll (S vs T table, with optional -1 wound mods / rerolls / anti-X / devastating wounds)
 //   3. Save roll (best of armor save modified by AP and invuln save; reroll 1s optional)
 //   4. Damage allocation (with -1 damage / half damage; per-point FNP; mortal-FNP for dev wounds)
@@ -11,7 +11,7 @@
 // (a wounded model takes successive damage until destroyed) before moving on.
 // Excess damage from a single attack does NOT spill across models (40k rule).
 //
-// Devastating Wounds: per the 10e core rule, DW attacks (i.e. a critical wound
+// Devastating Wounds: per the 11e core rule, DW attacks (i.e. a critical wound
 // rolled on a [DEVASTATING WOUNDS] weapon) are *only allocated to models after
 // all other attacks made by the attacking unit have been allocated and
 // resolved*. They then inflict mortal wounds equal to the attack's Damage
@@ -27,7 +27,7 @@ import { parseDiceExpression, rollDiceExpr, rollDiceExprWithReroll } from './dic
 
 const clampThreshold = (n) => Math.max(2, Math.min(7, n))
 
-// Standard 10e wound chart from S vs T.
+// Standard 11e wound chart from S vs T.
 const woundThresholdFromST = (S, T) => {
   if (S >= 2 * T) return 2
   if (S > T) return 3
@@ -41,7 +41,7 @@ const woundThresholdFromST = (S, T) => {
 //                 (or unmodified critical).
 //   critThreshold: natural value at/above which the roll counts as a critical
 //                  success (default 6). Critical successes always succeed
-//                  (per 10e rules). Natural 1 always fails.
+//                  (per 11e rules). Natural 1 always fails.
 const rollD6WithReroll = (threshold, rerollMode, critThreshold = 6, budget = null) => {
   const doRoll = () => Math.floor(Math.random() * 6) + 1
 
@@ -117,7 +117,7 @@ const applyDamageToUnit = (unitState, damage, mortal) => {
           if (prof.modelsRemaining <= 0) unitState.activeProfile++
           // Excess damage from a single attack does NOT carry over.
           // For mortal wounds (dev wounds) the rules also cap excess at the
-          // model boundary in 10e ("until that model is destroyed... excess
+          // model boundary in 11e ("until that model is destroyed... excess
           // is lost"). Stop pushing damage from this attack.
           return consumed
         }
@@ -155,15 +155,22 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
   const attackScope = weapon.attackRerollScope === REROLL_SCOPE.SINGLE ? REROLL_SCOPE.SINGLE : REROLL_SCOPE.ALL
   const damageScope = weapon.damageRerollScope === REROLL_SCOPE.SINGLE ? REROLL_SCOPE.SINGLE : REROLL_SCOPE.ALL
 
-  // Blast: "every five models that were in the target unit when you selected
-  // it as the target". The shooting unit selects all of its targets BEFORE
-  // any of its weapons resolve, so use the unit's size from the start of
-  // this trial — not the live count after earlier weapons have killed models.
-  const blastBonus = weapon.blast ? Math.floor(blastBaseModels / 5) : 0
+  // Blast: +1 attack die "for every five models that were in the target unit
+  // when you selected it as the target". Cleave X (11e): +X attack dice per
+  // five such models, and only when the weapon fires at a single target —
+  // always the case in this single-unit simulator. The shooting unit selects
+  // all targets BEFORE any weapon resolves, so use the unit's size from the
+  // start of this trial, not the live count after earlier kills.
+  const perFiveTargetModels = Math.floor(blastBaseModels / 5)
+  const blastBonus = weapon.blast ? perFiveTargetModels : 0
+  const cleaveBonus = weapon.cleaveEnabled
+    ? Math.max(1, weapon.cleaveValue || 1) * perFiveTargetModels
+    : 0
+  const attackDiceBonus = blastBonus + cleaveBonus
 
   // Each weapon instance rolls its attack dice independently (so D3+1 with
-  // weaponCount 2 gives two separate rolls), and Blast adds its bonus to
-  // every roll.
+  // weaponCount 2 gives two separate rolls), and Blast/Cleave add their bonus
+  // to every roll.
   //
   // Random-Attacks reroll: with `single` scope, only ONE attack-die in this
   // entire pool may be rerolled — pick the lowest qualifying roll across all
@@ -199,14 +206,14 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
     }
     for (let i = 0; i < allRolls.length; i++) {
       const sum = allRolls[i].reduce((s, x) => s + x, attacksParsed.flat)
-      totalAttacks += Math.max(0, sum + blastBonus)
+      totalAttacks += Math.max(0, sum + attackDiceBonus)
     }
   } else {
     for (let i = 0; i < weaponCount; i++) {
       const rolled = attackRerollT > 0
         ? rollDiceExprWithReroll(attacksParsed, attackRerollT, attackScope)
         : rollDiceExpr(attacksParsed)
-      totalAttacks += Math.max(0, rolled + blastBonus)
+      totalAttacks += Math.max(0, rolled + attackDiceBonus)
     }
   }
 
@@ -222,10 +229,15 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       let hitMod = (target.minusOneToHit ? 1 : 0)
       // +1 to Hit: subtract from threshold (lower is better).
       if (weapon.plusOneHit) hitMod -= 1
-      // 10e rule: roll modifiers cap at ±1.
+      // Roll modifiers cap at ±1.
       if (hitMod > 1) hitMod = 1
       if (hitMod < -1) hitMod = -1
-      const hitThr = clampThreshold(weapon.toHit + hitMod)
+      // Benefit of Cover (11e): worsen the attack's BS characteristic by 1.
+      // This is a characteristic modifier, not a hit-roll modifier, so it is
+      // not subject to the ±1 roll cap and stacks on top of -1 to Hit.
+      // Negated by Ignores Cover.
+      const coverPenalty = target.benefitOfCover && !weapon.ignoresCover ? 1 : 0
+      const hitThr = clampThreshold(weapon.toHit + coverPenalty + hitMod)
       const critHitThr = weapon.critHitEnabled && weapon.critHit ? weapon.critHit : 6
       const hr = rollD6WithReroll(hitThr, weapon.hitReroll, critHitThr, hitBudget)
       if (!hr.success) continue
@@ -258,14 +270,14 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
         if (t.minusOneToWound) mod += 1
         if (t.minusOneToWoundIfStronger && weapon.strength > t.toughness) mod += 1
         // +1 to Wound (e.g. Lance on the charge, certain stratagems): -1 to
-        // the wound threshold. Per 10e, all roll modifiers cap at ±1 below.
+        // the wound threshold (capped with the rest below).
         if (weapon.plusOneWound) mod -= 1
-        // 10e rule: roll modifiers cap at ±1.
+        // Roll modifiers cap at ±1.
         if (mod > 1) mod = 1
         if (mod < -1) mod = -1
         let critWoundThr = weapon.critWound || 6
         // Anti-X+: critical wound on natural X+. Successful wounds also count
-        // at X+ if that's better than the base threshold (per 10e rules).
+        // at X+ if that's better than the base threshold (per 11e rules).
         if (weapon.antiEnabled && weapon.antiValue) {
           critWoundThr = weapon.antiValue
           baseThr = Math.min(baseThr, weapon.antiValue)
@@ -277,7 +289,7 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       }
 
       // 2b. Devastating Wounds: critical wound deals damage as mortal wounds,
-      // skipping the save. Per 10e RAW these attacks are deferred until all
+      // skipping the save. Per 11e RAW these attacks are deferred until all
       // other attacks made by the attacking unit have been resolved — we just
       // roll the damage now and queue it; allocation happens after the weapon
       // loop in `simulateAttack`.
@@ -287,17 +299,11 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       }
 
       // 3. Save roll. Pick the better (lower) of modified armor save or invuln.
-      // Benefit of Cover: +1 to armor save (not invuln). Does not apply to
-      // Sv 3+ or better vs AP 0 attacks. Negated by Ignores Cover. The 10e
-      // "save can never be improved by more than +1" cap is implicit because
-      // BoC is the only save modifier we model.
+      // Benefit of Cover is no longer a save modifier in 11e — it worsens the
+      // attacker's BS in the hit step (see above).
       const ap = weapon.ap || 0
       const baseSave = t.save || 7
-      const coverApplies =
-        t.benefitOfCover &&
-        !weapon.ignoresCover &&
-        !(baseSave <= 3 && ap === 0)
-      const armorMod = clampThreshold(baseSave + ap - (coverApplies ? 1 : 0))
+      const armorMod = clampThreshold(baseSave + ap)
       const invuln = (t.invulnSave && t.invulnSave >= 2 && t.invulnSave <= 6) ? t.invulnSave : 7
       const effSave = Math.min(armorMod, invuln)
       if (effSave <= 6) {
@@ -358,7 +364,7 @@ export const simulateAttack = (weapons, targetProfiles, numSimulations = DEFAULT
 
     let damageThisTrial = 0
     // Devastating Wounds attacks are buffered here and resolved AFTER all
-    // weapons (the "attacking unit") have fired, per 10e RAW.
+    // weapons (the "attacking unit") have fired, per 11e RAW.
     const deferredDevWounds = []
     for (const w of weapons) {
       if (state.activeProfile >= state.profiles.length) break

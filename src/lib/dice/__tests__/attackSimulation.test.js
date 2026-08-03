@@ -39,6 +39,8 @@ const baseWeapon = (overrides = {}) => ({
   torrent: false,
   plusOneWound: false,
   blast: false,
+  cleaveEnabled: false,
+  cleaveValue: 1,
   plusOneHit: false,
   ignoresCover: false,
   critHitEnabled: false,
@@ -128,6 +130,21 @@ describe('simulateAttack — Blast', () => {
   })
 })
 
+describe('simulateAttack — Cleave X', () => {
+  it('adds X * floor(target_models / 5) attack dice', () => {
+    // 1 attack base, Cleave 2, 10 models in target → +2*2 = +4, so 5 attacks.
+    // Auto-hit (torrent), S5 vs T4 wounds on 3+ (4/6), save 7+ (no save), 1 dmg.
+    // Expected damage = 5 * (4/6) ≈ 3.33
+    const r = simulateAttack(
+      [baseWeapon({ attacks: '1', torrent: true, strength: 5, cleaveEnabled: true, cleaveValue: 2 })],
+      [baseTarget({ models: 10, save: 7 })],
+      N
+    )
+    expect(r.expectedDamage).toBeGreaterThan(3.05)
+    expect(r.expectedDamage).toBeLessThan(3.6)
+  })
+})
+
 describe('simulateAttack — +1 Wound', () => {
   it('S=15 vs T=1 with +1 Wound still wounds on 2+ (clamp floor, never 1+)', () => {
     // BS auto-hit. Wound base for S>=2T is 2+; +1 wound gives -1 to threshold,
@@ -144,7 +161,7 @@ describe('simulateAttack — +1 Wound', () => {
   })
 })
 
-describe('simulateAttack — ±1 modifier cap (10e rule)', () => {
+describe('simulateAttack — ±1 modifier cap (11e rule)', () => {
   it('+1 to Hit and -1 to Hit cancel out (modifier arithmetic correctness)', () => {
     // Pre-condition for the cap rule: modifiers from both sides must net
     // properly. BS 3+, target has -1 to hit (worsens to 4+ → 3/6).
@@ -248,41 +265,54 @@ describe('simulateAttack — natural 1 always fails', () => {
   })
 })
 
-describe('simulateAttack — Benefit of Cover & Ignores Cover', () => {
-  it('Benefit of Cover improves a 5+ save vs AP 0', () => {
-    // AP 0 hits a Sv 5+ in cover should be saved as 4+.
-    // Auto-hit, S4 vs T4 (3+), no cover → unsaved chance = (4/6) * (3/6) = 0.333
-    // With cover (save 4+) → unsaved chance = (4/6) * (3/6) = 0.333... wait,
-    // wound chance is the same (3+), save changes. Unsaved chance:
-    //   no cover: (4/6) save fails = 1 - (4/6) wait save 5+ passes on 5,6 = 2/6, fails 4/6
-    //   in cover: save 4+ passes on 4,5,6 = 3/6, fails 3/6
-    // So damage per attack drops by factor 3/4.
+describe('simulateAttack — Benefit of Cover (11e) & Ignores Cover', () => {
+  it('worsens the attack\'s BS characteristic by 1 (−1 to hit)', () => {
+    // 11e: cover no longer touches the save — it worsens the attacker's BS.
+    // Non-torrent BS 3+, S5 vs T4 (wound 3+), save 7+ (no save), 1 dmg, so
+    // damage scales with hit probability only.
+    //   no cover:   hit on 3+ = 4/6
+    //   with cover: hit on 4+ = 3/6  → ratio ≈ 0.75
     const noCover = simulateAttack(
-      [baseWeapon({ attacks: '10', torrent: true })],
-      [baseTarget({ models: 100, save: 5 })],
+      [baseWeapon({ attacks: '10', toHit: 3, strength: 5 })],
+      [baseTarget({ models: 100, save: 7 })],
       N
     )
     const withCover = simulateAttack(
-      [baseWeapon({ attacks: '10', torrent: true })],
-      [baseTarget({ models: 100, save: 5, benefitOfCover: true })],
+      [baseWeapon({ attacks: '10', toHit: 3, strength: 5 })],
+      [baseTarget({ models: 100, save: 7, benefitOfCover: true })],
       N
     )
     expect(withCover.expectedDamage).toBeLessThan(noCover.expectedDamage)
-    // ratio should be ~0.75
     const ratio = withCover.expectedDamage / noCover.expectedDamage
     expect(ratio).toBeGreaterThan(0.65)
     expect(ratio).toBeLessThan(0.85)
   })
 
+  it('has no effect under Torrent (auto-hit)', () => {
+    const noCover = simulateAttack(
+      [baseWeapon({ attacks: '10', torrent: true, strength: 5 })],
+      [baseTarget({ models: 100, save: 7 })],
+      N
+    )
+    const withCover = simulateAttack(
+      [baseWeapon({ attacks: '10', torrent: true, strength: 5 })],
+      [baseTarget({ models: 100, save: 7, benefitOfCover: true })],
+      N
+    )
+    const ratio = withCover.expectedDamage / noCover.expectedDamage
+    expect(ratio).toBeGreaterThan(0.9)
+    expect(ratio).toBeLessThan(1.1)
+  })
+
   it('Ignores Cover negates Benefit of Cover', () => {
     const noCover = simulateAttack(
-      [baseWeapon({ attacks: '10', torrent: true })],
-      [baseTarget({ models: 100, save: 5 })],
+      [baseWeapon({ attacks: '10', toHit: 3, strength: 5 })],
+      [baseTarget({ models: 100, save: 7 })],
       N
     )
     const withCoverIgnored = simulateAttack(
-      [baseWeapon({ attacks: '10', torrent: true, ignoresCover: true })],
-      [baseTarget({ models: 100, save: 5, benefitOfCover: true })],
+      [baseWeapon({ attacks: '10', toHit: 3, strength: 5, ignoresCover: true })],
+      [baseTarget({ models: 100, save: 7, benefitOfCover: true })],
       N
     )
     const ratio = withCoverIgnored.expectedDamage / noCover.expectedDamage
@@ -290,20 +320,26 @@ describe('simulateAttack — Benefit of Cover & Ignores Cover', () => {
     expect(ratio).toBeLessThan(1.1)
   })
 
-  it('Benefit of Cover does not apply to Sv 3+ vs AP 0', () => {
-    const noCover = simulateAttack(
-      [baseWeapon({ attacks: '10', torrent: true })],
-      [baseTarget({ models: 100, save: 3 })],
+  it('stacks with −1 to Hit (cover is a characteristic modifier, not capped)', () => {
+    // BS 3+, S5 vs T4 (wound 3+), save 7+.
+    //   cover only:        hit on 4+ = 3/6
+    //   cover + −1 to hit: hit on 5+ = 2/6   (stacked to −2)
+    // If they did NOT stack (capped at −1), both would be 3/6 (ratio ≈ 1).
+    const coverOnly = simulateAttack(
+      [baseWeapon({ attacks: '10', toHit: 3, strength: 5 })],
+      [baseTarget({ models: 100, save: 7, benefitOfCover: true })],
       N
     )
-    const withCover = simulateAttack(
-      [baseWeapon({ attacks: '10', torrent: true })],
-      [baseTarget({ models: 100, save: 3, benefitOfCover: true })],
+    const coverPlusMinus = simulateAttack(
+      [baseWeapon({ attacks: '10', toHit: 3, strength: 5 })],
+      [baseTarget({ models: 100, save: 7, benefitOfCover: true, minusOneToHit: true })],
       N
     )
-    const ratio = withCover.expectedDamage / noCover.expectedDamage
-    expect(ratio).toBeGreaterThan(0.9)
-    expect(ratio).toBeLessThan(1.1)
+    expect(coverPlusMinus.expectedDamage).toBeLessThan(coverOnly.expectedDamage)
+    const ratio = coverPlusMinus.expectedDamage / coverOnly.expectedDamage
+    // 2/6 ÷ 3/6 ≈ 0.667; far below the ~1.0 you'd see if it were capped at −1.
+    expect(ratio).toBeGreaterThan(0.55)
+    expect(ratio).toBeLessThan(0.8)
   })
 })
 
@@ -392,8 +428,8 @@ describe('simulateAttack — single-model wipe equals expected kills', () => {
   })
 })
 
-describe('simulateAttack — Devastating Wounds (10e RAW)', () => {
-  // Per the 10e core rule, a [DEVASTATING WOUNDS] critical wound inflicts
+describe('simulateAttack — Devastating Wounds (11e RAW)', () => {
+  // Per the 11e core rule, a [DEVASTATING WOUNDS] critical wound inflicts
   // mortal wounds equal to the attack's Damage characteristic, AND those
   // mortal wounds do not spill across models if the model they are
   // allocated to is destroyed (excess is lost). Furthermore, DW attacks

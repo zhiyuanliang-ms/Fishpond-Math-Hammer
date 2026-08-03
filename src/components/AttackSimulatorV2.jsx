@@ -89,6 +89,8 @@ const makeWeapon = (overrides = {}) => ({
   devastatingWounds: false,
   plusOneWound: false,
   blast: false,
+  cleaveEnabled: false,
+  cleaveValue: 1,
   plusOneHit: false,
   ignoresCover: false,
   antiEnabled: false,
@@ -350,7 +352,6 @@ function AttackSimulatorV2() {
   const [savedTargetSets, setSavedTargetSets] = useState(() => listSavedTargetSets())
   const [selectedTargetSet, setSelectedTargetSet] = useState('')
   const [isMobile] = useState(detectMobile)
-  const [pendingOpenWeaponId, setPendingOpenWeaponId] = useState(null)
   const fileInputRef = useRef(null)
 
   // ---- share-link auto-load ----
@@ -402,14 +403,6 @@ function AttackSimulatorV2() {
     return () => clearTimeout(handle)
   }, [toast])
 
-  // Clear the auto-open marker after one render so React only triggers the
-  // dialog on the freshly-added weapon's initial mount.
-  useEffect(() => {
-    if (pendingOpenWeaponId == null) return
-    const handle = setTimeout(() => setPendingOpenWeaponId(null), 0)
-    return () => clearTimeout(handle)
-  }, [pendingOpenWeaponId])
-
   const nextDefaultName = (list, prefix) => {
     const used = new Set(list.map((it) => it.name))
     for (let i = 1; i <= list.length + 1; i++) {
@@ -430,7 +423,6 @@ function AttackSimulatorV2() {
   const addWeapon = () => {
     const fresh = makeWeapon({ name: nextDefaultName(weapons, 'Weapon') })
     setWeapons((ws) => [...ws, fresh])
-    setPendingOpenWeaponId(fresh.id)
     invalidateResult()
   }
   const removeWeapon = (i) => {
@@ -834,7 +826,7 @@ function AttackSimulatorV2() {
             title={t('editionTooltip')}
             aria-label={t('editionTooltip')}
           >
-            10E
+            11E
           </span>
         </span>
       }
@@ -959,7 +951,7 @@ function AttackSimulatorV2() {
                   index={i}
                   total={weapons.length}
                   upgrades={perWeaponUpgrades[i]}
-                  openOnMount={w.id === pendingOpenWeaponId}
+                  unitBuffs={unitBuffs}
                   onChange={(next) => updateWeapon(i, next)}
                   onRemove={() => removeWeapon(i)}
                   onMoveUp={() => moveWeapon(i, -1)}

@@ -67,6 +67,8 @@ const makeWeapon = (overrides = {}) => ({
   devastatingWounds: false,
   plusOneWound: false,
   blast: false,
+  cleaveEnabled: false,
+  cleaveValue: 1,
   plusOneHit: false,
   ignoresCover: false,
   antiEnabled: false,
@@ -781,7 +783,7 @@ function AttackSimulator() {
             title={t('editionTooltip')}
             aria-label={t('editionTooltip')}
           >
-            10E
+            11E
           </span>
         </span>
       }

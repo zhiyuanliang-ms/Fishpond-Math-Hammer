@@ -11,6 +11,7 @@ import {
   antiOptions,
   critOptions,
   sustainedOptions,
+  cleaveOptions,
 } from '../../lib/dice/options'
 import { isValidDiceExpression, parseDiceExpression } from '../../lib/dice'
 import { useT } from '../attackSim/lang'
@@ -102,6 +103,15 @@ function WeaponBuffsEditor({ profile, onChange }) {
       label: t('blast'),
       active: profile.blast,
       onToggle: () => update({ blast: !profile.blast }),
+    },
+    {
+      key: 'cleave',
+      label: t('cleave'),
+      active: profile.cleaveEnabled,
+      onToggle: () => update({ cleaveEnabled: !profile.cleaveEnabled }),
+      value: profile.cleaveValue?.toString() || '1',
+      valueOptions: cleaveOptions,
+      onValueChange: (v) => update({ cleaveValue: parseInt(v, 10) }),
     },
     {
       key: 'plusOneWound',

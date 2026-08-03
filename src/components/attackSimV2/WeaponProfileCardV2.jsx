@@ -1,16 +1,19 @@
 // Slim weapon profile card for V2:
 //   1. stat-line (Weapons / Attacks / BS-WS / S / AP / D)  — same as v1
-//   2. Read-only summary of active buffs + rerolls
+//   2. Read-only summary of active buffs + rerolls (built from the effective
+//      profile, i.e. the weapon merged with the unit-wide buff layer, so
+//      unit-granted buffs show up here too)
 //   3. "Edit buffs…" button that opens WeaponBuffsDialog
 //
-// The summary chips highlight any buff that was upgraded or freshly granted
-// by the unit-wide buff layer (passed in as `upgrades`).
+// The summary is built from the effective profile (weapon merged with the
+// unit-wide buffs). The `upgrades` map highlights any chip that the unit
+// layer freshly granted or strengthened.
 
 import { useState } from 'react'
 import { Settings } from 'lucide-react'
 import { FormSelect } from '../ui'
 import { toHitOptions } from '../../lib/dice/options'
-import { isValidDiceExpression } from '../../lib/dice'
+import { isValidDiceExpression, mergeWeaponWithUnit } from '../../lib/dice'
 import IntInput from '../attackSim/IntInput'
 import ProfileCardShell from '../attackSim/ProfileCardShell'
 import { useT } from '../attackSim/lang'
@@ -44,6 +47,7 @@ function buildSummary(profile, upgrades, t) {
   if (profile.ignoresCover) push('ignoresCover', t('ignoresCover'))
   if (profile.devastatingWounds) push('devastating', t('devastatingWounds'))
   if (profile.blast) push('blast', t('blast'))
+  if (profile.cleaveEnabled) push('cleave', `${t('cleave')} ${profile.cleaveValue}`)
   if (profile.plusOneWound) push('plusOneWound', t('plusOneWound'))
   if (profile.antiEnabled)
     push('anti', `${t('anti')} ${profile.antiValue}+`)
@@ -69,7 +73,7 @@ function WeaponProfileCardV2({
   index,
   total,
   upgrades,
-  openOnMount = false,
+  unitBuffs,
   onChange,
   onRemove,
   onMoveUp,
@@ -77,7 +81,7 @@ function WeaponProfileCardV2({
   onDuplicate,
 }) {
   const { t } = useT()
-  const [editing, setEditing] = useState(() => openOnMount)
+  const [editing, setEditing] = useState(false)
   const update = (patch) => onChange({ ...profile, ...patch })
 
   const attacksValid = isValidDiceExpression(profile.attacks)
@@ -90,7 +94,9 @@ function WeaponProfileCardV2({
     o.value === 'torrent' ? { ...o, label: t('torrent') } : o
   )
 
-  const summary = buildSummary(profile, upgrades, t)
+  // Build the summary from the effective profile so buffs granted purely by
+  // the unit-wide layer (which aren't on the raw weapon) still appear.
+  const summary = buildSummary(mergeWeaponWithUnit(profile, unitBuffs), upgrades, t)
 
   return (
     <>
