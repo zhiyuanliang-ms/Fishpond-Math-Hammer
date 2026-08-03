@@ -50,6 +50,7 @@ describe('isUnitBuffsEmpty', () => {
   })
 
   it('any enabled buff is non-empty', () => {
+    expect(isUnitBuffsEmpty(makeUnitBuffs({ plusOneAttack: true }))).toBe(false)
     expect(isUnitBuffsEmpty(makeUnitBuffs({ lethalHits: true }))).toBe(false)
     expect(isUnitBuffsEmpty(makeUnitBuffs({ hitReroll: 'reroll-one' }))).toBe(false)
     expect(isUnitBuffsEmpty(makeUnitBuffs({ sustainedHits: '1' }))).toBe(false)
@@ -60,6 +61,14 @@ describe('mergeWeaponWithUnit', () => {
   it('returns weapon unchanged when unit buffs are empty', () => {
     const w = weapon({ lethalHits: true })
     expect(mergeWeaponWithUnit(w, makeUnitBuffs())).toBe(w)
+  })
+
+  it('adds one attack to fixed and random Attacks characteristics', () => {
+    const unit = makeUnitBuffs({ plusOneAttack: true })
+
+    expect(mergeWeaponWithUnit(weapon({ attacks: '4' }), unit).attacks).toBe('5')
+    expect(mergeWeaponWithUnit(weapon({ attacks: 'D6+1' }), unit).attacks).toBe('D6+2')
+    expect(mergeWeaponWithUnit(weapon({ attacks: '2D6-1' }), unit).attacks).toBe('2D6')
   })
 
   it('OR-merges boolean buffs', () => {

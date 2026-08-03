@@ -31,6 +31,12 @@ function UnitBuffsPanel({ value, onChange }) {
 
   const buffs = [
     {
+      key: 'plusOneAttack',
+      label: t('plusOneAttack'),
+      active: value.plusOneAttack,
+      onToggle: () => update({ plusOneAttack: !value.plusOneAttack }),
+    },
+    {
       key: 'plusOneHit',
       label: t('plusOneHit'),
       active: value.plusOneHit,
