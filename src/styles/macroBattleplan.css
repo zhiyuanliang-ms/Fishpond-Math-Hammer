@@ -101,11 +101,12 @@
 
 .mbp11-field {
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 56px 1fr;
   align-items: center;
   gap: 6px;
-  flex: 1 1 190px;
-  max-width: 300px;
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 260px;
 }
 
 .mbp11-field__label {
@@ -138,8 +139,8 @@
 }
 
 .mbp11-layouts {
-  flex: 1 1 190px;
-  max-width: 300px;
+  flex: 1 1 180px;
+  max-width: 240px;
 }
 
 .mbp11-layouts .mbp-segmented__btn {

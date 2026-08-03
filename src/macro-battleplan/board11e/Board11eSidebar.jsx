@@ -43,12 +43,12 @@ function BattleplanSection() {
       </div>
       <div className="mbp11-setup">
         <DispositionSelect
-          label="You"
+          label="Attacker"
           value={setup.mine}
           onChange={(mine) => setSetup({ mine })}
         />
         <DispositionSelect
-          label="Foe"
+          label="Defender"
           value={setup.theirs}
           onChange={(theirs) => setSetup({ theirs })}
         />
