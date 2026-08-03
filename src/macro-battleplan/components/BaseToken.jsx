@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Circle, Ellipse, Group, Line, Rect, Text } from 'react-konva'
-import { useBoardStore, baseRadiusPx } from '../store/boardStore'
+import { baseRadiusPx } from '../store/boardStore'
+import { useBoard } from '../store/boardContext'
 import { PX_PER_INCH, MM_PER_INCH, DEFAULT_BASE_COLOR } from '../config/board'
 import { useGroupDragMove } from '../hooks/useGroupDragMove'
 
@@ -15,14 +16,14 @@ export function BaseToken({ piece }) {
   const fillColor = piece.color ?? DEFAULT_BASE_COLOR
   const auraPx = piece.auraIn ? piece.auraIn * PX_PER_INCH : 0
 
-  const selectPiece = useBoardStore((s) => s.selectPiece)
-  const toggleSelection = useBoardStore((s) => s.toggleSelection)
-  const bringToFront = useBoardStore((s) => s.bringToFront)
-  const updatePiece = useBoardStore((s) => s.commitPieceUpdate)
-  const commitMoveSelected = useBoardStore((s) => s.commitMoveSelected)
-  const selected = useBoardStore((s) => s.selectedIds.includes(piece.id))
-  const selectedIds = useBoardStore((s) => s.selectedIds)
-  const showMoveDistance = useBoardStore((s) => s.showMoveDistance)
+  const selectPiece = useBoard((s) => s.selectPiece)
+  const toggleSelection = useBoard((s) => s.toggleSelection)
+  const bringToFront = useBoard((s) => s.bringToFront)
+  const updatePiece = useBoard((s) => s.commitPieceUpdate)
+  const commitMoveSelected = useBoard((s) => s.commitMoveSelected)
+  const selected = useBoard((s) => s.selectedIds.includes(piece.id))
+  const selectedIds = useBoard((s) => s.selectedIds)
+  const showMoveDistance = useBoard((s) => s.showMoveDistance)
 
   const dragStartRef = useRef(null)
   const [dragPos, setDragPos] = useState(null)

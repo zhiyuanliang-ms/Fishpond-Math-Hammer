@@ -10,7 +10,7 @@ import {
   Undo2,
   GripHorizontal,
 } from 'lucide-react'
-import { useBoardStore } from '../store/boardStore'
+import { useBoard } from '../store/boardContext'
 import { DRAW_COLOR_PALETTE } from '../config/board'
 
 const TOOLS = [
@@ -22,14 +22,14 @@ const TOOLS = [
 ]
 
 export function MacroToolBar() {
-  const activeTool = useBoardStore((s) => s.activeTool)
-  const setActiveTool = useBoardStore((s) => s.setActiveTool)
-  const drawings = useBoardStore((s) => s.drawings)
-  const clearDrawings = useBoardStore((s) => s.clearDrawings)
-  const drawColor = useBoardStore((s) => s.drawColor)
-  const setDrawColor = useBoardStore((s) => s.setDrawColor)
-  const undo = useBoardStore((s) => s.undo)
-  const canUndo = useBoardStore((s) => (s.history?.length ?? 0) > 0)
+  const activeTool = useBoard((s) => s.activeTool)
+  const setActiveTool = useBoard((s) => s.setActiveTool)
+  const drawings = useBoard((s) => s.drawings)
+  const clearDrawings = useBoard((s) => s.clearDrawings)
+  const drawColor = useBoard((s) => s.drawColor)
+  const setDrawColor = useBoard((s) => s.setDrawColor)
+  const undo = useBoard((s) => s.undo)
+  const canUndo = useBoard((s) => (s.history?.length ?? 0) > 0)
 
   const [colorOpen, setColorOpen] = useState(false)
   const colorWrapRef = useRef(null)

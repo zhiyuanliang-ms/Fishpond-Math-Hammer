@@ -15,6 +15,7 @@ import {
   FlipHorizontal2,
 } from 'lucide-react'
 import { useBoardStore } from '../store/boardStore'
+import { useBoard } from '../store/boardContext'
 import { MacroScoreboard } from './MacroScoreboard'
 import { TipsBanner } from './TipsBanner'
 import {
@@ -122,7 +123,7 @@ function ToggleRow({ label, icon, checked, onChange, title }) {
   )
 }
 
-function BasesSection({ addBase, addOvalBase, addRectBase }) {
+export function BasesSection({ addBase, addOvalBase, addRectBase }) {
   const [tab, setTab] = useState('round')
   const [rectWidth, setRectWidth] = useState('2')
   const [rectHeight, setRectHeight] = useState('1')
@@ -624,16 +625,16 @@ function BoardSection() {
   )
 }
 
-function SelectionSection() {
-  const selectedIds = useBoardStore((s) => s.selectedIds)
-  const piece = useBoardStore((s) => {
+export function SelectionSection() {
+  const selectedIds = useBoard((s) => s.selectedIds)
+  const piece = useBoard((s) => {
     if (s.selectedIds.length !== 1) return null
     return s.pieces.find((p) => p.id === s.selectedIds[0]) ?? null
   })
-  const updatePiece = useBoardStore((s) => s.commitPieceUpdate)
-  const copySelected = useBoardStore((s) => s.copySelected)
-  const pasteCopied = useBoardStore((s) => s.pasteCopied)
-  const deleteSelected = useBoardStore((s) => s.deleteSelected)
+  const updatePiece = useBoard((s) => s.commitPieceUpdate)
+  const copySelected = useBoard((s) => s.copySelected)
+  const pasteCopied = useBoard((s) => s.pasteCopied)
+  const deleteSelected = useBoard((s) => s.deleteSelected)
 
   const isBase = piece?.kind === 'base'
   const aura = isBase ? piece.auraIn ?? 0 : 0

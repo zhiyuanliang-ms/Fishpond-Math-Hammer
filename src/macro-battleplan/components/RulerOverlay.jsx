@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Layer, Line, Rect, Text } from 'react-konva'
-import { useBoardStore } from '../store/boardStore'
+import { useBoard } from '../store/boardContext'
 import { PX_PER_INCH } from '../config/board'
 
 const X_MARK_TTL_MS = 2000
@@ -9,7 +9,7 @@ const DRAG_THRESHOLD_PX = 4
 let nextId = 1
 
 export function RulerOverlay({ stageRef }) {
-  const activeTool = useBoardStore((s) => s.activeTool)
+  const activeTool = useBoard((s) => s.activeTool)
   const active = activeTool === 'ruler'
 
   const [drag, setDrag] = useState(null)

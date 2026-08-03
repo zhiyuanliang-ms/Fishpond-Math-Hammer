@@ -75,7 +75,10 @@ src/
 │   ├── Sidebar.jsx
 │   └── Footer.jsx
 │   ├── macro-battleplan/
-│   │   ├── MacroBattleplan.jsx     # Top-level board-planning page
+│   │   ├── MacroBattleplan.jsx     # Edition shell (11e / legacy 10e tabs)
+│   │   ├── MacroBattleplan11e.jsx  # 11e battleplans — placeholder
+│   │   ├── MacroBattleplan10e.jsx  # Deprecated 10e board-planning page
+│   │   ├── legacyEdition.js        # 10e opt-in flag (toggled from About)
 │   │   ├── components/             # Board canvas, sidebar, toolbar, tokens
 │   │   ├── config/board.js         # Map geometry, base sizes, terrain presets
 │   │   ├── hooks/                  # Feature-scoped keyboard / drag helpers
@@ -174,6 +177,13 @@ failures (anything other than quota) are also swallowed silently, so
 the app degrades gracefully to a non-persistent session.
 
 ## Macro Battleplan persistence (`src/macro-battleplan/store/boardStore.js`)
+
+Two small `localStorage` keys live outside the board store:
+
+| Key | Owner | Values | Purpose |
+|---|---|---|---|
+| `macroBattleplan:legacy10e` | `legacyEdition.js` | `'1'` or absent | Opt-in that reveals the deprecated 10e tab. Toggled by the **Legacy Content** checkbox on the About page. |
+| `macroBattleplan:edition` | `MacroBattleplan.jsx` | `'11e'` \| `'10e'` | Last-selected edition tab. Ignored (forced to `11e`) while the opt-in is off. |
 
 Macro Battleplan keeps board state in a Zustand store because several UI
 surfaces mutate the same data: the Konva canvas, the sidebar actions, the

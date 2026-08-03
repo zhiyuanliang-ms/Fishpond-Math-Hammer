@@ -22,11 +22,11 @@ No CSS framework and no backend.
 | Route | Component | Purpose |
 |---|---|---|
 | `/` and `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
-| `/macro-battleplan` | `MacroBattleplan` | Interactive 60" × 44" board planner for terrain, objectives, bases, and drawing overlays. |
+| `/macro-battleplan` | `MacroBattleplan` | Edition shell: 11e battleplans (placeholder) plus the deprecated, flag-gated 10e board planner. |
 | `/attack-simulator` | `AttackSimulator` | Full unit-vs-unit Monte Carlo simulator (multiple weapon profiles vs multiple target profiles, all 10e buffs). |
 | `/dice-roller` | `DiceRoller` | Roll up to 20 D6 and selectively reroll any face value (e.g. "reroll all 1s"). |
 | `/cheat-sheet` | `Cheatsheet` | Static probability tables (1D6 success chances and 2D6 sums) with color-coded risk levels. |
-| `/about` | `About` | Author / project info. |
+| `/about` | `About` | Author / project info, legacy-content opt-in, and local-storage reset. |
 
 Routing entry point: [App.jsx](../src/App.jsx).
 
@@ -70,6 +70,22 @@ Results:
 - Distribution chart of total models killed
 
 ### Macro Battleplan (`MacroBattleplan`)
+`MacroBattleplan` is only a shell that picks an edition:
+
+| Tab | Component | Status |
+|---|---|---|
+| 11th Edition (default) | `MacroBattleplan11e` | Placeholder. Will ship the official GW battleplans with the matchup-specific (primary-task colour vs colour) terrain layouts built in. |
+| 10th Edition | `MacroBattleplan10e` | Deprecated. Hidden unless the user opts in. |
+
+**Legacy 10e opt-in**
+- Toggled from the **Legacy Content** checkbox on the About page.
+- Backed by `src/macro-battleplan/legacyEdition.js`, which stores the choice in
+  `localStorage` under `macroBattleplan:legacy10e`.
+- `MacroBattleplan` reads the flag when it mounts. The last-selected tab is
+  persisted under `macroBattleplan:edition`, and is forced back to 11e whenever
+  the opt-in is off.
+
+#### 10e board (deprecated, flag-gated)
 Interactive deployment / movement board for a standard 60" × 44" 40k table.
 It supports:
 - **Bases, terrain, and objectives**: round and oval bases, 40 mm objective

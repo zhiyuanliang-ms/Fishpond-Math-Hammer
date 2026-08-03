@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { Layer, Transformer } from 'react-konva'
-import { useBoardStore } from '../store/boardStore'
+import { useBoard } from '../store/boardContext'
 
 const ROTATION_SNAPS = Array.from({ length: 24 }, (_, i) => i * 15)
 
 export function SelectionLayer({ stageRef }) {
   const transformerRef = useRef(null)
-  const selectedIds = useBoardStore((s) => s.selectedIds)
-  const pieces = useBoardStore((s) => s.pieces)
-  const updatePiece = useBoardStore((s) => s.commitPieceUpdate)
+  const selectedIds = useBoard((s) => s.selectedIds)
+  const pieces = useBoard((s) => s.pieces)
+  const updatePiece = useBoard((s) => s.commitPieceUpdate)
 
   const rotateEnabled = (() => {
     if (selectedIds.length !== 1) return false

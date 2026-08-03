@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Circle, Layer, Line, Rect, Text } from 'react-konva'
-import { useBoardStore } from '../store/boardStore'
+import { useBoard } from '../store/boardContext'
 import { PX_PER_INCH } from '../config/board'
 
 const STROKE_WIDTH = 2.5
@@ -34,11 +34,11 @@ function segPointDist2(ax, ay, bx, by, px, py) {
 }
 
 export function DrawingOverlay({ stageRef }) {
-  const activeTool = useBoardStore((s) => s.activeTool)
-  const drawings = useBoardStore((s) => s.drawings)
-  const addDrawing = useBoardStore((s) => s.addDrawing)
-  const removeDrawing = useBoardStore((s) => s.removeDrawing)
-  const drawColor = useBoardStore((s) => s.drawColor)
+  const activeTool = useBoard((s) => s.activeTool)
+  const drawings = useBoard((s) => s.drawings)
+  const addDrawing = useBoard((s) => s.addDrawing)
+  const removeDrawing = useBoard((s) => s.removeDrawing)
+  const drawColor = useBoard((s) => s.drawColor)
 
   const drawActive = activeTool === 'draw'
   const lineActive = activeTool === 'line'
