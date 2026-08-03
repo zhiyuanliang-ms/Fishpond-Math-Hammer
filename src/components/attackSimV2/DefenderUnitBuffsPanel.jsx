@@ -27,6 +27,12 @@ function DefenderUnitBuffsPanel({ value, onChange }) {
       onToggle: () => update({ benefitOfCover: !value.benefitOfCover }),
     },
     {
+      key: 'minusOneAp',
+      label: t('minusOneAp'),
+      active: !!value.minusOneAp,
+      onToggle: () => update({ minusOneAp: !value.minusOneAp }),
+    },
+    {
       key: 'minusOneToHit',
       label: t('minusOneHit'),
       active: !!value.minusOneToHit,

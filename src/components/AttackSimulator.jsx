@@ -94,6 +94,7 @@ const makeTarget = (overrides = {}) => ({
   minusOneDamage: false,
   damageOne: false,
   benefitOfCover: false,
+  minusOneAp: false,
   ...overrides,
 })
 

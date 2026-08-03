@@ -238,6 +238,7 @@ const target = (overrides = {}) => ({
   minusOneDamage: false,
   damageOne: false,
   benefitOfCover: false,
+  minusOneAp: false,
   ...overrides,
 })
 
@@ -266,11 +267,13 @@ describe('mergeTargetWithUnit', () => {
         rerollSaveOnes: true,
         minusOneToHit: true,
         benefitOfCover: true,
+        minusOneAp: true,
       })
     )
     expect(merged.rerollSaveOnes).toBe(true)
     expect(merged.minusOneToHit).toBe(true)
     expect(merged.benefitOfCover).toBe(true)
+    expect(merged.minusOneAp).toBe(true)
   })
 
   it('plain -1 to wound dominates the conditional variant', () => {

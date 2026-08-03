@@ -301,7 +301,9 @@ const resolveWeaponAgainstUnit = (weapon, unitState, blastBaseModels, deferredDe
       // 3. Save roll. Pick the better (lower) of modified armor save or invuln.
       // Benefit of Cover is no longer a save modifier in 11e — it worsens the
       // attacker's BS in the hit step (see above).
-      const ap = weapon.ap || 0
+      // -1 AP (defender buff, e.g. Armour of Contempt): reduce the attacker's
+      // AP by 1, never below 0 (no effect on AP 0 attacks).
+      const ap = t.minusOneAp ? Math.max(0, (weapon.ap || 0) - 1) : (weapon.ap || 0)
       const baseSave = t.save || 7
       const armorMod = clampThreshold(baseSave + ap)
       const invuln = (t.invulnSave && t.invulnSave >= 2 && t.invulnSave <= 6) ? t.invulnSave : 7

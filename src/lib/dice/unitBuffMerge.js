@@ -173,6 +173,7 @@ export const makeTargetUnitBuffs = (overrides = {}) => ({
   minusOneToWound: false,
   minusOneToWoundIfStronger: false,
   benefitOfCover: false,
+  minusOneAp: false,
   halfDamage: false,
   minusOneDamage: false,
   damageOne: false,
@@ -187,6 +188,7 @@ export const isTargetUnitBuffsEmpty = (u) => {
     u.minusOneToWound ||
     u.minusOneToWoundIfStronger ||
     u.benefitOfCover ||
+    u.minusOneAp ||
     u.halfDamage ||
     u.minusOneDamage ||
     u.damageOne
@@ -226,6 +228,7 @@ export const mergeTargetWithUnit = (target, unit) => {
   if (unit.rerollSaveOnes) merged.rerollSaveOnes = true
   if (unit.minusOneToHit) merged.minusOneToHit = true
   if (unit.benefitOfCover) merged.benefitOfCover = true
+  if (unit.minusOneAp) merged.minusOneAp = true
 
   // Plain -1 to wound dominates the conditional "if attacker stronger" form.
   if (unit.minusOneToWound || merged.minusOneToWound) {
@@ -258,6 +261,7 @@ export const describeTargetUpgrades = (target, unit) => {
   if (merged.rerollSaveOnes && !target.rerollSaveOnes) out.rerollSaveOnes = true
   if (merged.minusOneToHit && !target.minusOneToHit) out.minusOneToHit = true
   if (merged.benefitOfCover && !target.benefitOfCover) out.benefitOfCover = true
+  if (merged.minusOneAp && !target.minusOneAp) out.minusOneAp = true
   if (merged.minusOneToWound && !target.minusOneToWound) out.minusOneToWound = true
   if (merged.minusOneToWoundIfStronger && !target.minusOneToWoundIfStronger)
     out.minusOneToWoundIfStronger = true

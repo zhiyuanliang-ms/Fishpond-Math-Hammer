@@ -67,6 +67,7 @@ const baseTarget = (overrides = {}) => ({
   minusOneDamage: false,
   damageOne: false,
   benefitOfCover: false,
+  minusOneAp: false,
   ...overrides
 })
 
@@ -340,6 +341,44 @@ describe('simulateAttack — Benefit of Cover (11e) & Ignores Cover', () => {
     // 2/6 ÷ 3/6 ≈ 0.667; far below the ~1.0 you'd see if it were capped at −1.
     expect(ratio).toBeGreaterThan(0.55)
     expect(ratio).toBeLessThan(0.8)
+  })
+})
+
+describe('simulateAttack — −1 AP (defender buff)', () => {
+  it('reduces the attacker\'s AP by 1, improving the save', () => {
+    // Auto-hit, S5 vs T4 (wound 3+), AP 1, save 4+, 1 dmg.
+    //   no buff: save 4+ worsened by AP 1 → 5+ (fails 4/6)
+    //   -1 AP:   AP → 0, save stays 4+      (fails 3/6)  → ratio ≈ 0.75
+    const noBuff = simulateAttack(
+      [baseWeapon({ attacks: '10', torrent: true, strength: 5, ap: 1 })],
+      [baseTarget({ models: 100, save: 4 })],
+      N
+    )
+    const withBuff = simulateAttack(
+      [baseWeapon({ attacks: '10', torrent: true, strength: 5, ap: 1 })],
+      [baseTarget({ models: 100, save: 4, minusOneAp: true })],
+      N
+    )
+    expect(withBuff.expectedDamage).toBeLessThan(noBuff.expectedDamage)
+    const ratio = withBuff.expectedDamage / noBuff.expectedDamage
+    expect(ratio).toBeGreaterThan(0.65)
+    expect(ratio).toBeLessThan(0.85)
+  })
+
+  it('has no effect against AP 0 attacks', () => {
+    const noBuff = simulateAttack(
+      [baseWeapon({ attacks: '10', torrent: true, strength: 5, ap: 0 })],
+      [baseTarget({ models: 100, save: 4 })],
+      N
+    )
+    const withBuff = simulateAttack(
+      [baseWeapon({ attacks: '10', torrent: true, strength: 5, ap: 0 })],
+      [baseTarget({ models: 100, save: 4, minusOneAp: true })],
+      N
+    )
+    const ratio = withBuff.expectedDamage / noBuff.expectedDamage
+    expect(ratio).toBeGreaterThan(0.9)
+    expect(ratio).toBeLessThan(1.1)
   })
 })
 

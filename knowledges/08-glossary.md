@@ -49,6 +49,7 @@ For each attack:
 | **Cleave X** | `cleaveEnabled` + `cleaveValue` | +`X × floor(target_models / 5)` attack dice (single target only — always true in this sim). Snapshotted at trial start, like Blast. |
 | **Ignores Cover** | `ignoresCover` | Cancels the target's Benefit of Cover. |
 | **Benefit of Cover** | `benefitOfCover` (target) | 11e: worsens the attacker's BS by 1 (−1 to hit), not the save. A characteristic modifier, so it **stacks** on top of −1 to Hit and is not subject to the ±1 roll cap. Negated by Ignores Cover; no effect under Torrent. |
+| **−1 AP** | `minusOneAp` (target) | Reduces the attacker's AP by 1 (e.g. Armour of Contempt), improving the armour save. Floored at 0 — **no effect on AP 0 attacks**. Available per-target and as a Beta defender unit buff. |
 | **Reroll 1s / Reroll Failed / Reroll Non-Crit** | `REROLL_VALUES` | Reroll policies for hit/wound/save rolls. |
 | **Weapons (count)** | `modelsFiring` | Number of weapons firing this profile. Each rolls its attack dice independently. |
 

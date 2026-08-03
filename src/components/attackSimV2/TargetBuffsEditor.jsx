@@ -109,6 +109,12 @@ function TargetBuffsEditor({ profile, onChange }) {
       active: profile.benefitOfCover,
       onToggle: () => update({ benefitOfCover: !profile.benefitOfCover }),
     },
+    {
+      key: 'minusOneAp',
+      label: t('minusOneAp'),
+      active: profile.minusOneAp,
+      onToggle: () => update({ minusOneAp: !profile.minusOneAp }),
+    },
   ]
 
   return (

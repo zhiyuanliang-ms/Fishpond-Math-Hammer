@@ -125,6 +125,7 @@ const translations = {
     damageMinus1: 'DAMAGE −1',
     damageOne: 'DAMAGE = 1',
     benefitOfCover: 'BENEFIT OF COVER',
+    minusOneAp: '−1 AP',
 
     // Reroll option labels
     noReroll: 'No Reroll',
@@ -263,7 +264,7 @@ const translations = {
     damageMinus1: '伤害 −1',
     damageOne: '伤害 = 1',
     benefitOfCover: '掩体增益',
-
+    minusOneAp: '−1 AP',
     // Reroll option labels
     noReroll: '无重投',
     rerollOnes: '重投1',
