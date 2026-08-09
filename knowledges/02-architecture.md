@@ -79,10 +79,10 @@ src/
 │   │   ├── MacroBattleplan11e.jsx  # 11e board page
 │   │   ├── MacroBattleplan10e.jsx  # Deprecated 10e board-planning page
 │   │   ├── legacyEdition.js        # 10e opt-in flag (toggled from About)
-│   │   ├── board11e/               # 11e-only canvas, sidebar, layout reference
+│   │   ├── board11e/               # 11e canvas, sidebar, map + mission dialogs
 │   │   ├── components/             # Board canvas, sidebar, toolbar, tokens
 │   │   ├── config/board.js         # Map geometry, base sizes, terrain presets
-│   │   ├── config/battleplans11e.js # 45 official 11e maps + board geometry
+│   │   ├── config/battleplans11e.js # 45 maps, mission matrix + asset URLs
 │   │   ├── hooks/                  # Feature-scoped keyboard / drag helpers
 │   │   ├── store/boardStore.js     # 10e Zustand state + persistence + history
 │   │   ├── store/board11eStore.js  # 11e Zustand state (bases, drawings, setup)
@@ -142,6 +142,12 @@ but still too page-specific for the app-wide `ui/` layer.
 board canvas, board/sidebar controls, selection overlays, and terrain/base
 tokens are feature-private and should not be moved into `src/components/ui/`
 unless they become genuinely reusable outside Macro Battleplan.
+
+The 11e Force Disposition matrix remains owned by
+`config/battleplans11e.js`. `MacroBattleplan11e` resolves the current pairing
+once and passes that result to both the map canvas and `MissionCardsButton`;
+the dialog does not keep a second matchup state. The exhaustive directed-
+pairing and mission-asset check lives in `config/__tests__/battleplans11e.test.js`.
 
 ## Persistence layer (`src/lib/attackSimStorage.js`)
 

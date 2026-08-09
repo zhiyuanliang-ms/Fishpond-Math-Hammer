@@ -22,7 +22,7 @@ No CSS framework and no backend.
 | Route | Component | Purpose |
 |---|---|---|
 | `/` and `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
-| `/macro-battleplan` | `MacroBattleplan` | Edition shell: 11e battleplans (placeholder) plus the deprecated, flag-gated 10e board planner. |
+| `/macro-battleplan` | `MacroBattleplan` | Edition shell: 11e official battleplans plus the deprecated, flag-gated 10e board planner. |
 | `/attack-simulator` | `AttackSimulator` | Full unit-vs-unit Monte Carlo simulator (multiple weapon profiles vs multiple target profiles, all 10e buffs). |
 | `/dice-roller` | `DiceRoller` | Roll up to 20 D6 and selectively reroll any face value (e.g. "reroll all 1s"). |
 | `/cheat-sheet` | `Cheatsheet` | Static probability tables (1D6 success chances and 2D6 sums) with color-coded risk levels. |
@@ -84,6 +84,10 @@ Results:
   `tools/build_11e_map_assets.py`: `map_XX.webp` is the clean board (880×1200 =
   20 px/inch, matching `PX_PER_INCH`) and `map_XX_ref.webp` is the original
   annotated page map shown by the reference pop-up on the canvas.
+- The book button on the canvas opens both Primary Mission cards for the
+  current Force Disposition matchup. Mirror matchups share one card; the 11
+  two-sided missions include a flip control. The 25 fronts and 11 backs live
+  under `public/battleplans-11e/primary-missions/`.
 - Terrain, objectives and deployment zones are part of the printed layout and
   are not user-editable; only bases and drawings are.
 

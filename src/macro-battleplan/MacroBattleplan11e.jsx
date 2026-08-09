@@ -7,6 +7,7 @@ import { useRef } from 'react'
 import { Board11eCanvas } from './board11e/Board11eCanvas'
 import { Board11eSidebar } from './board11e/Board11eSidebar'
 import { MapReferenceButton } from './board11e/MapReferenceButton'
+import { MissionCardsButton } from './board11e/MissionCardsButton'
 import { MacroToolBar } from './components/MacroToolBar'
 import { TipsButton } from './components/TipsButton'
 import { BoardStoreProvider } from './store/boardContext'
@@ -44,6 +45,7 @@ export default function MacroBattleplan11e() {
               src={battleplan ? mapReferenceUrl(battleplan.map) : null}
               title={referenceTitle}
             />
+            <MissionCardsButton battleplan={battleplan} />
           </main>
         </div>
         <Board11eSidebar />

@@ -20,6 +20,7 @@ export const MAP_11E_X = Math.round((STAGE_11E_W - MAP_11E_W) / 2)
 export const MAP_11E_Y = Math.round((STAGE_11E_H - MAP_11E_H) / 2)
 
 export const MAP_11E_ASSET_BASE = '/battleplans-11e'
+export const PRIMARY_MISSION_ASSET_BASE = `${MAP_11E_ASSET_BASE}/primary-missions`
 
 export const FORCE_DISPOSITIONS = [
   { id: 'take-and-hold', label: 'Take And Hold', color: '#157233' },
@@ -84,7 +85,32 @@ const BATTLEPLANS = [
 
 const DISPOSITION_BY_ID = new Map(FORCE_DISPOSITIONS.map((d) => [d.id, d]))
 
+const MISSIONS_WITH_BACK = new Set([
+  'Death Trap',
+  'Extract Relic',
+  'Gather Intel',
+  'Locate And Deny',
+  'Sabotage',
+  'Secure Asset',
+  'Smoke And Mirrors',
+  'Surveil The Foe',
+  'Triangulation',
+  'Vanguard Operation',
+  'Vital Link',
+])
+
 export const getDisposition = (id) => DISPOSITION_BY_ID.get(id) ?? null
+
+export function getMissionCardImages(disposition, mission) {
+  if (!getDisposition(disposition) || !mission) return null
+
+  const slug = mission.toLowerCase().replaceAll("'", '').replaceAll(' ', '-')
+  const base = `${PRIMARY_MISSION_ASSET_BASE}/${disposition}/${slug}`
+  return {
+    front: `${base}.png`,
+    back: MISSIONS_WITH_BACK.has(mission) ? `${base}-back.png` : null,
+  }
+}
 
 export const mapImageUrl = (map) => `${MAP_11E_ASSET_BASE}/${map}.webp`
 
