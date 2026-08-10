@@ -1,5 +1,5 @@
-// Slim weapon profile card for V2:
-//   1. stat-line (Weapons / Attacks / BS-WS / S / AP / D)  — same as v1
+// Slim weapon profile card:
+//   1. stat-line (Weapons / Attacks / BS-WS / S / AP / D)
 //   2. Read-only summary of active buffs + rerolls (built from the effective
 //      profile, i.e. the weapon merged with the unit-wide buff layer, so
 //      unit-granted buffs show up here too)

@@ -1,5 +1,5 @@
-// Slim defender profile card for V2:
-//   1. stat-line (Models / Toughness / Wounds / Sv / Inv) — same as v1
+// Slim defender profile card:
+//   1. stat-line (Models / Toughness / Wounds / Sv / Inv)
 //   2. Read-only summary of active defensive buffs
 //   3. "Edit buffs…" button that opens TargetBuffsDialog
 //

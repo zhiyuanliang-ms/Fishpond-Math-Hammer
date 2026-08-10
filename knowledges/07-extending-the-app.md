@@ -78,16 +78,16 @@ Reruns will pick it up; no other change needed.
 4. If the modifier affects the wound distribution shape (like lethal hits
    does), update `woundDistribution.js` accordingly.
 5. If it should also apply to the full Attack Simulator, update
-   `attackSimulation.js` and the relevant card in `components/attackSim/`.
+   `attackSimulation.js` and the relevant editor in `components/attackSimV2/`.
 6. Update [`08-glossary.md`](./08-glossary.md) with the new term.
 
 ## Recipe 6: Add a new buff to the Attack Simulator
 
-Weapon buffs live on `WeaponProfileCard`; defensive buffs on
-`TargetProfileCard`. Both render via `BuffChipGroup`.
+Weapon buffs live in `WeaponBuffsEditor`; defensive buffs in
+`TargetBuffsEditor`. Both render via `BuffChipGroup`.
 
 1. **Default the field** in `makeWeapon` / `makeTarget` (in
-   `AttackSimulator.jsx`). Booleans default to `false`; numeric thresholds
+   `AttackSimulatorV2.jsx`). Booleans default to `false`; numeric thresholds
    default to `0` when off.
 2. **Add a chip** to the relevant card's `buffs` array. For mutually
    exclusive groups (e.g. damage-reduction), the `onToggle` should clear

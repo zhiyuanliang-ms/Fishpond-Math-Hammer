@@ -1,15 +1,6 @@
-// Attack Simulator — V2 UI with the two-layer buff model.
-//
-// Differences from v1:
-//   • A "Unit-wide Buffs" panel appears between the toolbar and the weapon
-//     list. The buffs there apply to every weapon profile when the
-//     simulation runs.
-//   • Weapon cards show a slim summary of active buffs and open a dialog
-//     for full editing.
-//   • Buff merge uses `mergeWeaponWithUnit` (best wins, no stacking).
-//
-// Storage and share-links are independent from v1 so toggling the UI never
-// silently overwrites a v1 scenario.
+// Attack Simulator with separate profile and unit-wide buff layers.
+// Weapon cards show compact summaries and open dialogs for full buff editing.
+// Unit buffs are merged into each profile using best-wins, no-stacking rules.
 
 import { useEffect, useRef, useState } from 'react'
 import { Download, Upload, Save, Trash2, Link2, ClipboardCopy } from 'lucide-react'
@@ -385,7 +376,6 @@ function AttackSimulatorV2() {
     setResult(null)
     setError(null)
     stripParam()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ---- auto-save ----

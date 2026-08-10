@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Page } from './ui'
-import { clearAllAttackSimStorage } from '../lib/attackSimStorage'
+import { clearAllAttackSimStorage } from '../lib/attackSimV2Storage'
 import { useBoardStore } from '../macro-battleplan/store/boardStore'
 import { isLegacy10eEnabled, setLegacy10eEnabled } from '../macro-battleplan/legacyEdition'
 import '../styles/about.css'

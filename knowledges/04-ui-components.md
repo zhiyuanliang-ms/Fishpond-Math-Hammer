@@ -106,7 +106,8 @@ you change theme colors, do it here.
 If a component is reused only inside one page, keep it in that page-private
 folder instead of promoting it prematurely. The Attack Simulator's
 `ProfileCardShell.jsx` and `SavedSetControls.jsx` live in
-`src/components/attackSim/` for exactly that reason.
+`src/components/attackSim/` and `src/components/attackSimV2/` for exactly that
+reason.
 
 ## When to add a new ui component
 Add one when **two or more** page-level components would otherwise duplicate

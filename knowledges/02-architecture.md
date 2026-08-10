@@ -34,8 +34,9 @@ src/
 ├── App.jsx                     # Router shell
 ├── main.jsx                    # ReactDOM.createRoot entry
 ├── lib/
-│   ├── attackSimStorage.js      # localStorage helpers for Attack Simulator
-│   └── dice/                   # PURE LOGIC — see 03-dice-library.md
+│   ├── attackSimV2Storage.js    # localStorage helpers for Attack Simulator
+│   ├── attackSimV2Share.js      # Compact scenario share-link codec
+│   └── dice/                    # PURE LOGIC — see 03-dice-library.md
 │       ├── index.js            # Barrel export
 │       ├── constants.js        # DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES
 │       ├── probability.js      # D6 success / crit math
@@ -60,16 +61,18 @@ src/
 │   │   │   ├── SavedSetControls.jsx
 │   │   │   ├── BuffChipGroup.jsx
 │   │   └── selectStyles.js
-│   ├── attackSim/              # Attack-Simulator-only sub-components
+│   ├── attackSim/              # Shared simulator inputs, shell, and language
 │   │   ├── IntInput.jsx
 │   │   ├── ProfileCardShell.jsx
-│   │   ├── WeaponProfileCard.jsx
-│   │   ├── TargetProfileCard.jsx
-│   │   │   └── ...
+│   │   └── lang.jsx
+│   ├── attackSimV2/            # Profile cards, buff editors, and dialogs
+│   │   ├── WeaponProfileCardV2.jsx
+│   │   ├── TargetProfileCardV2.jsx
+│   │   └── ...
 │   ├── DiceCalculator.jsx      # Hosts the two calculator tabs
 │   ├── WoundSuccessCalculator.jsx
 │   ├── KillProbabilityCalculator.jsx
-│   ├── AttackSimulator.jsx     # Top-level Attack Simulator page
+│   ├── AttackSimulatorV2.jsx   # Top-level Attack Simulator page
 │   ├── Cheatsheet.jsx
 │   ├── About.jsx
 │   ├── Sidebar.jsx
@@ -94,6 +97,7 @@ src/
     ├── sidebar.css
   ├── diceCalculator.css      # Calculator page layout only
     ├── attackSimulator.css
+    ├── attackSimulatorV2.css
   ├── macroBattleplan.css     # Macro Battleplan layout + controls + canvas UI
   ├── diceRoller.css
     ├── cheatsheet.css
@@ -129,8 +133,8 @@ src/
   for shared components.
 
 ## Page-specific sub-component folders
-`src/components/attackSim/` is the first example of a **page-private**
-sub-component folder — sub-components used only by `AttackSimulator.jsx`.
+`src/components/attackSim/` and `src/components/attackSimV2/` are examples of
+**page-private** sub-component folders used only by `AttackSimulatorV2.jsx`.
 The rule: if a sub-component is only used by one page and is not generic
 enough for `ui/`, put it in a same-named subfolder (`<page>Sim/`,
 `<page>/`, etc.). This keeps `components/` from getting flat-cluttered
@@ -149,16 +153,16 @@ once and passes that result to both the map canvas and `MissionCardsButton`;
 the dialog does not keep a second matchup state. The exhaustive directed-
 pairing and mission-asset check lives in `config/__tests__/battleplans11e.test.js`.
 
-## Persistence layer (`src/lib/attackSimStorage.js`)
+## Persistence layer (`src/lib/attackSimV2Storage.js`)
 
 The Attack Simulator persists four things to **`localStorage`**:
 
 | Key | Shape | Purpose |
 |---|---|---|
-| `attackSim:scenario:v1` | `{ weapons, targets, highPrecision }` | Auto-saved current scenario (debounced 300 ms). |
-| `attackSim:library:v1` | `{ [name]: scenario }` | Named scenario slots ("Save As…"). |
-| `attackSim:weaponSets:v1` | `{ [name]: { weapons } }` | Reusable attacker profile sets. |
-| `attackSim:targetSets:v1` | `{ [name]: { targets } }` | Reusable defender profile sets. |
+| `attackSimV2:scenario:v1` | `{ weapons, targets, unitBuffs, defenderUnitBuffs, highPrecision }` | Auto-saved current scenario (debounced 300 ms). |
+| `attackSimV2:library:v1` | `{ [name]: scenario }` | Named scenario slots ("Save As…"). |
+| `attackSimV2:weaponSets:v1` | `{ [name]: { weapons, unitBuffs } }` | Reusable attacker profile sets. |
+| `attackSimV2:targetSets:v1` | `{ [name]: { targets, defenderUnitBuffs } }` | Reusable defender profile sets. |
 
 ### Why `localStorage` (and not IndexedDB)
 The data is small and the API needs to be **synchronous** so React's lazy

@@ -1,7 +1,6 @@
-// Full buff/reroll editor for a single weapon profile in V2.
+// Full buff/reroll editor for a single weapon profile.
 // Lives inside the dialog opened from WeaponProfileCardV2.
-// Mirrors the v1 inline editor but extracted into its own component so the
-// summary card stays compact.
+// Extracted into its own component so the summary card stays compact.
 
 import { FormSelect, BuffChipGroup } from '../ui'
 import {

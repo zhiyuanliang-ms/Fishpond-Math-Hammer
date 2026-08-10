@@ -1,6 +1,5 @@
-// Full per-target buff editor for V2. Mirrors the body of v1's
-// TargetProfileCard.buffs[] but lives in its own component so the slim card
-// can stay focused on stats + summary.
+// Full per-target buff editor. Lives in its own component so the slim card
+// can stay focused on stats and its active-buff summary.
 
 import { BuffChipGroup } from '../ui'
 import { useT } from '../attackSim/lang'

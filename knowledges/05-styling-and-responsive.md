@@ -20,6 +20,7 @@
 | `diceCalculator.css` | Calculator page layout: `.wound-success-container`, `.kill-probability-container`, `.form-side`, `.result-side`, `.simulation-note`. |
 | `formCard.css` | Shared compact card primitives: `.stat-line`, `.stat-cell`, `.reroll-row`, `.reroll-cell`, `.buff-row`, `.buff-chip*`. |
 | `attackSimulator.css` | Attack Simulator-specific layout and controls: `.attack-sim-toolbar`, `.toolbar-button`, `.toolbar-select`, `.profile-card`, `.precision-toggle`, etc. Same dark/amber palette as the rest. |
+| `attackSimulatorV2.css` | Profile summaries, unit-buff panels, and buff-dialog layout for the Attack Simulator. |
 | `diceRoller.css` | Dice Roller-specific actions, tray, face counts, and result sections. |
 | `cheatsheet.css` | Probability table. |
 | `about.css`, `footer.css` | Self-explanatory. |

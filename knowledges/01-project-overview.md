@@ -21,9 +21,9 @@ No CSS framework and no backend.
 ## Pages (routes)
 | Route | Component | Purpose |
 |---|---|---|
-| `/` and `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
+| `/` and `/attack-simulator` | `AttackSimulatorV2` | Full unit-vs-unit Monte Carlo simulator with profile and unit-wide buffs. |
+| `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
 | `/macro-battleplan` | `MacroBattleplan` | Edition shell: 11e official battleplans plus the deprecated, flag-gated 10e board planner. |
-| `/attack-simulator` | `AttackSimulator` | Full unit-vs-unit Monte Carlo simulator (multiple weapon profiles vs multiple target profiles, all 10e buffs). |
 | `/dice-roller` | `DiceRoller` | Roll up to 20 D6 and selectively reroll any face value (e.g. "reroll all 1s"). |
 | `/cheat-sheet` | `Cheatsheet` | Static probability tables (1D6 success chances and 2D6 sums) with color-coded risk levels. |
 | `/about` | `About` | Author / project info, legacy-content opt-in, and local-storage reset. |
@@ -47,7 +47,7 @@ Computes:
 - Probability of killing all target models (with 95% CI)
 - Expected unsaved attacks (closed-form binomial, not simulated)
 
-### Attack Simulator (`AttackSimulator`)
+### Attack Simulator (`AttackSimulatorV2`)
 Monte Carlo simulator for the full 10e attack sequence end-to-end. Unlike
 the Kill Probability Calculator (which models a single weapon vs a single
 target profile with fixed damage), this one supports:

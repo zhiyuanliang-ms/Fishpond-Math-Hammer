@@ -1,6 +1,5 @@
-// Share-code helpers for Attack Simulator V2. Independent from v1 so the
-// `s` and `s2` query params can coexist without confusion: a v2 link won't
-// accidentally load in v1 and silently drop the unit-buffs layer.
+// Share-code helpers for the Attack Simulator. The existing `s2` query
+// parameter remains stable so previously shared links continue to load.
 
 const SHARE_SCHEMA = 1
 export const SHARE_QUERY_PARAM = 's2'

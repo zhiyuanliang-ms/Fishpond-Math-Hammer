@@ -92,7 +92,7 @@
 }
 
 /* The pool tray is the page's hero: translucent amber container matching
-   the Attack Simulator v2 wrapper style. Stays visible when empty. */
+  the Attack Simulator wrapper style. Stays visible when empty. */
 .dice-pool-section .dice-tray {
   padding: 14px;
   background: rgba(244, 185, 66, 0.04);

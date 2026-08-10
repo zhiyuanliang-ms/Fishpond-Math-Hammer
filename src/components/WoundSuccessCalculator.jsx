@@ -193,7 +193,7 @@ function WoundSuccessCalculator() {
 
   // Buff chip descriptors split into Hit and Wound groups so each section
   // of the form gets its own labeled set of toggles. Same shape as
-  // WeaponProfileCard's buffs so the visual style stays consistent.
+  // Attack Simulator profile buffs so the visual style stays consistent.
   const hitBuffs = [
     {
       key: 'critHit',

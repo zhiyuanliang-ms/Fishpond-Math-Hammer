@@ -1,4 +1,4 @@
-// Unit-wide buff panel for V2.
+// Unit-wide buff panel for the attacking unit.
 //
 // Holds buffs that the firing unit grants to every weapon (stratagems,
 // detachment rules, auras). At simulation time these get merged into each

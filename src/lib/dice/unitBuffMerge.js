@@ -156,7 +156,7 @@ export const mergeWeaponWithUnit = (weapon, unit) => {
 // got upgraded (or freshly added) by the unit layer. Used by the UI to
 // annotate the summary chips on the weapon card.
 //
-// Chip keys match those in WeaponProfileCard's `buffs` array.
+// Chip keys match those used by the weapon profile summary.
 export const describeUpgrades = (weapon, unit) => {
   const out = {}
   if (!weapon || isUnitBuffsEmpty(unit)) return out
@@ -187,7 +187,7 @@ export const describeUpgrades = (weapon, unit) => {
 //
 // Defending units can also receive buffs from stratagems / auras / Warlord
 // traits (Armor of Contempt, Smokescreen, Lone Operative). These apply to
-// every model profile in the unit, so the V2 UI exposes them as a single
+// every model profile in the unit, so the UI exposes them as a single
 // "Unit Buffs" panel that merges into each target profile at simulation
 // time. The merge rules use the same "best wins, no stacking" principle as
 // the attacker side.

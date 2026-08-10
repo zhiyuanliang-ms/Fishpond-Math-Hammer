@@ -1,21 +1,33 @@
-// Attack Simulator V2 — same shape as v1 storage but on independent keys so
-// switching the UI toggle never silently clobbers a v1 scenario (and vice
-// versa). V2 scenarios carry an extra `unitBuffs` field for the unit-wide
-// buff layer; v1 reads/writes don't know about it.
-
-import { StorageQuotaError } from './attackSimStorage'
+// Persistence helpers for the current Attack Simulator. Existing V2 key
+// names remain unchanged so saved scenarios survive the removal of the
+// retired simulator UI.
 
 const KEY_CURRENT = 'attackSimV2:scenario:v1'
 const KEY_LIBRARY = 'attackSimV2:library:v1'
 const KEY_WEAPON_SETS = 'attackSimV2:weaponSets:v1'
 const KEY_TARGET_SETS = 'attackSimV2:targetSets:v1'
 
-export const ATTACK_SIM_V2_STORAGE_KEYS = [
+export const ATTACK_SIM_STORAGE_KEYS = [
   KEY_CURRENT,
   KEY_LIBRARY,
   KEY_WEAPON_SETS,
   KEY_TARGET_SETS,
 ]
+
+const RETIRED_STORAGE_KEYS = [
+  'attackSim:scenario:v1',
+  'attackSim:library:v1',
+  'attackSim:weaponSets:v1',
+  'attackSim:targetSets:v1',
+  'attackSim:uiVersion',
+]
+
+export class StorageQuotaError extends Error {
+  constructor(message = 'Browser storage quota exceeded.') {
+    super(message)
+    this.name = 'StorageQuotaError'
+  }
+}
 
 const isQuotaError = (e) =>
   e && (
@@ -135,4 +147,12 @@ export const loadNamedTargetSet = (name) =>
 export const deleteNamedTargetSet = (name) =>
   deleteFromCollection(KEY_TARGET_SETS, name)
 
-export { StorageQuotaError }
+export const clearAllAttackSimStorage = () => {
+  for (const key of [...ATTACK_SIM_STORAGE_KEYS, ...RETIRED_STORAGE_KEYS]) {
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      /* ignore */
+    }
+  }
+}
