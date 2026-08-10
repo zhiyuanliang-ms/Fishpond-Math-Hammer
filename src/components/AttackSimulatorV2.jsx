@@ -20,6 +20,7 @@ import {
   isUnitBuffsEmpty,
   mergeWeaponWithUnit,
   describeUpgrades,
+  normalizeWeaponProfileRerolls,
   makeTargetUnitBuffs,
   isTargetUnitBuffsEmpty,
   mergeTargetWithUnit,
@@ -133,7 +134,8 @@ const omitId = (entry = {}) => {
   delete next.id
   return next
 }
-const rehydrateWeapon = (entry = {}) => makeWeapon(omitId(entry))
+const rehydrateWeapon = (entry = {}) =>
+  normalizeWeaponProfileRerolls(makeWeapon(omitId(entry)))
 const rehydrateTarget = (entry = {}) => makeTarget(omitId(entry))
 const stripId = (entry = {}) => omitId(entry)
 
@@ -422,7 +424,11 @@ function AttackSimulatorV2() {
 
   // ---- weapon mutators ----
   const updateWeapon = (i, next) =>
-    setWeapons((ws) => ws.map((w, idx) => (idx === i ? next : w)))
+    setWeapons((ws) =>
+      ws.map((w, idx) =>
+        idx === i ? normalizeWeaponProfileRerolls(next) : w
+      )
+    )
   const addWeapon = () => {
     const fresh = makeWeapon({ name: nextDefaultName(weapons, 'Weapon') })
     setWeapons((ws) => [...ws, fresh])

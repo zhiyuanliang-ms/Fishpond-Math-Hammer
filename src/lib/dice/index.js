@@ -17,6 +17,7 @@ export { simulateKillProbability } from './simulation'
 export { calculateKillProbability } from './killProbability'
 
 export { simulateAttack } from './attackSimulation'
+export { normalizeWeaponProfileRerolls } from './weaponProfile'
 export {
   makeUnitBuffs,
   isUnitBuffsEmpty,

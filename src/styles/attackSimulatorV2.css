@@ -272,6 +272,15 @@
   gap: 16px;
 }
 
+.weapon-buffs-editor > .reroll-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+}
+
+.weapon-buffs-editor > .reroll-row .reroll-cell {
+  min-width: 0;
+}
+
 .weapon-buffs-dialog-footer {
   display: flex;
   justify-content: flex-end;
