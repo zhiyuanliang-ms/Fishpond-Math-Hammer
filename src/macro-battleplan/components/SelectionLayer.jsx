@@ -1,22 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { Layer, Transformer } from 'react-konva'
-import { useBoard } from '../store/boardContext'
+import { useBoard11eStore } from '../store/board11eStore'
 
 const ROTATION_SNAPS = Array.from({ length: 24 }, (_, i) => i * 15)
 
 export function SelectionLayer({ stageRef }) {
   const transformerRef = useRef(null)
-  const selectedIds = useBoard((s) => s.selectedIds)
-  const pieces = useBoard((s) => s.pieces)
-  const updatePiece = useBoard((s) => s.commitPieceUpdate)
+  const selectedIds = useBoard11eStore((s) => s.selectedIds)
+  const pieces = useBoard11eStore((s) => s.pieces)
+  const updatePiece = useBoard11eStore((s) => s.commitPieceUpdate)
 
   const rotateEnabled = (() => {
     if (selectedIds.length !== 1) return false
     const piece = pieces.find((p) => p.id === selectedIds[0])
     if (!piece) return false
-    if (piece.kind === 'objective') return false
     // Round bases have no meaningful rotation — hide the rotate handle.
-    if (piece.kind === 'base' && piece.shape === 'round') return false
+    if (piece.shape === 'round') return false
     return true
   })()
 

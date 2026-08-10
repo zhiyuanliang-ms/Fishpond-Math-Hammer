@@ -23,10 +23,10 @@ No CSS framework and no backend.
 |---|---|---|
 | `/` and `/attack-simulator` | `AttackSimulatorV2` | Full unit-vs-unit Monte Carlo simulator with profile and unit-wide buffs. |
 | `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
-| `/macro-battleplan` | `MacroBattleplan` | Edition shell: 11e official battleplans plus the deprecated, flag-gated 10e board planner. |
+| `/macro-battleplan` | `MacroBattleplan` | Official 11e battleplans with base, drawing, ruler, mission-card, and scoring tools. |
 | `/dice-roller` | `DiceRoller` | Roll up to 20 D6 and selectively reroll any face value (e.g. "reroll all 1s"). |
 | `/cheat-sheet` | `Cheatsheet` | Static probability tables (1D6 success chances and 2D6 sums) with color-coded risk levels. |
-| `/about` | `About` | Author / project info, legacy-content opt-in, and local-storage reset. |
+| `/about` | `About` | Author / project info and local-storage reset. |
 
 Routing entry point: [App.jsx](../src/App.jsx).
 
@@ -70,14 +70,9 @@ Results:
 - Distribution chart of total models killed
 
 ### Macro Battleplan (`MacroBattleplan`)
-`MacroBattleplan` is only a shell that picks an edition:
+The official GW battleplan for the chosen Force Disposition pairing is the
+board, with base, drawing, ruler, mission-card, and scoring tools on top.
 
-| Tab | Component | Status |
-|---|---|---|
-| 11th Edition (default) | `MacroBattleplan11e` | The official GW battleplan for the chosen Force Disposition pairing is the board, with the shared base / drawing / ruler tools on top. |
-| 10th Edition | `MacroBattleplan10e` | Deprecated. Hidden unless the user opts in. |
-
-**11e battleplans**
 - 5 Force Dispositions × 15 pairings × 3 terrain layouts (A/B/C) = 45 official maps,
   indexed in `src/macro-battleplan/config/battleplans11e.js`.
 - Two image variants per map in `public/battleplans-11e/`, built by
@@ -90,36 +85,6 @@ Results:
   under `public/battleplans-11e/primary-missions/`.
 - Terrain, objectives and deployment zones are part of the printed layout and
   are not user-editable; only bases and drawings are.
-
-**Legacy 10e opt-in**
-- Toggled from the **Legacy Content** checkbox on the About page.
-- Backed by `src/macro-battleplan/legacyEdition.js`, which stores the choice in
-  `localStorage` under `macroBattleplan:legacy10e`.
-- `MacroBattleplan` reads the flag when it mounts. The last-selected tab is
-  persisted under `macroBattleplan:edition`, and is forced back to 11e whenever
-  the opt-in is off.
-
-#### 10e board (deprecated, flag-gated)
-Interactive deployment / movement board for a standard 60" × 44" 40k table.
-It supports:
-- **Bases, terrain, and objectives**: round and oval bases, 40 mm objective
-  markers, and the built-in WTC terrain presets.
-- **Board editing tools**: drag/rotate pieces, lock terrain/objectives,
-  mirror the battlefield setup, show live movement distance, and use drawing /
-  ruler overlays on top of the board.
-- **Persistence**: named saved boards in browser storage plus full-board JSON
-  import/export.
-- **Battlefield sharing**: compact text codes for the current terrain and
-  objective layout only.
-
-Battlefield share codes are intentionally narrower than a full board save:
-- They include only **terrain + objective** placement, not bases or drawings.
-- The compact format stores a terrain preset id plus x/y/rotation, and
-  objective x/y placement.
-- Load accepts either the raw code itself or a URL / fragment containing
-  `battlefield=...`.
-- Loading a battlefield code clears the current board pieces, rebuilds the
-  shared terrain/objective layout, and leaves drawings untouched.
 
 ## What the app does NOT do
 - No backend, no analytics, no auth.

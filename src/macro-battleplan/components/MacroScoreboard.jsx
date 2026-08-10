@@ -1,4 +1,4 @@
-import { useBoard } from '../store/boardContext'
+import { useBoard11eStore } from '../store/board11eStore'
 
 const ROUNDS = [1, 2, 3, 4, 5]
 
@@ -9,9 +9,9 @@ function clamp(n) {
   return n
 }
 
-export function MacroScoreboard({ showPrimaryName = true }) {
-  const state = useBoard((s) => s.scoreboard)
-  const setScoreboard = useBoard((s) => s.setScoreboard)
+export function MacroScoreboard() {
+  const state = useBoard11eStore((s) => s.scoreboard)
+  const setScoreboard = useBoard11eStore((s) => s.setScoreboard)
 
   const total = (side) =>
     ROUNDS.reduce(
@@ -57,16 +57,6 @@ export function MacroScoreboard({ showPrimaryName = true }) {
 
   return (
     <div className="mbp-scoreboard">
-      {showPrimaryName && (
-        <input
-          className="mbp-scoreboard__primary-input"
-          type="text"
-          placeholder="Primary Mission"
-          value={state.primaryName}
-          onChange={(e) => setScoreboard((s) => ({ ...s, primaryName: e.target.value }))}
-        />
-      )}
-
       <table className="mbp-scoretable">
         <thead>
           <tr>

@@ -1,21 +1,11 @@
-import { useState } from 'react'
 import { Page } from './ui'
 import { clearAllAttackSimStorage } from '../lib/attackSimV2Storage'
-import { useBoardStore } from '../macro-battleplan/store/boardStore'
-import { isLegacy10eEnabled, setLegacy10eEnabled } from '../macro-battleplan/legacyEdition'
+import { useBoard11eStore } from '../macro-battleplan/store/board11eStore'
 import '../styles/about.css'
 
 function About() {
-  const [legacy10e, setLegacy10e] = useState(isLegacy10eEnabled)
-
   const handleCoffeeClick = () => {
     alert('This function is not implemented yet')
-  }
-
-  const handleLegacyToggle = (event) => {
-    const { checked } = event.target
-    setLegacy10e(checked)
-    setLegacy10eEnabled(checked)
   }
 
   const handleClearStorage = () => {
@@ -27,7 +17,7 @@ function About() {
     if (!window.confirm(msg)) return
     try {
       clearAllAttackSimStorage()
-      useBoardStore.getState().clearAllStorage?.()
+      useBoard11eStore.getState().clearAllStorage()
     } catch {
       /* ignore */
     }
@@ -73,19 +63,6 @@ function About() {
               <button onClick={handleCoffeeClick} className="coffee-button">
                 Buy Me a Coffee
               </button>
-            </div>
-
-            <div className="legacy-info">
-              <h4>Legacy Content</h4>
-              <p>
-                The 10th edition Macro Battleplan board is deprecated. Turn this
-                on to keep it available as an extra tab on the Macro Battleplan
-                page.
-              </p>
-              <label className="legacy-toggle">
-                <input type="checkbox" checked={legacy10e} onChange={handleLegacyToggle} />
-                <span>Show 10th edition battleplan</span>
-              </label>
             </div>
 
             <div className="storage-info">

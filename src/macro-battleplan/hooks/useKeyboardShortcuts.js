@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useBoard } from '../store/boardContext'
+import { useBoard11eStore } from '../store/board11eStore'
 
 /**
  * Global keyboard shortcuts:
@@ -12,13 +12,13 @@ import { useBoard } from '../store/boardContext'
  *  Ctrl/Cmd + C / V    copy / paste selection
  */
 export function useKeyboardShortcuts() {
-  const commitMoveSelected = useBoard((s) => s.commitMoveSelected)
-  const rotateSelected = useBoard((s) => s.rotateSelected)
-  const deleteSelected = useBoard((s) => s.deleteSelected)
-  const setActiveTool = useBoard((s) => s.setActiveTool)
-  const undo = useBoard((s) => s.undo)
-  const copySelected = useBoard((s) => s.copySelected)
-  const pasteCopied = useBoard((s) => s.pasteCopied)
+  const commitMoveSelected = useBoard11eStore((s) => s.commitMoveSelected)
+  const rotateSelected = useBoard11eStore((s) => s.rotateSelected)
+  const deleteSelected = useBoard11eStore((s) => s.deleteSelected)
+  const setActiveTool = useBoard11eStore((s) => s.setActiveTool)
+  const undo = useBoard11eStore((s) => s.undo)
+  const copySelected = useBoard11eStore((s) => s.copySelected)
+  const pasteCopied = useBoard11eStore((s) => s.pasteCopied)
 
   useEffect(() => {
     const handler = (e) => {

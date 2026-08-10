@@ -7,7 +7,6 @@ import { BaseToken } from '../components/BaseToken'
 import { SelectionLayer } from '../components/SelectionLayer'
 import { RulerOverlay } from '../components/RulerOverlay'
 import { DrawingOverlay } from '../components/DrawingOverlay'
-import { useBoard } from '../store/boardContext'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useBoard11eStore } from '../store/board11eStore'
 import { MAP_11E_W, MAP_11E_H, MAP_11E_X, MAP_11E_Y } from '../config/battleplans11e'
@@ -40,10 +39,10 @@ function useMapImage(src) {
 export function Board11eCanvas({ containerRef, mapSrc }) {
   const stageRef = useRef(null)
   const [size, setSize] = useState({ width: 800, height: 600 })
-  const pieces = useBoard((s) => s.pieces)
-  const selectPiece = useBoard((s) => s.selectPiece)
-  const selectMany = useBoard((s) => s.selectMany)
-  const activeTool = useBoard((s) => s.activeTool)
+  const pieces = useBoard11eStore((s) => s.pieces)
+  const selectPiece = useBoard11eStore((s) => s.selectPiece)
+  const selectMany = useBoard11eStore((s) => s.selectMany)
+  const activeTool = useBoard11eStore((s) => s.activeTool)
   const mapImage = useMapImage(mapSrc)
 
   const [rubber, setRubber] = useState(null)

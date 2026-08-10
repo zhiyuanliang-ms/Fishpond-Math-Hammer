@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Circle, Layer, Line, Rect, Text } from 'react-konva'
-import { useBoard } from '../store/boardContext'
+import { useBoard11eStore } from '../store/board11eStore'
 import { PX_PER_INCH } from '../config/board'
 
 const STROKE_WIDTH = 2.5
@@ -34,11 +34,11 @@ function segPointDist2(ax, ay, bx, by, px, py) {
 }
 
 export function DrawingOverlay({ stageRef }) {
-  const activeTool = useBoard((s) => s.activeTool)
-  const drawings = useBoard((s) => s.drawings)
-  const addDrawing = useBoard((s) => s.addDrawing)
-  const removeDrawing = useBoard((s) => s.removeDrawing)
-  const drawColor = useBoard((s) => s.drawColor)
+  const activeTool = useBoard11eStore((s) => s.activeTool)
+  const drawings = useBoard11eStore((s) => s.drawings)
+  const addDrawing = useBoard11eStore((s) => s.addDrawing)
+  const removeDrawing = useBoard11eStore((s) => s.removeDrawing)
+  const drawColor = useBoard11eStore((s) => s.drawColor)
 
   const drawActive = activeTool === 'draw'
   const lineActive = activeTool === 'line'
@@ -227,7 +227,7 @@ export function DrawingOverlay({ stageRef }) {
       return p ? { x: p.x, y: p.y } : null
     }
     const eraseAt = (p) => {
-      const list = useBoardStore.getState().drawings
+      const list = useBoard11eStore.getState().drawings
       const toRemove = []
       for (const d of list) {
         const pts = d.points

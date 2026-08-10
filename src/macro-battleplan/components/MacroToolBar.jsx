@@ -10,26 +10,26 @@ import {
   Undo2,
   GripHorizontal,
 } from 'lucide-react'
-import { useBoard } from '../store/boardContext'
+import { useBoard11eStore } from '../store/board11eStore'
 import { DRAW_COLOR_PALETTE } from '../config/board'
 
 const TOOLS = [
-  { id: 'cursor', icon: MousePointer2, title: 'Cursor (Esc / A)' },
-  { id: 'ruler', icon: Ruler, title: 'Ruler (F)' },
-  { id: 'draw', icon: Pencil, title: 'Draw (D)' },
-  { id: 'line', icon: Slash, title: 'Line (S)' },
-  { id: 'eraser', icon: Eraser, title: 'Eraser (X)' },
+  { id: 'cursor', icon: <MousePointer2 size={15} />, title: 'Cursor (Esc / A)' },
+  { id: 'ruler', icon: <Ruler size={15} />, title: 'Ruler (F)' },
+  { id: 'draw', icon: <Pencil size={15} />, title: 'Draw (D)' },
+  { id: 'line', icon: <Slash size={15} />, title: 'Line (S)' },
+  { id: 'eraser', icon: <Eraser size={15} />, title: 'Eraser (X)' },
 ]
 
 export function MacroToolBar() {
-  const activeTool = useBoard((s) => s.activeTool)
-  const setActiveTool = useBoard((s) => s.setActiveTool)
-  const drawings = useBoard((s) => s.drawings)
-  const clearDrawings = useBoard((s) => s.clearDrawings)
-  const drawColor = useBoard((s) => s.drawColor)
-  const setDrawColor = useBoard((s) => s.setDrawColor)
-  const undo = useBoard((s) => s.undo)
-  const canUndo = useBoard((s) => (s.history?.length ?? 0) > 0)
+  const activeTool = useBoard11eStore((s) => s.activeTool)
+  const setActiveTool = useBoard11eStore((s) => s.setActiveTool)
+  const drawings = useBoard11eStore((s) => s.drawings)
+  const clearDrawings = useBoard11eStore((s) => s.clearDrawings)
+  const drawColor = useBoard11eStore((s) => s.drawColor)
+  const setDrawColor = useBoard11eStore((s) => s.setDrawColor)
+  const undo = useBoard11eStore((s) => s.undo)
+  const canUndo = useBoard11eStore((s) => (s.history?.length ?? 0) > 0)
 
   const [colorOpen, setColorOpen] = useState(false)
   const colorWrapRef = useRef(null)
@@ -159,7 +159,7 @@ export function MacroToolBar() {
       >
         <GripHorizontal size={14} />
       </div>
-      {TOOLS.map(({ id, icon: Icon, title }) => {
+      {TOOLS.map(({ id, icon, title }) => {
         const active = activeTool === id
         return (
           <button
@@ -177,7 +177,7 @@ export function MacroToolBar() {
             aria-pressed={active}
             className={`mbp-toolbar__btn ${active ? 'is-active' : ''}`}
           >
-            <Icon size={15} />
+            {icon}
           </button>
         )
       })}

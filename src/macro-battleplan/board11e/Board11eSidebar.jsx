@@ -1,9 +1,9 @@
 import { useRef } from 'react'
-import { Download, Move, PanelRightClose, RotateCcw, Upload } from 'lucide-react'
+import { Download, Move, RotateCcw, Upload } from 'lucide-react'
 import { FormSelect } from '../../components/ui'
 import { MacroScoreboard } from '../components/MacroScoreboard'
-import { BasesSection, SelectionSection } from '../components/MacroSidebar'
-import { useBoard } from '../store/boardContext'
+import { BasesSection, SelectionSection } from '../components/BaseControls'
+import { useBoard11eStore } from '../store/board11eStore'
 import { FORCE_DISPOSITIONS, LAYOUTS } from '../config/battleplans11e'
 
 const DISPOSITION_OPTIONS = FORCE_DISPOSITIONS.map((d) => ({
@@ -41,8 +41,8 @@ function DispositionSelect({ label, value, onChange }) {
 }
 
 function BattleplanSection() {
-  const setup = useBoard((s) => s.setup)
-  const setSetup = useBoard((s) => s.setSetup)
+  const setup = useBoard11eStore((s) => s.setup)
+  const setSetup = useBoard11eStore((s) => s.setSetup)
 
   return (
     <div className="mbp-section">
@@ -78,13 +78,13 @@ function BattleplanSection() {
 }
 
 function BoardSection() {
-  const showMoveDistance = useBoard((s) => s.showMoveDistance)
-  const toggleShowMoveDistance = useBoard((s) => s.toggleShowMoveDistance)
-  const clearBoard = useBoard((s) => s.clearBoard)
-  const exportBoard = useBoard((s) => s.exportBoard)
-  const importBoard = useBoard((s) => s.importBoard)
-  const pieces = useBoard((s) => s.pieces)
-  const drawings = useBoard((s) => s.drawings)
+  const showMoveDistance = useBoard11eStore((s) => s.showMoveDistance)
+  const toggleShowMoveDistance = useBoard11eStore((s) => s.toggleShowMoveDistance)
+  const clearBoard = useBoard11eStore((s) => s.clearBoard)
+  const exportBoard = useBoard11eStore((s) => s.exportBoard)
+  const importBoard = useBoard11eStore((s) => s.importBoard)
+  const pieces = useBoard11eStore((s) => s.pieces)
+  const drawings = useBoard11eStore((s) => s.drawings)
   const isEmpty = pieces.length === 0 && drawings.length === 0
   const fileInputRef = useRef(null)
 
@@ -181,29 +181,16 @@ function BoardSection() {
   )
 }
 
-export function Board11eSidebar({ onClose }) {
-  const addBase = useBoard((s) => s.addBase)
-  const addOvalBase = useBoard((s) => s.addOvalBase)
-  const addRectBase = useBoard((s) => s.addRectBase)
+export function Board11eSidebar() {
+  const addBase = useBoard11eStore((s) => s.addBase)
+  const addOvalBase = useBoard11eStore((s) => s.addOvalBase)
+  const addRectBase = useBoard11eStore((s) => s.addRectBase)
 
   return (
     <aside className="mbp-tools">
-      {onClose && (
-        <div className="mbp-tools__topbar">
-          <button
-            type="button"
-            className="mbp-tools__close"
-            onClick={onClose}
-            title="Hide panel"
-            aria-label="Hide panel"
-          >
-            <PanelRightClose size={14} />
-          </button>
-        </div>
-      )}
       <div className="mbp-tools__scroll">
         <BattleplanSection />
-        <MacroScoreboard showPrimaryName={false} />
+        <MacroScoreboard />
         <BasesSection addBase={addBase} addOvalBase={addOvalBase} addRectBase={addRectBase} />
         <SelectionSection />
         <BoardSection />

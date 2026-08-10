@@ -1,7 +1,5 @@
-// State for the 11e battleplan board. Deliberately separate from the 10e
-// store: the 11e board has no user-placed terrain, objectives or deployment
-// zones (they are baked into the official map image), and its coordinates use
-// the portrait 44x60" stage.
+// State for the official battleplan board. Terrain, objectives, and deployment
+// zones are baked into the map image; users place bases and drawings on top.
 
 import { create } from 'zustand'
 import { DEFAULT_DRAW_COLOR, PX_PER_INCH } from '../config/board'
@@ -33,7 +31,6 @@ const SCOREBOARD_ROUNDS = [1, 2, 3, 4, 5]
 const emptyScoreboardRounds = () => ({ 1: '', 2: '', 3: '', 4: '', 5: '' })
 
 const initialScoreboard = () => ({
-  primaryName: '',
   playerName: 'You',
   opponentName: 'Opponent',
   scores: { player: emptyScoreboardRounds(), opponent: emptyScoreboardRounds() },
@@ -58,7 +55,6 @@ function sanitizeScoreboard(raw) {
   const def = initialScoreboard()
   if (!raw || typeof raw !== 'object') return def
   return {
-    primaryName: typeof raw.primaryName === 'string' ? raw.primaryName : def.primaryName,
     playerName: typeof raw.playerName === 'string' ? raw.playerName : def.playerName,
     opponentName: typeof raw.opponentName === 'string' ? raw.opponentName : def.opponentName,
     scores: {

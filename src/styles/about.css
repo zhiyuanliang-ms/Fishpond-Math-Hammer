@@ -167,45 +167,6 @@
   border-bottom-color: #f59e0b;
 }
 
-.legacy-info {
-  text-align: left;
-  padding-top: 20px;
-  margin-top: 20px;
-  border-top: 1px solid #444;
-}
-
-.legacy-info h4 {
-  color: #d0d0d0;
-  font-size: 16px;
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-}
-
-.legacy-info p {
-  color: #aaa;
-  font-size: 14px;
-  margin: 0 0 12px 0;
-}
-
-.legacy-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #ddd;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.legacy-toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: #fbbf24;
-  cursor: pointer;
-}
-
 .storage-info {
   text-align: left;
   padding-top: 20px;

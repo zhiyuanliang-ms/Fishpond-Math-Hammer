@@ -10,7 +10,6 @@ import { MapReferenceButton } from './board11e/MapReferenceButton'
 import { MissionCardsButton } from './board11e/MissionCardsButton'
 import { MacroToolBar } from './components/MacroToolBar'
 import { TipsButton } from './components/TipsButton'
-import { BoardStoreProvider } from './store/boardContext'
 import { useBoard11eStore } from './store/board11eStore'
 import {
   findBattleplan,
@@ -31,25 +30,23 @@ export default function MacroBattleplan11e() {
     : ''
 
   return (
-    <BoardStoreProvider store={useBoard11eStore}>
-      <div className="mbp-body">
-        <div className="mbp-canvas-wrap">
-          <main ref={stageContainerRef} className="mbp-canvas">
-            <Board11eCanvas
-              containerRef={stageContainerRef}
-              mapSrc={battleplan ? mapImageUrl(battleplan.map) : null}
-            />
-            <MacroToolBar />
-            <TipsButton />
-            <MapReferenceButton
-              src={battleplan ? mapReferenceUrl(battleplan.map) : null}
-              title={referenceTitle}
-            />
-            <MissionCardsButton battleplan={battleplan} />
-          </main>
-        </div>
-        <Board11eSidebar />
+    <div className="mbp-body">
+      <div className="mbp-canvas-wrap">
+        <main ref={stageContainerRef} className="mbp-canvas">
+          <Board11eCanvas
+            containerRef={stageContainerRef}
+            mapSrc={battleplan ? mapImageUrl(battleplan.map) : null}
+          />
+          <MacroToolBar />
+          <TipsButton />
+          <MapReferenceButton
+            src={battleplan ? mapReferenceUrl(battleplan.map) : null}
+            title={referenceTitle}
+          />
+          <MissionCardsButton battleplan={battleplan} />
+        </main>
       </div>
-    </BoardStoreProvider>
+      <Board11eSidebar />
+    </div>
   )
 }

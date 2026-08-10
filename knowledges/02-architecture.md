@@ -78,18 +78,14 @@ src/
 │   ├── Sidebar.jsx
 │   └── Footer.jsx
 │   ├── macro-battleplan/
-│   │   ├── MacroBattleplan.jsx     # Edition shell (11e / legacy 10e tabs)
+│   │   ├── MacroBattleplan.jsx     # Macro Battleplan route component
 │   │   ├── MacroBattleplan11e.jsx  # 11e board page
-│   │   ├── MacroBattleplan10e.jsx  # Deprecated 10e board-planning page
-│   │   ├── legacyEdition.js        # 10e opt-in flag (toggled from About)
 │   │   ├── board11e/               # 11e canvas, sidebar, map + mission dialogs
-│   │   ├── components/             # Board canvas, sidebar, toolbar, tokens
-│   │   ├── config/board.js         # Map geometry, base sizes, terrain presets
+│   │   ├── components/             # Base controls, overlays, toolbar, scoreboard
+│   │   ├── config/board.js         # Base sizes, colors, and drawing constants
 │   │   ├── config/battleplans11e.js # 45 maps, mission matrix + asset URLs
 │   │   ├── hooks/                  # Feature-scoped keyboard / drag helpers
-│   │   ├── store/boardStore.js     # 10e Zustand state + persistence + history
-│   │   ├── store/board11eStore.js  # 11e Zustand state (bases, drawings, setup)
-│   │   └── store/boardContext.jsx  # Picks which store the shared components use
+│   │   └── store/board11eStore.js  # Zustand state (bases, drawings, setup)
 └── styles/                     # Per-page CSS — see 05-styling-and-responsive.md
   ├── app.css                 # App shell; imports uiShared.css globally
   ├── uiShared.css            # Shared Tabs / form / stats / chart primitives
@@ -118,7 +114,7 @@ src/
   `<select>` value) and parsed at the calculation boundary. `lib/dice` accepts
   strings where the original code did and parses internally.
 - Most calculators own their own local `useState`.
-- `src/macro-battleplan/store/boardStore.js` is the main exception: it uses
+- `src/macro-battleplan/store/board11eStore.js` is the main exception: it uses
   Zustand because the canvas, sidebar, toolbar, and overlay layers all need
   shared board state, selection state, undo history, and persistence actions.
 
@@ -143,9 +139,9 @@ while staying out of the shared `ui/` namespace. `ProfileCardShell.jsx` and
 but still too page-specific for the app-wide `ui/` layer.
 
 `src/macro-battleplan/components/` follows the same rule. Pieces such as the
-board canvas, board/sidebar controls, selection overlays, and terrain/base
-tokens are feature-private and should not be moved into `src/components/ui/`
-unless they become genuinely reusable outside Macro Battleplan.
+base controls, selection overlays, scoreboard, and drawing toolbar are
+feature-private and should not be moved into `src/components/ui/` unless they
+become genuinely reusable outside Macro Battleplan.
 
 The 11e Force Disposition matrix remains owned by
 `config/battleplans11e.js`. `MacroBattleplan11e` resolves the current pairing
@@ -190,47 +186,23 @@ the on-screen scenario remains intact. Disabled-storage / private-mode
 failures (anything other than quota) are also swallowed silently, so
 the app degrades gracefully to a non-persistent session.
 
-## Macro Battleplan persistence (`src/macro-battleplan/store/boardStore.js`)
+## Macro Battleplan persistence (`src/macro-battleplan/store/board11eStore.js`)
 
-Two small `localStorage` keys live outside the board store:
+The Macro Battleplan keeps live bases, drawings, selection, undo history,
+setup, and scoreboard state in one Zustand store. Setup and scoreboard values
+persist automatically in two small `localStorage` entries:
 
 | Key | Owner | Values | Purpose |
 |---|---|---|---|
-| `macroBattleplan:legacy10e` | `legacyEdition.js` | `'1'` or absent | Opt-in that reveals the deprecated 10e tab. Toggled by the **Legacy Content** checkbox on the About page. |
-| `macroBattleplan:edition` | `MacroBattleplan.jsx` | `'11e'` \| `'10e'` | Last-selected edition tab. Ignored (forced to `11e`) while the opt-in is off. |
+| `macroBattleplan11e:setup` | `board11eStore.js` | `{ mine, theirs, layout }` | Last selected Force Dispositions and terrain layout. |
+| `macroBattleplan11e:scoreboard` | `board11eStore.js` | Player names and five rounds of scores | Restores the scoring panel across reloads. |
 
-Macro Battleplan keeps board state in a Zustand store because several UI
-surfaces mutate the same data: the Konva canvas, the sidebar actions, the
-selection inspector, the drawing toolbar, and undo history.
-
-It persists / exchanges three related formats:
+Bases and drawings stay in memory until the user exports them. The sidebar
+exchanges one complete JSON format:
 
 | Mechanism | Shape | Purpose |
 |---|---|---|
-| Saved boards in `localStorage` | `fishpond-mathhammer-macro-battleplan:boards` -> `[{ name, savedAt, pieces, drawings }]` | Named full-board saves loaded from the sidebar. The store also reads the legacy key `40k-macro-battleplan:boards` for continuity. |
-| Full board JSON import/export | `{ schema: 'fishpond-mathhammer-macro-battleplan/v1', savedAt, pieces, drawings }` | Download / upload complete board snapshots, including bases and drawings. |
-| Battlefield share code | Compact `bf1|t=...|o=...` string, plus legacy base64url JSON with schema `fishpond-mathhammer-macro-battlefield/v1` | Share only terrain + objective layout in a much shorter text form. |
+| Full board JSON import/export | `{ schema: 'fishpond-mathhammer-battleplan-11e/v1', setup, bases, drawings, scoreboard }` | Download or restore the complete editable state layered over an official map. |
 
-### Compact battlefield share format
-- Prefix: `bf1`
-- Terrain section: `t=` with entries shaped as `presetId,x,y,rotation`
-- Objective section: `o=` with entries shaped as `x,y`
-- Numeric values are rounded to whole pixels / degrees and encoded in base 36
-  to keep the string short.
-
-Example shape:
-
-```text
-bf1|t=3sr,lo,5u,0;2sr,pf,5u,2i|o=sc,bo;vf,bo
-```
-
-### Share/import behavior
-- Share codes intentionally exclude **bases** and **drawings**.
-- Terrain is reconstructed from its preset id (`3sr`, `2sr`, `cont`) plus
-  placement, rather than exporting the full rendered terrain object.
-- Import accepts either a raw code or a URL / fragment containing
-  `battlefield=...`.
-- The importer keeps backward compatibility with the earlier long base64url
-  battlefield payload.
-- Loading a battlefield code clears the current board pieces, replaces them
-  with the shared terrain/objective layout, and leaves drawings untouched.
+Base and drawing coordinates are serialized as inches from the top-left of the
+44×60-inch board, so exports stay readable and independent of canvas pixels.
