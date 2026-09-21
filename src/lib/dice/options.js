@@ -37,6 +37,12 @@ export const rerollOptions = [
   { value: 'reroll-non-critical', label: 'Reroll Non-Critical' }
 ]
 
+export const woundRerollOptions = [
+  ...rerollOptions.slice(0, 2),
+  { value: 'reroll-one-two', label: 'Reroll Ones and Twos' },
+  ...rerollOptions.slice(2)
+]
+
 export const fnpOptions = [
   { value: '2', label: '2+' },
   { value: '3', label: '3+' },

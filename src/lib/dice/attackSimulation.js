@@ -59,6 +59,7 @@ const rollD6WithReroll = (threshold, rerollMode, critThreshold = 6, budget = nul
 
   const shouldReroll = (() => {
     if (rerollMode === REROLL_VALUES.REROLL_ONE) return nat === 1
+    if (rerollMode === REROLL_VALUES.REROLL_ONE_TWO) return nat <= 2 && !isCrit
     if (rerollMode === REROLL_VALUES.REROLL_FAIL) return !success
     if (rerollMode === REROLL_VALUES.REROLL_NON_CRITICAL) return !isCrit
     return false

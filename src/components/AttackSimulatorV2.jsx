@@ -179,6 +179,7 @@ const detectMobile = () => {
 const rerollLabel = (mode, t) => {
   switch (mode) {
     case 'reroll-one': return t('rerollOnes')
+    case 'reroll-one-two': return t('rerollOnesAndTwos')
     case 'reroll-fail': return t('rerollFails')
     case 'reroll-non-critical': return t('rerollNonCritical')
     case 'reroll-1-2-3': return t('rerollLow123')

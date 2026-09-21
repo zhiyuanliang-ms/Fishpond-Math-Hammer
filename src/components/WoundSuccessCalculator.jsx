@@ -9,6 +9,7 @@ import {
   toWoundOptions,
   antiOptions,
   rerollOptions,
+  woundRerollOptions,
   critOptions,
   sustainedOptions,
   sustainedMean,
@@ -310,7 +311,7 @@ function WoundSuccessCalculator() {
           <label htmlFor="woundReroll">Wound Reroll</label>
           <FormSelect
             inputId="woundReroll"
-            options={rerollOptions}
+            options={woundRerollOptions}
             value={woundReroll}
             onChange={setWoundReroll}
           />

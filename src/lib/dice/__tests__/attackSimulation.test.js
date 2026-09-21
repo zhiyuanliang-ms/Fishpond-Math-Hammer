@@ -645,6 +645,23 @@ describe('simulateAttack — Devastating Wounds (11e RAW)', () => {
 // at or below the threshold.
 
 describe('simulateAttack — reroll never fires when not needed', () => {
+  it('rerolls wound rolls of 1 and 2', () => {
+    // Torrent auto-hits and S4 vs T4 wounds on 4+. Rerolling natural 1s and
+    // 2s changes the wound chance from 3/6 to 3/6 + 2/6 * 3/6 = 2/3.
+    const r = simulateAttack(
+      [baseWeapon({
+        attacks: '100',
+        torrent: true,
+        woundReroll: 'reroll-one-two'
+      })],
+      [baseTarget({ models: 200, save: 7 })],
+      5000
+    )
+
+    expect(r.expectedDamage).toBeGreaterThan(65)
+    expect(r.expectedDamage).toBeLessThan(68.5)
+  })
+
   it('reroll-fail never rerolls a successful hit (closed-form match)', () => {
     // BS 2+ means hits succeed on 2-6 (5/6). Native fail rate = 1/6 (nat 1).
     // With reroll-fail, the success rate becomes 5/6 + 1/6 * 5/6 = 35/36.
@@ -790,6 +807,5 @@ describe('simulateAttack — reroll never fires when not needed', () => {
     expect(all.expectedDamage).toBeGreaterThan(single.expectedDamage + 1)
   })
 })
-
 
 

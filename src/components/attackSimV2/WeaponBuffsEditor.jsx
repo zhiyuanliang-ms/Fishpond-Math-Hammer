@@ -5,6 +5,7 @@
 import { FormSelect, BuffChipGroup } from '../ui'
 import {
   rerollOptions,
+  woundRerollOptions,
   randomRerollOptions,
   rerollScopeOptions,
   antiOptions,
@@ -18,6 +19,7 @@ import { useT } from '../attackSim/lang'
 const rerollLangKeys = {
   'no-reroll': 'noReroll',
   'reroll-one': 'rerollOnes',
+  'reroll-one-two': 'rerollOnesAndTwos',
   'reroll-fail': 'rerollFails',
   'reroll-non-critical': 'rerollNonCritical',
 }
@@ -137,6 +139,10 @@ function WeaponBuffsEditor({ profile, onChange }) {
     ...o,
     label: t(rerollLangKeys[o.value] ?? o.value),
   }))
+  const localizedWoundRerollOptions = woundRerollOptions.map((o) => ({
+    ...o,
+    label: t(rerollLangKeys[o.value] ?? o.value),
+  }))
 
   const localizedRandomRerollOptions = randomRerollOptions.map((o) => ({
     ...o,
@@ -209,7 +215,7 @@ function WeaponBuffsEditor({ profile, onChange }) {
           t('woundReroll'),
           profile.woundReroll,
           profile.woundRerollScope,
-          localizedRerollOptions,
+          localizedWoundRerollOptions,
           (v) => update({ woundReroll: v }),
           (v) => update({ woundRerollScope: v })
         )}

@@ -7,6 +7,7 @@
 import { FormSelect, BuffChipGroup } from '../ui'
 import {
   rerollOptions,
+  woundRerollOptions,
   critOptions,
   sustainedOptions,
 } from '../../lib/dice/options'
@@ -16,6 +17,7 @@ import { isUnitBuffsEmpty } from '../../lib/dice'
 const rerollLangKeys = {
   'no-reroll': 'noReroll',
   'reroll-one': 'rerollOnes',
+  'reroll-one-two': 'rerollOnesAndTwos',
   'reroll-fail': 'rerollFails',
   'reroll-non-critical': 'rerollNonCritical',
 }
@@ -25,6 +27,10 @@ function UnitBuffsPanel({ value, onChange }) {
   const update = (patch) => onChange({ ...value, ...patch })
 
   const localizedRerollOptions = rerollOptions.map((o) => ({
+    ...o,
+    label: t(rerollLangKeys[o.value] ?? o.value),
+  }))
+  const localizedWoundRerollOptions = woundRerollOptions.map((o) => ({
     ...o,
     label: t(rerollLangKeys[o.value] ?? o.value),
   }))
@@ -119,11 +125,11 @@ function UnitBuffsPanel({ value, onChange }) {
           <label>{t('woundReroll')}</label>
           <div className="reroll-cell-controls">
             <FormSelect
-              options={localizedRerollOptions}
+              options={localizedWoundRerollOptions}
               value={
-                localizedRerollOptions.find(
+                localizedWoundRerollOptions.find(
                   (o) => o.value === (value.woundReroll || 'no-reroll')
-                ) || localizedRerollOptions[0]
+                ) || localizedWoundRerollOptions[0]
               }
               onChange={(opt) => update({ woundReroll: opt.value })}
             />

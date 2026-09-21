@@ -27,6 +27,15 @@ export const calculateSuccessProbability = (
     // Reroll ones: get a second chance if you roll 1
     successChance = baseSuccessChance + (1 / 6) * baseSuccessChance
     criticalChance = baseCriticalChance + (1 / 6) * baseCriticalChance
+  } else if (rerollValue === REROLL_VALUES.REROLL_ONE_TWO) {
+    // Critical results are kept, while non-critical 1s and 2s are rerolled.
+    const rerollableFaces = [1, 2].filter((face) => face < critNum)
+    const rerollChance = rerollableFaces.length / 6
+    const rerolledSuccessChance =
+      rerollableFaces.filter((face) => face !== 1 && face >= statNum).length / 6
+    successChance =
+      baseSuccessChance - rerolledSuccessChance + rerollChance * baseSuccessChance
+    criticalChance = baseCriticalChance + rerollChance * baseCriticalChance
   } else if (rerollValue === REROLL_VALUES.REROLL_FAIL) {
     // Reroll fails: get a second chance if you fail the test
     successChance = 2 * baseSuccessChance - baseSuccessChance * baseSuccessChance

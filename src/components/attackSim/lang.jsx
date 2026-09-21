@@ -132,6 +132,7 @@ const translations = {
     // Reroll option labels
     noReroll: 'No Reroll',
     rerollOnes: 'Reroll Ones',
+    rerollOnesAndTwos: 'Reroll Ones and Twos',
     rerollFails: 'Reroll Fails',
     rerollNonCritical: 'Reroll Non-Critical',
     rerollOne: 'Reroll One',
@@ -272,6 +273,7 @@ const translations = {
     // Reroll option labels
     noReroll: '无重投',
     rerollOnes: '重投1',
+    rerollOnesAndTwos: '重投1和2',
     rerollFails: '重投失败',
     rerollNonCritical: '重投非暴击',
     rerollOne: '重投一',

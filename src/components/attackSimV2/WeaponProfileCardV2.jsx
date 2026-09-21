@@ -26,6 +26,7 @@ const toHitWithTorrentOptions = [
 
 const rerollShort = {
   'reroll-one': '1s',
+  'reroll-one-two': 'Ones and Twos',
   'reroll-fail': 'Fails',
   'reroll-non-critical': 'Non-Crit',
   'reroll-1-2-3': '≤3',

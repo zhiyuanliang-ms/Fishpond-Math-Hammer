@@ -4,6 +4,7 @@
 export const REROLL_VALUES = {
   NO_REROLL: 'no-reroll',
   REROLL_ONE: 'reroll-one',
+  REROLL_ONE_TWO: 'reroll-one-two',
   REROLL_FAIL: 'reroll-fail',
   REROLL_NON_CRITICAL: 'reroll-non-critical'
 }
