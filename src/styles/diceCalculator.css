@@ -56,6 +56,15 @@
   font-style: italic;
 }
 
+.calculator-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #fecaca;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
 @media (max-width: 1024px) {
   .wound-success-container,
   .kill-probability-container {

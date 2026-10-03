@@ -13,7 +13,15 @@ function Sidebar({ currentPage, onPageChange }) {
             className={`nav-button ${currentPage === 'attack-simulator' ? 'active' : ''}`}
             onClick={() => onPageChange('attack-simulator')}
           >
-            Attack Simulator
+            40K Attack Simulator
+          </button>
+        </li>
+        <li>
+          <button
+            className={`nav-button ${currentPage === 'aos-attack-simulator' ? 'active' : ''}`}
+            onClick={() => onPageChange('aos-attack-simulator')}
+          >
+            AoS Attack Simulator
           </button>
         </li>
         <li>

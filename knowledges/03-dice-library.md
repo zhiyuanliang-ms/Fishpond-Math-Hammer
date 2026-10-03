@@ -53,6 +53,29 @@ Closed-form D6 math.
 `statValue` is the BS/WS/Sv number (e.g. `3` for 3+). `criticalValue` is the
 crit threshold (default 6, can be 5 for "crits on 5+").
 
+### `aos.js`
+Shared AoS 4E logic for both AoS surfaces.
+
+`calculateAoSDamage(weapon, target)` computes exact expected values for one
+weapon profile. `simulateAoSAttack(weapons, target, numSimulations)` runs the
+same sequence as Monte Carlo for one or more weapon profiles and returns:
+- Expected damage and models killed, standard deviations, and 95% ranges
+- Chance to deal at least one point of damage and chance to wipe the unit
+- Integer damage and model-kill distributions
+- Per-weapon expected-damage breakdown
+
+Weapon fields are `attacks`, `toHit`, `toWound`, `rend`, `damage`, and
+`critEffect`; `attacks` is the profile's total attack count. Quick-calculator
+targets use `save` and `ward`; simulator targets additionally require `models`
+and `health`. Attacks and Damage use the shared dice-expression parser, but
+AoS profiles reject expressions whose minimum possible result is less than 1.
+Post-Ward damage spills across models and is capped at the target unit's total
+Health.
+
+Supported critical effects are exported as `AOS_CRIT_EFFECTS`: `NONE`,
+`TWO_HITS`, `AUTO_WOUND`, and `MORTAL`. Crit (Mortal) skips wound and save
+rolls but still receives per-point Ward rolls.
+
 ### `binomial.js`
 
 | Export | Signature | Returns |
@@ -88,7 +111,8 @@ calls.
 ### `options.js`
 Static `{value, label}` arrays for react-select dropdowns:
 `toHitOptions`, `toWoundOptions`, `antiOptions`, `rerollOptions`, `fnpOptions`,
-`critOptions`, `saveRerollOptions`.
+`critOptions`, `saveRerollOptions`, `aosRendOptions`, `aosWardOptions`, and
+`aosCritEffectOptions`.
 
 ### `roll.js`
 Used by the Dice Roller page. Pure (apart from `Math.random`).
@@ -103,7 +127,7 @@ Used by the Dice Roller page. Pure (apart from `Math.random`).
 | `countFaces(rolls)` | `{1:n,2:n,...,6:n}` count map. |
 
 ### `attackSimulation.js`
-Full-attack-sequence Monte Carlo engine for the Attack Simulator.
+Full-attack-sequence Monte Carlo engine for the 40K Attack Simulator.
 
 `simulateAttack(weapons, targetProfiles, numSimulations = DEFAULT_SIMULATIONS)`
 returns:

@@ -62,6 +62,26 @@ export const saveOptions = [
   { value: '7', label: '7+' }
 ]
 
+export const aosRendOptions = Array.from({ length: 7 }, (_, rend) => ({
+  value: rend.toString(),
+  label: rend === 0 ? '—' : `-${rend}`
+}))
+
+export const aosWardOptions = [
+  { value: '0', label: 'No Ward' },
+  ...Array.from({ length: 5 }, (_, index) => {
+    const ward = index + 2
+    return { value: ward.toString(), label: `${ward}+` }
+  })
+]
+
+export const aosCritEffectOptions = [
+  { value: 'none', label: 'None' },
+  { value: 'two-hits', label: 'Crit (2 Hits)' },
+  { value: 'auto-wound', label: 'Crit (Auto-wound)' },
+  { value: 'mortal', label: 'Crit (Mortal)' }
+]
+
 export const critOptions = [
   { value: '2', label: '2+' },
   { value: '3', label: '3+' },

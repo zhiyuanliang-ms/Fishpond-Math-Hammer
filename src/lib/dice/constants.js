@@ -34,5 +34,5 @@ export const REROLL_SCOPE = {
 // Two-tailed z-score for a 95% normal-approximation confidence interval.
 export const Z_95 = 1.96
 
-// Default number of Monte Carlo iterations for kill simulations.
+// Default number of Monte Carlo iterations for attack simulations.
 export const DEFAULT_SIMULATIONS = 10000

@@ -36,10 +36,12 @@ src/
 ├── lib/
 │   ├── attackSimV2Storage.js    # localStorage helpers for Attack Simulator
 │   ├── attackSimV2Share.js      # Compact scenario share-link codec
+│   ├── aosAttackReport.js       # AoS Markdown report formatter
 │   └── dice/                    # PURE LOGIC — see 03-dice-library.md
 │       ├── index.js            # Barrel export
 │       ├── constants.js        # DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES
 │       ├── probability.js      # D6 success / crit math
+│       ├── aos.js              # AoS 4E exact damage math + Monte Carlo
 │       ├── binomial.js         # binomialProbability + buildDistribution
 │       ├── woundDistribution.js# WoundSuccessCalculator-specific dist
 │       ├── simulation.js       # Monte Carlo kill simulation (single-weapon)
@@ -71,8 +73,9 @@ src/
 │   │   └── ...
 │   ├── DiceCalculator.jsx      # Hosts the two calculator tabs
 │   ├── WoundSuccessCalculator.jsx
-│   ├── KillProbabilityCalculator.jsx
-│   ├── AttackSimulatorV2.jsx   # Top-level Attack Simulator page
+│   ├── AoSDamageCalculator.jsx
+│   ├── AttackSimulatorV2.jsx   # Top-level 40K Attack Simulator page
+│   ├── AoSAttackSimulator.jsx  # Top-level AoS Attack Simulator page
 │   ├── Cheatsheet.jsx
 │   ├── About.jsx
 │   ├── Sidebar.jsx
@@ -129,8 +132,9 @@ src/
   for shared components.
 
 ## Page-specific sub-component folders
-`src/components/attackSim/` and `src/components/attackSimV2/` are examples of
-**page-private** sub-component folders used only by `AttackSimulatorV2.jsx`.
+`src/components/attackSim/` contains profile-card primitives shared by the
+40K and AoS simulators. `src/components/attackSimV2/` contains components
+private to `AttackSimulatorV2.jsx`.
 The rule: if a sub-component is only used by one page and is not generic
 enough for `ui/`, put it in a same-named subfolder (`<page>Sim/`,
 `<page>/`, etc.). This keeps `components/` from getting flat-cluttered

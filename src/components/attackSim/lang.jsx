@@ -7,7 +7,7 @@ import { createContext, useContext, useState } from 'react'
 const translations = {
   en: {
     // Page
-    pageTitle: 'Attack Simulator',
+    pageTitle: '40K Attack Simulator',
     editionTooltip: 'Based on Warhammer 40,000 11th Edition rules',
 
     // Toolbar
@@ -151,7 +151,7 @@ const translations = {
 
   zh: {
     // Page
-    pageTitle: '攻击模拟器',
+    pageTitle: '40K 攻击模拟器',
     editionTooltip: '基于战锤40K 第11版规则',
 
     // Toolbar

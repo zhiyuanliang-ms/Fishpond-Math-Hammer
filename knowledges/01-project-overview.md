@@ -1,9 +1,9 @@
 # Project Overview
 
 ## What it is
-**Math Hammer** — a single-page React app that helps Warhammer 40k players
-compute dice probabilities for the attack sequence and a few related tools.
-Pure client-side; no backend.
+**Math Hammer** — a single-page React app that helps Warhammer 40k and Age of
+Sigmar players compute dice probabilities for the attack sequence and a few
+related tools. Pure client-side; no backend.
 
 ## Tech stack
 - **React 19** + **Vite 7** (ES modules, JSX, no TypeScript).
@@ -21,8 +21,9 @@ No CSS framework and no backend.
 ## Pages (routes)
 | Route | Component | Purpose |
 |---|---|---|
-| `/` and `/attack-simulator` | `AttackSimulatorV2` | Full unit-vs-unit Monte Carlo simulator with profile and unit-wide buffs. |
-| `/dice-calculator` | `DiceCalculator` | Hosts two sub-tabs: Wound Success Calculator and Kill Probability Calculator. |
+| `/` and `/attack-simulator` | `AttackSimulatorV2` | Full 40K unit-vs-unit Monte Carlo simulator with profile and unit-wide buffs. |
+| `/aos-attack-simulator` | `AoSAttackSimulator` | Streamlined AoS 4E multi-weapon damage simulator. |
+| `/dice-calculator` | `DiceCalculator` | Hosts the 40K Wound Success and AoS Damage calculators. |
 | `/macro-battleplan` | `MacroBattleplan` | Official 11e battleplans with base, drawing, ruler, mission-card, and scoring tools. |
 | `/dice-roller` | `DiceRoller` | Roll up to 20 D6 and selectively reroll any face value (e.g. "reroll all 1s"). |
 | `/cheat-sheet` | `Cheatsheet` | Static probability tables (1D6 success chances and 2D6 sums) with color-coded risk levels. |
@@ -32,25 +33,22 @@ Routing entry point: [App.jsx](../src/App.jsx).
 
 ## Calculators
 
-### Wound Success Calculator
+### 40K Wound Success Calculator
 Closed-form math. Given a hit stat, wound stat, modifiers (sustained hits,
 lethal hits, devastating wounds, anti-X, rerolls, crit threshold), it produces:
 - Hit / wound probabilities (with crit branches)
 - Expected hits / crits / wounds / mortal wounds
 - A binomial distribution chart over wound count
 
-### Kill Probability Calculator
-Monte Carlo simulation (`simulateKillProbability`, default 10 000 trials).
-Computes:
-- Distribution of models killed
-- Expected kills (with 95% CI)
-- Probability of killing all target models (with 95% CI)
-- Expected unsaved attacks (closed-form binomial, not simulated)
+### AoS Damage Calculator
+Closed-form AoS 4E math for a single weapon profile. It accepts A/Hit/Wound/
+Rend/Damage, one critical-hit effect, and the defender's Save/Ward. It
+produces expected hits, wounds reaching the save roll, failed saves, critical
+mortal damage, and final damage after Ward.
 
-### Attack Simulator (`AttackSimulatorV2`)
+### 40K Attack Simulator (`AttackSimulatorV2`)
 Monte Carlo simulator for the full 10e attack sequence end-to-end. Unlike
-the Kill Probability Calculator (which models a single weapon vs a single
-target profile with fixed damage), this one supports:
+the quick calculators, this one supports:
 - **Multiple weapon profiles** that fire in user-defined order, each with
   its own attacks/S/AP/D dice expressions and full buff set
   (TORRENT, LETHAL HITS, SUSTAINED 1/2, DEVASTATING WOUNDS, ANTI-X+).
@@ -68,6 +66,23 @@ Results:
 - Chance to Wipe Unit
 - Per-profile breakdown table (when there are 2+ target profiles)
 - Distribution chart of total models killed
+
+### AoS Attack Simulator (`AoSAttackSimulator`)
+Monte Carlo simulator for the AoS 4E attack sequence. It supports multiple
+weapon profiles, random A and D dice expressions, Rend, and a defender profile
+with Models, Health, Save, and Ward. Each profile's A value is its total attack
+count; there is no separate weapon-count multiplier.
+The following mutually exclusive critical hit effects are available:
+- **Crit (2 Hits)** — a critical hit creates two wound rolls.
+- **Crit (Auto-wound)** — a critical hit skips its wound roll.
+- **Crit (Mortal)** — a critical hit skips wound and save rolls, then deals
+  the weapon's Damage characteristic as mortal damage.
+
+Normal and mortal damage both receive per-point Ward rolls. Damage spills
+between models and is capped when the unit is destroyed. Results include
+expected kills and damage, chance to deal damage, wipe chance, per-weapon
+breakdown, kill and damage distributions, and a Markdown report that can be
+copied to the clipboard.
 
 ### Macro Battleplan (`MacroBattleplan`)
 The official GW battleplan for the chosen Force Disposition pairing is the
@@ -91,5 +106,5 @@ board, with base, drawing, ruler, mission-card, and scoring tools on top.
 - No cloud sync or multiplayer state; saved boards and battlefield sharing are
   browser-local only.
 - No accessibility audit beyond stock semantic HTML.
-- The Wound Success / Kill Probability calculators do not persist their
-  inputs (Attack Simulator and Macro Battleplan are the persistent tools).
+- The quick calculators and AoS Attack Simulator do not persist their inputs
+  (the 40K Attack Simulator and Macro Battleplan are the persistent tools).

@@ -17,6 +17,15 @@ export { simulateKillProbability } from './simulation'
 export { calculateKillProbability } from './killProbability'
 
 export { simulateAttack } from './attackSimulation'
+export {
+  AOS_CRIT_EFFECTS,
+  calculateAoSDamage,
+  isValidAoSDiceExpression,
+  simulateAoSAttack,
+  validateAoSDefenderProfile,
+  validateAoSTargetProfile,
+  validateAoSWeaponProfile
+} from './aos'
 export { normalizeWeaponProfileRerolls } from './weaponProfile'
 export {
   makeUnitBuffs,

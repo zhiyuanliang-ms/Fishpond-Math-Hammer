@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import WoundSuccessCalculator from './WoundSuccessCalculator'
-import KillProbabilityCalculator from './KillProbabilityCalculator'
+import AoSDamageCalculator from './AoSDamageCalculator'
 import { Page, Tabs } from './ui'
 import '../styles/diceCalculator.css'
 
 const DICE_TABS = [
-  { value: 'wound-success', label: 'Wound Success Calculator' },
-  { value: 'kill-probability', label: 'Kill Probability Calculator' }
+  { value: 'wound-success', label: '40K Wound Success Calculator' },
+  { value: 'aos-damage', label: 'AoS Damage Calculator' }
 ]
 
 function DiceCalculator() {
@@ -23,11 +23,10 @@ function DiceCalculator() {
 
       <div className="tab-content">
         {activeTab === 'wound-success' && <WoundSuccessCalculator />}
-        {activeTab === 'kill-probability' && <KillProbabilityCalculator />}
+        {activeTab === 'aos-damage' && <AoSDamageCalculator />}
       </div>
     </Page>
   )
 }
 
 export default DiceCalculator
-

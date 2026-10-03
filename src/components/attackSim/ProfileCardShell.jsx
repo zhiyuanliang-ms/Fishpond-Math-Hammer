@@ -11,9 +11,12 @@ function ProfileCardShell({
   onMoveDown,
   onDuplicate,
   onRemove,
+  actionLabels,
   children
 }) {
   const { t } = useT()
+  const label = (key) => actionLabels?.[key] || t(key)
+
   return (
     <div className="profile-card">
       <div className="profile-card-header">
@@ -25,16 +28,16 @@ function ProfileCardShell({
           placeholder={placeholder}
         />
         <div className="profile-card-actions">
-          <button type="button" title={t('moveUp')} onClick={onMoveUp} disabled={index === 0}>
+          <button type="button" title={label('moveUp')} onClick={onMoveUp} disabled={index === 0}>
             <ArrowUp size={14} />
           </button>
-          <button type="button" title={t('moveDown')} onClick={onMoveDown} disabled={index === total - 1}>
+          <button type="button" title={label('moveDown')} onClick={onMoveDown} disabled={index === total - 1}>
             <ArrowDown size={14} />
           </button>
-          <button type="button" title={t('duplicate')} onClick={onDuplicate}>
+          <button type="button" title={label('duplicate')} onClick={onDuplicate}>
             <Copy size={14} />
           </button>
-          <button type="button" className="danger" title={t('remove')} onClick={onRemove}>
+          <button type="button" className="danger" title={label('remove')} onClick={onRemove}>
             <X size={14} />
           </button>
         </div>
