@@ -59,8 +59,9 @@ Shared AoS 4E logic for both AoS surfaces.
 `calculateAoSDamage(weapon, target)` computes exact expected values for one
 weapon profile. `simulateAoSAttack(weapons, target, numSimulations)` runs the
 same sequence as Monte Carlo for one or more weapon profiles and returns:
-- Expected damage and models killed, standard deviations, and 95% ranges
-- Chance to deal at least one point of damage and chance to wipe the unit
+- Expected generated damage, theoretical damage after Ward, and models killed,
+  with standard deviations and 95% ranges
+- Chance to wipe the unit
 - Integer damage and model-kill distributions
 - Per-weapon expected-damage breakdown
 
@@ -111,8 +112,9 @@ calls.
 ### `options.js`
 Static `{value, label}` arrays for react-select dropdowns:
 `toHitOptions`, `toWoundOptions`, `antiOptions`, `rerollOptions`, `fnpOptions`,
-`critOptions`, `saveRerollOptions`, `aosRendOptions`, `aosWardOptions`, and
-`aosCritEffectOptions`.
+`critOptions`, `saveRerollOptions`, `aosWardOptions`, and
+`aosCritEffectOptions`. AoS Rend uses the shared integer input rather than a
+dropdown.
 
 ### `roll.js`
 Used by the Dice Roller page. Pure (apart from `Math.random`).

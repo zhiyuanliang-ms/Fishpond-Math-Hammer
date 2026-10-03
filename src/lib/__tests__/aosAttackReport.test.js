@@ -32,20 +32,25 @@ describe('buildAoSAttackReport', () => {
         expectedKillsStdDev: 1.1,
         expectedKillsCILow: 0.09,
         expectedKillsCIHigh: 4.41,
+        expectedGeneratedDamage: 9,
+        expectedGeneratedDamageStdDev: 3.6,
+        expectedGeneratedDamageCILow: 1.94,
+        expectedGeneratedDamageCIHigh: 16.06,
         expectedDamage: 7.5,
         expectedDamageStdDev: 3.2,
         expectedDamageCILow: 1.23,
         expectedDamageCIHigh: 13.77,
-        damageProbability: 95.5,
         wipeProbability: 12.25,
         perWeapon: [
           {
             name: 'Celestite Spear',
+            expectedGeneratedDamage: 6.5,
             expectedDamage: 5.25,
             stdDev: 2.2,
           },
           {
             name: 'Champion Blade',
+            expectedGeneratedDamage: 2.5,
             expectedDamage: 2.25,
             stdDev: 1.4,
           },
@@ -58,7 +63,10 @@ describe('buildAoSAttackReport', () => {
     expect(report).toContain('Crit (2 Hits)')
     expect(report).toContain('5 models, Health 3, Save 4+, Ward 6+')
     expect(report).toContain('Expected models killed: 2.25')
+    expect(report).toContain('Expected generated damage: 9.00')
+    expect(report).toContain('Expected damage after Ward: 7.50')
     expect(report).toContain('Chance to wipe unit: 12.25%')
+    expect(report).not.toContain('Chance to deal damage')
     expect(report).toContain('## Per-Profile Damage')
   })
 
@@ -84,18 +92,21 @@ describe('buildAoSAttackReport', () => {
           critEffect: AOS_CRIT_EFFECTS.NONE,
         },
       ],
-      { models: 5, health: 2, save: 3, ward: 0 },
+      { models: 1, health: 2, save: 3, ward: 0 },
       {
         numSimulations: 1000,
         expectedKills: 1,
         expectedKillsStdDev: 0.5,
         expectedKillsCILow: 0,
         expectedKillsCIHigh: 2,
+        expectedGeneratedDamage: 2,
+        expectedGeneratedDamageStdDev: 1,
+        expectedGeneratedDamageCILow: 0,
+        expectedGeneratedDamageCIHigh: 4,
         expectedDamage: 2,
         expectedDamageStdDev: 1,
         expectedDamageCILow: 0,
         expectedDamageCIHigh: 4,
-        damageProbability: 75,
         wipeProbability: 1,
         perWeapon: [],
       }
@@ -105,5 +116,7 @@ describe('buildAoSAttackReport', () => {
     expect(report).toContain('Health 2, Save 3+')
     expect(report).not.toContain('Ward None')
     expect(report).not.toContain(', None')
+    expect(report).not.toContain('Expected damage after Ward')
+    expect(report).not.toContain('Expected models killed')
   })
 })

@@ -3,7 +3,6 @@ import { ClipboardCopy } from 'lucide-react'
 import {
   AOS_CRIT_EFFECTS,
   aosCritEffectOptions,
-  aosRendOptions,
   aosWardOptions,
   isValidAoSDiceExpression,
   saveOptions,
@@ -110,13 +109,12 @@ function AoSWeaponProfileCard({
         </div>
         <div className="stat-cell">
           <label>Rend</label>
-          <FormSelect
-            variant="buff"
-            options={aosRendOptions}
-            value={findOption(aosRendOptions, profile.rend)}
-            onChange={(option) =>
-              update({ rend: parseInt(option.value, 10) })
-            }
+          <IntInput
+            min={0}
+            max={5}
+            fallback={0}
+            value={profile.rend}
+            onChange={(rend) => update({ rend })}
           />
         </div>
         <div className="stat-cell">
@@ -456,28 +454,30 @@ function AoSAttackSimulator() {
           </header>
           <StatGrid>
             <StatCard
-              label="Expected Models Killed"
-              value={result.expectedKills.toFixed(2)}
-              stdDev={result.expectedKillsStdDev.toFixed(2)}
-              ciLow={result.expectedKillsCILow.toFixed(2)}
-              ciHigh={result.expectedKillsCIHigh.toFixed(2)}
+              label="Expected Generated Damage"
+              value={result.expectedGeneratedDamage.toFixed(2)}
+              stdDev={result.expectedGeneratedDamageStdDev.toFixed(2)}
+              ciLow={result.expectedGeneratedDamageCILow.toFixed(2)}
+              ciHigh={result.expectedGeneratedDamageCIHigh.toFixed(2)}
             />
-            <StatCard
-              label="Expected Damage Dealt"
-              value={result.expectedDamage.toFixed(2)}
-              stdDev={result.expectedDamageStdDev.toFixed(2)}
-              ciLow={result.expectedDamageCILow.toFixed(2)}
-              ciHigh={result.expectedDamageCIHigh.toFixed(2)}
-            />
-            <StatCard
-              label="Chance to Deal Damage"
-              value={result.damageProbability.toFixed(2)}
-              valueSuffix="%"
-              stdDev={result.damageProbabilityStdDev.toFixed(2)}
-              ciLow={result.damageProbabilityCILow.toFixed(2)}
-              ciHigh={result.damageProbabilityCIHigh.toFixed(2)}
-              ciSuffix="%"
-            />
+            {target.ward !== 0 && (
+              <StatCard
+                label="Expected Damage After Ward"
+                value={result.expectedDamage.toFixed(2)}
+                stdDev={result.expectedDamageStdDev.toFixed(2)}
+                ciLow={result.expectedDamageCILow.toFixed(2)}
+                ciHigh={result.expectedDamageCIHigh.toFixed(2)}
+              />
+            )}
+            {target.models !== 1 && (
+              <StatCard
+                label="Expected Models Killed"
+                value={result.expectedKills.toFixed(2)}
+                stdDev={result.expectedKillsStdDev.toFixed(2)}
+                ciLow={result.expectedKillsCILow.toFixed(2)}
+                ciHigh={result.expectedKillsCIHigh.toFixed(2)}
+              />
+            )}
             <StatCard
               label="Chance to Wipe Unit"
               value={result.wipeProbability.toFixed(2)}
@@ -496,7 +496,8 @@ function AoSAttackSimulator() {
                 <thead>
                   <tr>
                     <th>Profile</th>
-                    <th>Expected Damage</th>
+                    <th>Generated Damage</th>
+                    {target.ward !== 0 && <th>After Ward</th>}
                     <th>Std Dev</th>
                   </tr>
                 </thead>
@@ -504,7 +505,10 @@ function AoSAttackSimulator() {
                   {result.perWeapon.map((profile, index) => (
                     <tr key={`${profile.name}-${index}`}>
                       <td>{profile.name}</td>
-                      <td>{profile.expectedDamage.toFixed(2)}</td>
+                      <td>{profile.expectedGeneratedDamage.toFixed(2)}</td>
+                      {target.ward !== 0 && (
+                        <td>{profile.expectedDamage.toFixed(2)}</td>
+                      )}
                       <td>{profile.stdDev.toFixed(2)}</td>
                     </tr>
                   ))}
@@ -521,7 +525,7 @@ function AoSAttackSimulator() {
           />
 
           <DistributionChart
-            title="Damage Dealt — Distribution"
+            title="Allocated Damage — Distribution"
             data={result.distributionData}
             xKey="damage"
             xInterval={

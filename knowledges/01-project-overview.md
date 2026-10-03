@@ -80,9 +80,9 @@ The following mutually exclusive critical hit effects are available:
 
 Normal and mortal damage both receive per-point Ward rolls. Damage spills
 between models and is capped when the unit is destroyed. Results include
-expected kills and damage, chance to deal damage, wipe chance, per-weapon
-breakdown, kill and damage distributions, and a Markdown report that can be
-copied to the clipboard.
+expected generated damage before Ward, theoretical damage after Ward, expected
+kills, wipe chance, per-weapon breakdown, kill and allocated-damage
+distributions, and a Markdown report that can be copied to the clipboard.
 
 ### 40K Tactical Board (`MacroBattleplan`)
 The official GW battleplan for the chosen Force Disposition pairing is the

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   AOS_CRIT_EFFECTS,
   aosCritEffectOptions,
-  aosRendOptions,
   aosWardOptions,
   calculateAoSDamage,
   isValidAoSDiceExpression,
@@ -10,6 +9,7 @@ import {
   toHitOptions,
   toWoundOptions,
 } from '../lib/dice'
+import IntInput from './attackSim/IntInput'
 import {
   CalculatorLayout,
   FormSelect,
@@ -21,7 +21,7 @@ function AoSDamageCalculator() {
   const [attacks, setAttacks] = useState('4')
   const [toHit, setToHit] = useState(toHitOptions[1])
   const [toWound, setToWound] = useState(toWoundOptions[1])
-  const [rend, setRend] = useState(aosRendOptions[1])
+  const [rend, setRend] = useState(1)
   const [damage, setDamage] = useState('2')
   const [critEffect, setCritEffect] = useState(aosCritEffectOptions[0])
   const [save, setSave] = useState(saveOptions[1])
@@ -43,7 +43,7 @@ function AoSDamageCalculator() {
           attacks,
           toHit: parseInt(toHit.value, 10),
           toWound: parseInt(toWound.value, 10),
-          rend: parseInt(rend.value, 10),
+          rend,
           damage,
           critEffect: critEffect.value,
         },
@@ -101,10 +101,11 @@ function AoSDamageCalculator() {
         </div>
         <div className="stat-cell">
           <label htmlFor="aosRend">Rend</label>
-          <FormSelect
-            inputId="aosRend"
-            variant="buff"
-            options={aosRendOptions}
+          <IntInput
+            id="aosRend"
+            min={0}
+            max={5}
+            fallback={0}
             value={rend}
             onChange={setRend}
           />

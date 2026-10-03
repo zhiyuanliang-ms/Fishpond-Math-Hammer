@@ -119,6 +119,8 @@ export const calculateAoSDamage = (weapon, target) => {
     expectedNormalDamageBeforeWard * failedWardChance
   const expectedMortalDamage =
     expectedMortalDamageBeforeWard * failedWardChance
+  const expectedGeneratedDamage =
+    expectedNormalDamageBeforeWard + expectedMortalDamageBeforeWard
 
   return {
     expectedAttacks,
@@ -128,6 +130,7 @@ export const calculateAoSDamage = (weapon, target) => {
     expectedFailedSaves,
     expectedNormalDamageBeforeWard,
     expectedMortalDamageBeforeWard,
+    expectedGeneratedDamage,
     expectedNormalDamage,
     expectedMortalDamage,
     expectedDamage: expectedNormalDamage + expectedMortalDamage,
@@ -149,23 +152,39 @@ const applyWard = (damage, ward) => {
   return damageDealt
 }
 
-const rollDamage = (damageParsed, ward) =>
-  applyWard(rollDiceExpr(damageParsed), ward)
+const noDamage = Object.freeze({
+  generatedDamage: 0,
+  damageAfterWard: 0,
+})
+
+const rollDamage = (damageParsed, ward) => {
+  const generatedDamage = rollDiceExpr(damageParsed)
+  return {
+    generatedDamage,
+    damageAfterWard: applyWard(generatedDamage, ward),
+  }
+}
 
 const resolveWound = (weapon, target, damageParsed, autoWound = false) => {
   if (!autoWound) {
     const woundRoll = rollD6()
-    if (woundRoll === 1 || woundRoll < weapon.toWound) return 0
+    if (woundRoll === 1 || woundRoll < weapon.toWound) return noDamage
   }
 
   const saveRoll = rollD6()
-  if (saveRoll !== 1 && saveRoll - weapon.rend >= target.save) return 0
+  if (saveRoll !== 1 && saveRoll - weapon.rend >= target.save)
+    return noDamage
   return rollDamage(damageParsed, target.ward)
 }
 
 const resolveWeapon = (weapon, target, parsed) => {
-  let damageDealt = 0
+  let generatedDamage = 0
+  let damageAfterWard = 0
   const attacks = rollDiceExpr(parsed.attacks)
+  const addDamage = (damage) => {
+    generatedDamage += damage.generatedDamage
+    damageAfterWard += damage.damageAfterWard
+  }
 
   for (let attack = 0; attack < attacks; attack++) {
     const hitRoll = rollD6()
@@ -173,30 +192,30 @@ const resolveWeapon = (weapon, target, parsed) => {
 
     if (hitRoll === 6) {
       if (weapon.critEffect === AOS_CRIT_EFFECTS.MORTAL) {
-        damageDealt += rollDamage(parsed.damage, target.ward)
+        addDamage(rollDamage(parsed.damage, target.ward))
         continue
       }
       if (weapon.critEffect === AOS_CRIT_EFFECTS.AUTO_WOUND) {
-        damageDealt += resolveWound(
+        addDamage(resolveWound(
           weapon,
           target,
           parsed.damage,
           true
-        )
+        ))
         continue
       }
       if (weapon.critEffect === AOS_CRIT_EFFECTS.TWO_HITS) {
-        damageDealt += resolveWound(weapon, target, parsed.damage)
-        damageDealt += resolveWound(weapon, target, parsed.damage)
+        addDamage(resolveWound(weapon, target, parsed.damage))
+        addDamage(resolveWound(weapon, target, parsed.damage))
         continue
       }
     }
 
     if (hitRoll < weapon.toHit) continue
-    damageDealt += resolveWound(weapon, target, parsed.damage)
+    addDamage(resolveWound(weapon, target, parsed.damage))
   }
 
-  return damageDealt
+  return { generatedDamage, damageAfterWard }
 }
 
 const mean = (values) =>
@@ -234,48 +253,54 @@ export const simulateAoSAttack = (
     }
   })
 
-  const damagePerTrial = []
+  const generatedDamagePerTrial = []
+  const damageAfterWardPerTrial = []
+  const allocatedDamagePerTrial = []
   const killsPerTrial = []
-  const damagePerWeapon = weapons.map(() => [])
+  const generatedDamagePerWeapon = weapons.map(() => [])
+  const damageAfterWardPerWeapon = weapons.map(() => [])
   const totalHealth = target.models * target.health
 
   for (let simulation = 0; simulation < numSimulations; simulation++) {
-    let totalDamage = 0
-    let remainingHealth = totalHealth
+    let totalGeneratedDamage = 0
+    let totalDamageAfterWard = 0
     weapons.forEach((weapon, index) => {
-      if (remainingHealth <= 0) {
-        damagePerWeapon[index].push(0)
-        return
-      }
-
-      const rolledDamage = resolveWeapon(weapon, target, parsedWeapons[index])
-      const allocatedDamage = Math.min(rolledDamage, remainingHealth)
-      damagePerWeapon[index].push(allocatedDamage)
-      totalDamage += allocatedDamage
-      remainingHealth -= allocatedDamage
+      const damage = resolveWeapon(weapon, target, parsedWeapons[index])
+      generatedDamagePerWeapon[index].push(damage.generatedDamage)
+      damageAfterWardPerWeapon[index].push(damage.damageAfterWard)
+      totalGeneratedDamage += damage.generatedDamage
+      totalDamageAfterWard += damage.damageAfterWard
     })
-    damagePerTrial.push(totalDamage)
+    const allocatedDamage = Math.min(totalDamageAfterWard, totalHealth)
+    generatedDamagePerTrial.push(totalGeneratedDamage)
+    damageAfterWardPerTrial.push(totalDamageAfterWard)
+    allocatedDamagePerTrial.push(allocatedDamage)
     killsPerTrial.push(
-      Math.min(target.models, Math.floor(totalDamage / target.health))
+      Math.min(target.models, Math.floor(allocatedDamage / target.health))
     )
   }
 
-  const expectedDamage = mean(damagePerTrial)
-  const damageStdDev = Math.sqrt(variance(damagePerTrial, expectedDamage))
+  const expectedGeneratedDamage = mean(generatedDamagePerTrial)
+  const generatedDamageStdDev = Math.sqrt(
+    variance(generatedDamagePerTrial, expectedGeneratedDamage)
+  )
+  const expectedDamage = mean(damageAfterWardPerTrial)
+  const damageStdDev = Math.sqrt(
+    variance(damageAfterWardPerTrial, expectedDamage)
+  )
+  const expectedAllocatedDamage = mean(allocatedDamagePerTrial)
   const expectedKills = mean(killsPerTrial)
   const killsStdDev = Math.sqrt(variance(killsPerTrial, expectedKills))
   const damageCount = new Map()
   const killsCount = new Map()
   let maxDamage = 0
-  let anyDamageCount = 0
   let wipeCount = 0
 
-  damagePerTrial.forEach((damage, index) => {
+  allocatedDamagePerTrial.forEach((damage, index) => {
     const kills = killsPerTrial[index]
     damageCount.set(damage, (damageCount.get(damage) || 0) + 1)
     killsCount.set(kills, (killsCount.get(kills) || 0) + 1)
     maxDamage = Math.max(maxDamage, damage)
-    if (damage > 0) anyDamageCount++
     if (kills === target.models) wipeCount++
   })
 
@@ -309,13 +334,6 @@ export const simulateAoSAttack = (
     }
   )
 
-  const damageProbability = anyDamageCount / numSimulations
-  const damageProbabilityStdDev = Math.sqrt(
-    Math.max(
-      0,
-      (damageProbability * (1 - damageProbability)) / numSimulations
-    )
-  )
   const wipeProbability = wipeCount / numSimulations
   const wipeProbabilityStdDev = Math.sqrt(
     Math.max(
@@ -324,10 +342,14 @@ export const simulateAoSAttack = (
     )
   )
 
-  const perWeapon = damagePerWeapon.map((values, index) => {
+  const perWeapon = damageAfterWardPerWeapon.map((values, index) => {
+    const profileExpectedGeneratedDamage = mean(
+      generatedDamagePerWeapon[index]
+    )
     const profileExpectedDamage = mean(values)
     return {
       name: weapons[index].name || `Weapon ${index + 1}`,
+      expectedGeneratedDamage: profileExpectedGeneratedDamage,
       expectedDamage: profileExpectedDamage,
       stdDev: Math.sqrt(variance(values, profileExpectedDamage)),
     }
@@ -343,22 +365,22 @@ export const simulateAoSAttack = (
       target.models,
       expectedKills + Z_95 * killsStdDev
     ),
+    expectedGeneratedDamage,
+    expectedGeneratedDamageStdDev: generatedDamageStdDev,
+    expectedGeneratedDamageCILow: Math.max(
+      0,
+      expectedGeneratedDamage - Z_95 * generatedDamageStdDev
+    ),
+    expectedGeneratedDamageCIHigh:
+      expectedGeneratedDamage + Z_95 * generatedDamageStdDev,
     expectedDamage,
     expectedDamageStdDev: damageStdDev,
     expectedDamageCILow: Math.max(
       0,
       expectedDamage - Z_95 * damageStdDev
     ),
-    expectedDamageCIHigh: Math.min(
-      totalHealth,
-      expectedDamage + Z_95 * damageStdDev
-    ),
-    damageProbability: damageProbability * 100,
-    damageProbabilityStdDev: damageProbabilityStdDev * 100,
-    damageProbabilityCILow:
-      Math.max(0, damageProbability - Z_95 * damageProbabilityStdDev) * 100,
-    damageProbabilityCIHigh:
-      Math.min(1, damageProbability + Z_95 * damageProbabilityStdDev) * 100,
+    expectedDamageCIHigh: expectedDamage + Z_95 * damageStdDev,
+    expectedAllocatedDamage,
     wipeProbability: wipeProbability * 100,
     wipeProbabilityStdDev: wipeProbabilityStdDev * 100,
     wipeProbabilityCILow:

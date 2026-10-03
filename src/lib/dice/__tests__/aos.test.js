@@ -144,6 +144,10 @@ describe('simulateAoSAttack', () => {
         10000
       )
 
+      expect(simulated.expectedGeneratedDamage).toBeCloseTo(
+        exact.expectedGeneratedDamage,
+        1
+      )
       expect(simulated.expectedDamage).toBeCloseTo(exact.expectedDamage, 1)
       expect(simulated.distributionData.at(-1).cumulative).toBeCloseTo(100)
       expect(simulated.killDistributionData.at(-1).cumulative).toBeCloseTo(100)
@@ -184,12 +188,14 @@ describe('simulateAoSAttack', () => {
     )
 
     expect(result.totalHealth).toBe(6)
-    expect(result.expectedDamage).toBe(6)
-    expect(result.expectedDamageCIHigh).toBe(6)
+    expect(result.expectedGeneratedDamage).toBeGreaterThan(6)
+    expect(result.expectedDamage).toBeGreaterThan(6)
+    expect(result.expectedAllocatedDamage).toBe(6)
     expect(result.expectedKills).toBe(3)
     expect(result.wipeProbability).toBe(100)
     expect(result.maxDamage).toBe(6)
-    expect(result.perWeapon[0].expectedDamage).toBe(6)
+    expect(result.perWeapon[0].expectedGeneratedDamage).toBeGreaterThan(6)
+    expect(result.perWeapon[0].expectedDamage).toBeGreaterThan(6)
   })
 })
 

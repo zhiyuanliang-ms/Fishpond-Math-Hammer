@@ -25,6 +25,29 @@ export function buildAoSAttackReport(weapons, target, result) {
   if (!target || !result)
     throw new Error('Cannot build an AoS report without a defender and results')
 
+  const resultLines = []
+  if (target.models !== 1) {
+    resultLines.push(
+      `- Expected models killed: ${fixed(result.expectedKills)} ` +
+        `(±${fixed(result.expectedKillsStdDev)}, 95% range ` +
+        `${fixed(result.expectedKillsCILow)}–${fixed(result.expectedKillsCIHigh)})`
+    )
+  }
+  resultLines.push(
+    `- Expected generated damage: ${fixed(result.expectedGeneratedDamage)} ` +
+      `(±${fixed(result.expectedGeneratedDamageStdDev)}, 95% range ` +
+      `${fixed(result.expectedGeneratedDamageCILow)}–` +
+      `${fixed(result.expectedGeneratedDamageCIHigh)})`
+  )
+  if (target.ward !== 0) {
+    resultLines.push(
+      `- Expected damage after Ward: ${fixed(result.expectedDamage)} ` +
+        `(±${fixed(result.expectedDamageStdDev)}, 95% range ` +
+        `${fixed(result.expectedDamageCILow)}–${fixed(result.expectedDamageCIHigh)})`
+    )
+  }
+  resultLines.push(`- Chance to wipe unit: ${fixed(result.wipeProbability)}%`)
+
   const lines = [
     '# AoS Attack Simulator',
     '',
@@ -36,21 +59,20 @@ export function buildAoSAttackReport(weapons, target, result) {
       (target.ward === 0 ? '' : `, Ward ${target.ward}+`),
     '',
     `## Results (${result.numSimulations.toLocaleString()} simulations)`,
-    `- Expected models killed: ${fixed(result.expectedKills)} ` +
-      `(±${fixed(result.expectedKillsStdDev)}, 95% range ` +
-      `${fixed(result.expectedKillsCILow)}–${fixed(result.expectedKillsCIHigh)})`,
-    `- Expected damage dealt: ${fixed(result.expectedDamage)} ` +
-      `(±${fixed(result.expectedDamageStdDev)}, 95% range ` +
-      `${fixed(result.expectedDamageCILow)}–${fixed(result.expectedDamageCIHigh)})`,
-    `- Chance to deal damage: ${fixed(result.damageProbability)}%`,
-    `- Chance to wipe unit: ${fixed(result.wipeProbability)}%`,
+    ...resultLines,
   ]
 
   if (result.perWeapon.length > 1) {
     lines.push('', '## Per-Profile Damage')
     result.perWeapon.forEach((profile) => {
+      const damageAfterWard =
+        target.ward === 0
+          ? ''
+          : `, ${fixed(profile.expectedDamage)} after Ward`
       lines.push(
-        `- ${profile.name}: ${fixed(profile.expectedDamage)} expected damage ` +
+        `- ${profile.name}: ${fixed(profile.expectedGeneratedDamage)} generated` +
+          damageAfterWard +
+          ' ' +
           `(±${fixed(profile.stdDev)})`
       )
     })
