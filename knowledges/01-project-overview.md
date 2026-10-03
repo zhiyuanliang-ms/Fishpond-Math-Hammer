@@ -84,7 +84,7 @@ expected kills and damage, chance to deal damage, wipe chance, per-weapon
 breakdown, kill and damage distributions, and a Markdown report that can be
 copied to the clipboard.
 
-### Macro Battleplan (`MacroBattleplan`)
+### 40K Tactical Board (`MacroBattleplan`)
 The official GW battleplan for the chosen Force Disposition pairing is the
 board, with base, drawing, ruler, mission-card, and scoring tools on top.
 
@@ -107,4 +107,4 @@ board, with base, drawing, ruler, mission-card, and scoring tools on top.
   browser-local only.
 - No accessibility audit beyond stock semantic HTML.
 - The quick calculators and AoS Attack Simulator do not persist their inputs
-  (the 40K Attack Simulator and Macro Battleplan are the persistent tools).
+  (the 40K Attack Simulator and 40K Tactical Board are the persistent tools).

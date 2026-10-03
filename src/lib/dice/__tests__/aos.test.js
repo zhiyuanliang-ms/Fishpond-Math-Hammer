@@ -114,7 +114,7 @@ describe('calculateAoSDamage', () => {
         attacks: '2D3',
         toHit: 2,
         toWound: 2,
-        rend: 6,
+        rend: 5,
         damage: 'D3+1',
       }),
       target({ save: 2 })
@@ -175,7 +175,7 @@ describe('simulateAoSAttack', () => {
           attacks: '100',
           toHit: 2,
           toWound: 2,
-          rend: 6,
+          rend: 5,
           damage: '2',
         }),
       ],
@@ -226,5 +226,15 @@ describe('AoS profile validation', () => {
         10
       )
     ).toThrow(/Health must be a positive integer/)
+  })
+
+  it('rejects Rend values above -5', () => {
+    expect(() =>
+      simulateAoSAttack(
+        [weapon({ rend: 6 })],
+        target(),
+        10
+      )
+    ).toThrow(/Rend must be between 0 and 5/)
   })
 })

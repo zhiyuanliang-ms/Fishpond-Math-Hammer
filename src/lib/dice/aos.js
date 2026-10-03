@@ -30,8 +30,8 @@ export const validateAoSWeaponProfile = (weapon) => {
     return 'Hit must be between 2+ and 6+'
   if (!isIntegerBetween(weapon.toWound, 2, 6))
     return 'Wound must be between 2+ and 6+'
-  if (!isIntegerBetween(weapon.rend, 0, 6))
-    return 'Rend must be between 0 and 6'
+  if (!isIntegerBetween(weapon.rend, 0, 5))
+    return 'Rend must be between 0 and 5'
   if (!isValidAoSDiceExpression(weapon.damage))
     return `Damage "${weapon.damage}" must always roll at least 1`
   if (!critEffects.has(weapon.critEffect))

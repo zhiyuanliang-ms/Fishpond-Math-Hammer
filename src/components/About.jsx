@@ -12,7 +12,7 @@ function About() {
     const msg =
       'Clear ALL Fishpond Math Hammer data from this browser?\n\n' +
       'This deletes every saved Attack Simulator scenario / profile set ' +
-      'and every saved Macro Battleplan board and scoreboard. ' +
+      'and every saved 40K Tactical Board and scoreboard. ' +
       'On-screen state is kept until you reload.'
     if (!window.confirm(msg)) return
     try {

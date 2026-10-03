@@ -62,7 +62,7 @@ export const saveOptions = [
   { value: '7', label: '7+' }
 ]
 
-export const aosRendOptions = Array.from({ length: 7 }, (_, rend) => ({
+export const aosRendOptions = Array.from({ length: 6 }, (_, rend) => ({
   value: rend.toString(),
   label: rend === 0 ? '—' : `-${rend}`
 }))
