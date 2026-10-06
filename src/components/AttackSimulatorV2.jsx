@@ -8,12 +8,10 @@ import {
   simulateAttack,
   isValidDiceExpression,
   makeUnitBuffs,
-  isUnitBuffsEmpty,
   mergeWeaponWithUnit,
   describeUpgrades,
   normalizeWeaponProfileRerolls,
   makeTargetUnitBuffs,
-  isTargetUnitBuffsEmpty,
   mergeTargetWithUnit,
   describeTargetUpgrades,
 } from '../lib/dice'
@@ -40,6 +38,7 @@ import {
   buildShareUrl,
   SHARE_QUERY_PARAM,
 } from '../lib/attackSimV2Share'
+import { buildAttackSimV2Report } from '../lib/attackSimV2Report'
 import { Page, StatCard, StatGrid, DistributionChart } from './ui'
 import TargetProfileCardV2 from './attackSimV2/TargetProfileCardV2'
 import SavedSetControls from './ui/SavedSetControls'
@@ -172,147 +171,6 @@ const detectMobile = () => {
   return /Android|iPhone|iPad|iPod|IEMobile|BlackBerry|Opera Mini/i.test(
     navigator.userAgent || ''
   )
-}
-
-// ---- report builder --------------------------------------------------------
-
-const rerollLabel = (mode, t) => {
-  switch (mode) {
-    case 'reroll-one': return t('rerollOnes')
-    case 'reroll-one-two': return t('rerollOnesAndTwos')
-    case 'reroll-fail': return t('rerollFails')
-    case 'reroll-non-critical': return t('rerollNonCritical')
-    case 'reroll-1-2-3': return t('rerollLow123')
-    default: return null
-  }
-}
-
-const describeWeapon = (w, t) => {
-  const tag = (v) => (typeof v === 'string' ? v.toUpperCase() : v)
-  const head = `${w.modelsFiring}× A${tag(w.attacks)} BS/WS${w.toHit}+ S${w.strength} AP-${w.ap} D${tag(w.damage)}`
-  const abilities = []
-  if (w.torrent) abilities.push(t('torrent'))
-  if (w.lethalHits) abilities.push(t('lethalHits'))
-  if (w.sustainedHits && w.sustainedHits !== 'off')
-    abilities.push(`${t('sustainedHits')} ${w.sustainedHits.toUpperCase()}`)
-  if (w.devastatingWounds) abilities.push(t('devastatingWounds'))
-  if (w.blast) abilities.push(t('blast'))
-  if (w.plusOneHit) abilities.push(t('plusOneHit'))
-  if (w.plusOneWound) abilities.push(t('plusOneWound'))
-  if (w.ignoresCover) abilities.push(t('ignoresCover'))
-  if (w.critHitEnabled) abilities.push(`${t('criticalHit')} ${w.critHit}+`)
-  if (w.antiEnabled) abilities.push(`${t('anti')} ${w.antiValue}+`)
-  const rerolls = []
-  const pushReroll = (mode, scope, label) => {
-    const r = rerollLabel(mode, t)
-    if (!r) return
-    const scopeTag = scope === 'single' ? ` (${t('rerollScopeSingle')})` : ''
-    rerolls.push(`${label}: ${r}${scopeTag}`)
-  }
-  pushReroll(w.hitReroll, w.hitRerollScope, t('hitReroll'))
-  pushReroll(w.woundReroll, w.woundRerollScope, t('woundReroll'))
-  pushReroll(w.attackReroll, w.attackRerollScope, t('attackReroll'))
-  pushReroll(w.damageReroll, w.damageRerollScope, t('damageReroll'))
-  const extras = [...abilities, ...rerolls]
-  return head + (extras.length ? ` [${extras.join(', ')}]` : '')
-}
-
-const describeUnitBuffs = (u, t) => {
-  const parts = []
-  if (u.plusOneAttack) parts.push(t('plusOneAttack'))
-  if (u.plusOneDamage) parts.push(t('plusOneDamage'))
-  if (u.plusOneHit) parts.push(t('plusOneHit'))
-  if (u.plusOneWound) parts.push(t('plusOneWound'))
-  if (u.hitReroll && u.hitReroll !== 'no-reroll')
-    parts.push(`${t('hitReroll')}: ${rerollLabel(u.hitReroll, t)}`)
-  if (u.woundReroll && u.woundReroll !== 'no-reroll')
-    parts.push(`${t('woundReroll')}: ${rerollLabel(u.woundReroll, t)}`)
-  if (u.lethalHits) parts.push(t('lethalHits'))
-  if (u.devastatingWounds) parts.push(t('devastatingWounds'))
-  if (u.sustainedHits && u.sustainedHits !== 'off')
-    parts.push(`${t('sustainedHits')} ${u.sustainedHits}`)
-  if (u.ignoresCover) parts.push(t('ignoresCover'))
-  if (u.critHitEnabled) parts.push(`${t('criticalHit')} ${u.critHit}+`)
-  return parts
-}
-
-const describeDefenderUnitBuffs = (d, t) => {
-  const parts = []
-  if (d.rerollSaveOnes) parts.push(t('rerollSaveOnes'))
-  if (d.benefitOfCover) parts.push(t('benefitOfCover'))
-  if (d.minusOneToHit) parts.push(t('minusOneHit'))
-  if (d.minusOneToWound) parts.push(t('minusOneWound'))
-  if (d.minusOneToWoundIfStronger) parts.push(t('minusOneWoundST'))
-  if (d.halfDamage) parts.push(t('halfDamage'))
-  if (d.minusOneDamage) parts.push(t('damageMinus1'))
-  if (d.damageOne) parts.push(t('damageOne'))
-  return parts
-}
-
-const describeTarget = (target, t) => {
-  const inv = target.invulnSave > 0 ? `/${target.invulnSave}++` : ''
-  const head = `${target.models}× T${target.toughness} W${target.wounds} Sv${target.save}+${inv}`
-  const buffs = []
-  if (target.fnp > 0) buffs.push(`${t('fnp')} ${target.fnp}+`)
-  if (target.fnpMortal > 0) buffs.push(`${t('fnpMortal')} ${target.fnpMortal}+`)
-  if (target.rerollSaveOnes) buffs.push(t('rerollSaveOnes'))
-  if (target.minusOneToHit) buffs.push(t('minusOneHit'))
-  if (target.minusOneToWound) buffs.push(t('minusOneWound'))
-  if (target.minusOneToWoundIfStronger) buffs.push(t('minusOneWoundST'))
-  if (target.halfDamage) buffs.push(t('halfDamage'))
-  if (target.minusOneDamage) buffs.push(t('damageMinus1'))
-  if (target.damageOne) buffs.push(t('damageOne'))
-  if (target.benefitOfCover) buffs.push(t('benefitOfCover'))
-  return head + (buffs.length ? ` [${buffs.join(', ')}]` : '')
-}
-
-const buildReport = (weapons, targets, unitBuffs, defenderUnitBuffs, result, t) => {
-  const lines = []
-  lines.push(`# ${t('pageTitle')}`)
-  lines.push('')
-  lines.push(`## ${t('reportAttacker')}`)
-  weapons.forEach((w, i) => {
-    const name = w.name?.trim() || `Weapon ${i + 1}`
-    lines.push(`- ${name}: ${describeWeapon(w, t)}`)
-  })
-  if (!isUnitBuffsEmpty(unitBuffs)) {
-    lines.push('')
-    lines.push(`### ${t('unitBuffsSection')}`)
-    describeUnitBuffs(unitBuffs, t).forEach((p) => lines.push(`- ${p}`))
-  }
-  lines.push('')
-  lines.push(`## ${t('reportDefender')}`)
-  targets.forEach((tg, i) => {
-    const name = tg.name?.trim() || `Profile ${i + 1}`
-    lines.push(`- ${name}: ${describeTarget(tg, t)}`)
-  })
-  if (!isTargetUnitBuffsEmpty(defenderUnitBuffs)) {
-    lines.push('')
-    lines.push(`### ${t('unitBuffsSection')}`)
-    describeDefenderUnitBuffs(defenderUnitBuffs, t).forEach((p) => lines.push(`- ${p}`))
-  }
-
-  if (result) {
-    const singleModel = targets.length === 1 && targets[0].models === 1
-    lines.push('')
-    lines.push(`## ${t('reportResults')} (${t('reportIterations', result.numSimulations.toLocaleString())})`)
-    if (singleModel) {
-      lines.push(`- ${t('reportExpectedDamage')}: ${result.expectedDamage.toFixed(2)} (±${result.expectedDamageStdDev.toFixed(2)}, 95% CI ${result.expectedDamageCILow.toFixed(2)}–${result.expectedDamageCIHigh.toFixed(2)})`)
-    } else {
-      lines.push(`- ${t('reportExpectedKills')}: ${result.expectedKills.toFixed(2)} (±${result.expectedKillsStdDev.toFixed(2)}, 95% CI ${result.expectedKillsCILow.toFixed(2)}–${result.expectedKillsCIHigh.toFixed(2)})`)
-    }
-    lines.push(`- ${t('reportWipeChance')}: ${result.wipeProbability.toFixed(2)}% (±${result.wipeProbabilityStdDev.toFixed(2)}%, 95% CI ${result.wipeProbabilityCILow.toFixed(2)}–${result.wipeProbabilityCIHigh.toFixed(2)}%)`)
-
-    if (result.perProfile.length > 1) {
-      lines.push('')
-      lines.push(`## ${t('perProfileBreakdown')}`)
-      result.perProfile.forEach((p) => {
-        lines.push(`- ${p.name} (${p.models}): ${p.expectedKills.toFixed(2)} ${t('reportExpectedKills').toLowerCase()} (±${p.stdDev.toFixed(2)}), ${p.wipeProbability.toFixed(1)}% ${t('reportWipeChance').toLowerCase()}`)
-      })
-    }
-  }
-
-  return lines.join('\n')
 }
 
 function AttackSimulatorV2() {
@@ -802,7 +660,14 @@ function AttackSimulatorV2() {
 
   const handleCopyReport = async () => {
     if (!result) return
-    const text = buildReport(weapons, targets, unitBuffs, defenderUnitBuffs, result, t)
+    const text = buildAttackSimV2Report(
+      weapons,
+      targets,
+      unitBuffs,
+      defenderUnitBuffs,
+      result,
+      t
+    )
     try {
       await navigator.clipboard.writeText(text)
       setToast({ kind: 'success', message: t('reportCopied') })

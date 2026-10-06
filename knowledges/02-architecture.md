@@ -36,6 +36,7 @@ src/
 ├── lib/
 │   ├── attackSimV2Storage.js    # localStorage helpers for Attack Simulator
 │   ├── attackSimV2Share.js      # Compact scenario share-link codec
+│   ├── attackSimV2Report.js     # Complete localized 40K report formatter
 │   ├── aosAttackReport.js       # AoS Markdown report formatter
 │   └── dice/                    # PURE LOGIC — see 03-dice-library.md
 │       ├── index.js            # Barrel export
