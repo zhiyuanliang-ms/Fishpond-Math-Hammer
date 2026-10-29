@@ -12,7 +12,6 @@ related tools. Pure client-side; no backend.
 - **react-konva** + **konva** for Macro Battleplan canvas rendering.
 - **react-select 5** for dropdowns (custom dark theme via `selectStyles.js`).
 - **recharts 3** for distribution charts.
-- **react-katex** + **katex** for σ (sigma) symbols in stat cards.
 - **Vitest 4** for pure-logic and selected UI-helper tests.
 - **ESLint 9** flat config (`eslint.config.js`).
 
@@ -69,7 +68,8 @@ the ranking table and chart, regardless of UI language. The suffix is
 captured with the simulation result; saved buffs and stored Profile names
 are unchanged. Colors and slot labels remain available to distinguish variants.
 The comparison table shows rank, attacker, expected kills, expected damage,
-and wipe chance. Its bar chart compares expected kills.
+and wipe chance. Rows rank by expected kills, then wipe chance, then expected
+damage. Its bar chart compares expected kills.
 
 ## Calculators
 
@@ -99,7 +99,7 @@ produces expected hits, wounds reaching the save roll, failed saves, critical
 mortal damage, and final damage after Ward.
 
 ### 40K Attack Simulator (`AttackSimulator`)
-Monte Carlo simulator for the full 10e attack sequence end-to-end. Unlike
+Monte Carlo simulator for the full 11e attack sequence end-to-end. Unlike
 the quick calculators, this one supports:
 - **Multiple weapon profiles** that fire in user-defined order, each with
   its own attacks/S/AP/D dice expressions and full buff set
@@ -112,10 +112,12 @@ the quick calculators, this one supports:
 - **Precision toggle**: 1,000 iterations by default, 10,000 with "High
   precision".
 Results:
-- Expected Models Killed (with 95% CI and σ)
-- Expected Damage Dealt (only shown for the single-target / single-model
-  case, since the metric is meaningless once the unit is wiped)
-- Chance to Wipe Unit
+- Expected Models Killed (with σ and the 95% range of outcomes)
+- Expected Damage Dealt: wounds the defender actually lost, after Feel No
+  Pain (only shown for the single-target / single-model case, since the
+  metric is meaningless once the unit is wiped)
+- Chance to Wipe Unit (with its standard error and 95% CI, because it is an
+  estimate from the simulated trials)
 - Per-profile breakdown table (when there are 2+ target profiles)
 - Distribution chart of total models killed
 
@@ -142,8 +144,9 @@ board, with base, drawing, ruler, mission-card, and scoring tools on top.
 
 - 5 Force Dispositions × 15 pairings × 3 terrain layouts (A/B/C) = 45 official maps,
   indexed in `src/macro-battleplan/config/battleplans11e.js`.
-- Two image variants per map in `public/battleplans-11e/`, built by
-  `tools/build_11e_map_assets.py`: `map_XX.webp` is the clean board (880×1200 =
+- Two image variants per map in `public/battleplans-11e/`, built by the map
+  pipeline in the parent Warhammer workspace (not in this repo; see
+  `.github/skills/update-11e-maps/SKILL.md`): `map_XX.webp` is the clean board (880×1200 =
   20 px/inch, matching `PX_PER_INCH`) and `map_XX_ref.webp` is the original
   annotated page map shown by the reference pop-up on the canvas.
 - The book button on the canvas opens both Primary Mission cards for the
@@ -152,6 +155,12 @@ board, with base, drawing, ruler, mission-card, and scoring tools on top.
   under `public/battleplans-11e/primary-missions/`.
 - Terrain, objectives and deployment zones are part of the printed layout and
   are not user-editable; only bases and drawings are.
+- Bases and drawings live in memory until exported. Undo keeps 50 steps, and
+  the page warns before a reload or tab close while any exist. The route is
+  lazy-loaded so Konva stays out of the main bundle.
+- Single-key shortcuts (A/F/D/S/X/Q/E, arrows, Delete) ignore Ctrl/Cmd/Alt so
+  browser shortcuts keep working; Ctrl/Cmd+C copies bases only when bases are
+  selected and no page text is selected.
 
 ## What the app does NOT do
 - No backend, no analytics, no auth.

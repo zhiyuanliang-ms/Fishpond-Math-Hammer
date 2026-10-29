@@ -1,10 +1,10 @@
 # Dev Workflow
 
 ## Environment
-- **Windows + PowerShell.** All terminal commands assume `pwsh`.
-- Node 20+ recommended (Vite 7 requirement).
-- `rg` may not be available — use `Get-ChildItem ... | Select-String` or the
-  workspace `grep_search` tool instead.
+- Developed on both macOS and Windows. The commands below are plain npm
+  scripts and work in any shell; PowerShell-specific notes are under
+  "Common pitfalls".
+- Node 20+ recommended (Vite 7 requirement); CI uses Node 22.
 
 ## Commands
 
@@ -21,14 +21,14 @@
 
 ## "Definition of done" for any change
 1. `npm run lint` → 0 errors, 0 warnings (we keep it clean).
-2. `npm test` → all green (vitest, runs `src/lib/dice/__tests__/`).
+2. `npm test` → all green (vitest runs every `*.test.js` / `*.test.jsx` under `src/`).
 3. `npm run build` → succeeds (the chunk-size warning is pre-existing and OK).
 4. Smoke-check the affected page in dev (and at mobile width if CSS changed).
 5. Update the relevant doc under `knowledges/` if you changed architecture.
 
-PowerShell one-liner used in this project:
-```powershell
-cd "c:\Users\zhiyuanliang\Desktop\Warhammer"; npm run lint 2>&1 | Select-Object -Last 15; npm run build 2>&1 | Select-Object -Last 8
+One-liner (bash/zsh; in PowerShell use `;` instead of `&&`):
+```sh
+npm run lint && npm test && npm run build
 ```
 
 ## Mobile testing
@@ -70,6 +70,10 @@ The app is deployed as an **Azure Static Web App** (`gentle-coast-01db79f0f`).
 
 - **CI/CD workflow:** `.github/workflows/azure-static-web-apps-gentle-coast-01db79f0f.yml`
   triggers on pushes to `master` and on PRs against `master`.
+- **Test gate:** a `test_job` runs `npm ci` and `npm test` first; the deploy
+  job `needs` it, so a failing test blocks deployment and production keeps
+  the previous version. `npm run lint` also runs there but is
+  `continue-on-error` until it is confirmed clean — then drop that line.
 - **Build:** `Azure/static-web-apps-deploy@v1` builds at `/` and deploys `dist/`.
 - **SPA fallback routing:** `staticwebapp.config.json` at the repo root
   configures `navigationFallback` to rewrite all paths to `/index.html`
@@ -84,7 +88,8 @@ If you add a new page route in `App.jsx`, no extra config is needed — the
 `navigationFallback` catch-all already covers it.
 
 ## Git
-- Default branch is `main` (or whatever the user is on — check `git status`).
+- Work on `master`: CI deploys from it. The remote's `main` branch holds only
+  GitHub's initial commit and is unrelated to `master`'s history.
 - The user commits manually with short messages (e.g. `"refactor"`). Don't
   auto-commit unless asked.
 - Never `git push --force`, never `git reset --hard` on shared branches

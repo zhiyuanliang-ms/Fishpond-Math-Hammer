@@ -76,7 +76,7 @@ Reruns will pick it up; no other change needed.
 3. Wire it into `WoundSuccessCalculator.jsx` form state and pass through to
    the math call.
 4. If the modifier affects the wound distribution shape (like lethal hits
-   does), update `woundDistribution.js` accordingly.
+   does), update `woundPool.js` (and its `d6Rerolls.js` outcomes) accordingly.
 5. If it should also apply to the full Attack Simulator, update
    `attackSimulation.js` and the relevant editor in `components/attackSimulator/`.
 6. Update [`08-glossary.md`](./08-glossary.md) with the new term.

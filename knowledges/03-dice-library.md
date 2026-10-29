@@ -1,13 +1,14 @@
 # `src/lib/dice/` — Pure Logic Library
 
 **No React, no DOM, no CSS, no `window`.** Everything here must be importable
-from a Node script and pure (deterministic given inputs, except `simulation.js`
-which uses `Math.random`).
+from a Node script and pure (deterministic given inputs, except the Monte
+Carlo and dice-roller modules — `attackSimulation.js`, `aos.js`, `roll.js` and
+`rollDiceExpr*` — which use `Math.random`).
 
 Always import from the barrel:
 
 ```js
-import { calculateHitProbability, simulateKillProbability } from '../lib/dice'
+import { calculateWoundPool, simulateAttack } from '../lib/dice'
 ```
 
 ## Module reference
@@ -25,6 +26,8 @@ Tiny parser/evaluator for the dice expressions used by the Attack Simulator's
 | `rollDiceExpr(parsed)` | roll | Integer result. `0` if `parsed` is null. |
 | `expectedDiceExpr(parsed)` | mean | `flat + count*(sides+1)/2`. |
 | `isValidDiceExpression(expr)` | bool | Thin wrapper over `parseDiceExpression`. |
+| `rollDiceExprWithReroll(parsed, threshold, scope, budget?)` | roll | Rerolls low dice once. `scope` `'all'` rerolls every qualifying die; `'single'` rerolls one (the lowest). A shared `{ remaining }` budget makes one `'single'` reroll cover several calls (the simulator shares one per weapon card for Damage). |
+| `rerollFaceLimit(threshold, sides)` | number | Highest face worth rerolling: `min(threshold, floor(sides / 2))`, i.e. 1-3 on a D6, 1 on a D3. |
 
 Supported forms (case-insensitive, whitespace trimmed): `4`, `12`, `D3`, `D6`,
 `2D6`, `3D3`, `D6+1`, `2D6-1`. Numeric inputs are also accepted (e.g. `4`).
@@ -108,35 +111,14 @@ rolls but still receives per-point Ward rolls.
 | `binomialProbability(n, k, p)` | exact | P(X=k) for X~Bin(n,p) |
 | `buildDistribution({ min, max, probabilityFn, xKey, visibleMin })` | helper | Array of `{ [xKey]: number, probability: "12.34", cumulative: "56.78" }` (percentages as 2-decimal strings, ready for recharts). |
 
-### `woundDistribution.js`
-`buildWoundDistribution({ expectedHits, expectedCrits, woundChance, stdDev, lethalHit, expectedWounds })`
-is a legacy binomial approximation retained in the dice API. It uses a ±3σ
-window; when `lethalHit` is true, mean crits are treated as guaranteed wounds.
-`WoundSuccessCalculator` now uses the exact `calculateWoundPool` distribution.
-
-### `simulation.js`
-`simulateKillProbability(numAttacks, damage, numTargetModels, modelWounds, armorSave, fnp, saveRerollValue, numSimulations = 10000)`
-
-Monte Carlo. Returns an object with **string** numeric fields (already
-`.toFixed(2)`):
-- `expectedKills`, `meanCILow`, `meanCIHigh`
-- `killAllProbability`, `killAllCILow`, `killAllCIHigh`
-- `expectedUnsavedAttacks` (closed form, not simulated)
-- `unsavedCILow`, `unsavedCIHigh` (binomial normal-approx CI)
-- `distributionData` — array of `{ kills, probability, cumulative }`
-
-`Z_95 = 1.96` is exported from here and re-exported by the barrel.
-
-### `killProbability.js`
-`calculateKillProbability(formValues)` — thin wrapper that parses string form
-inputs (`numAttacks`, `damage`, etc.) and delegates to
-`simulateKillProbability`. This is the function `KillProbabilityCalculator`
-calls.
+### `chargeProbability.js`
+`calculateChargeProbabilities()` builds the 2D6 and 3D6 "roll N or more"
+tables shown on the Cheat Sheet.
 
 ### `options.js`
 Static `{value, label}` arrays for react-select dropdowns:
 `toHitOptions`, `toWoundOptions`, `antiOptions`, `rerollOptions`, `fnpOptions`,
-`critOptions`, `saveRerollOptions`, `aosWardOptions`, and
+`critOptions`, `randomRerollOptions`, `aosWardOptions`, and
 `aosCritEffectOptions`. AoS Rend uses the shared integer input rather than a
 dropdown.
 
@@ -158,6 +140,9 @@ Full-attack-sequence Monte Carlo engine for the 40K Attack Simulator.
 `simulateAttack(weapons, targetProfiles, numSimulations = DEFAULT_SIMULATIONS, unitBuffs = {})`
 returns:
 - `expectedKills`, `expectedKillsStdDev`, `expectedKillsCILow/High`
+  (the `CILow/High` fields for kills and damage are mean ± 1.96σ of the
+  outcome distribution — shown as a "95% range". Only the wipe fields are a
+  confidence interval of an estimate, built from its standard error.)
 - `expectedDamage`, `expectedDamageStdDev`, `expectedDamageCILow/High`
 - `wipeProbability`, `wipeProbabilityStdDev`, `wipeProbabilityCILow/High`
 - `distributionData` — array of `{ kills, probability, cumulative }` (numbers, percent).
@@ -213,8 +198,10 @@ Key rules implemented (see 08-glossary.md for vocabulary):
   Each packet can damage at most one model; excess mortal wounds are lost.
   Use the better eligible `fnp` / `fnpMortal` threshold, rolling only once per
   wound. A worse mortal-only FNP cannot replace a better general FNP.
-- **ANTI-X+**: critical wound on natural X+; wound threshold is also lowered
-  to X if better.
+- **ANTI-X+**: an unmodified wound roll of X+ is a critical wound, and
+  critical wounds always succeed. ANTI does **not** move the S/T threshold
+  that wound modifiers apply to: with ANTI-4+ and +1 to Wound against a 5+
+  roll, a natural 3 (modified to 4) still fails.
 - **Lance**: -1 to the wound threshold (treated as the bearer charging this turn).
 - **Blast X / Cleave X**: +`X * floor(target_models / 5)` attacks per weapon
   instance. Both use an integer X from **1 to 5**, defaulting to **1**.
@@ -238,6 +225,20 @@ Key rules implemented (see 08-glossary.md for vocabulary):
 - Damage modifiers: HALF DAMAGE (`Math.ceil(d/2)`), DAMAGE −1 (min 1),
   DAMAGE = 1 (overrides). These flags modify D for both normal damage and
   conversion into DW mortal wounds. The UI keeps them mutually exclusive.
+- **Random Attacks / Damage rerolls** (`attackReroll` / `damageReroll`,
+  value `reroll-1-2-3`): reroll each die below its average once — 1-3 on a
+  D6, 1s on a D3 (`rerollFaceLimit`). Scope `'single'` allows one die per
+  weapon card: for Attacks, the lowest die across all `modelsFiring`
+  instances; for Damage, the first qualifying Damage roll on the card
+  (normal or Devastating Wounds). Multi-dice expressions such as 2D6 are
+  currently rerolled die by die; 10e rerolls a summed roll as a whole —
+  confirm the 11e wording before changing it.
+- **Weapon × unit rerolls** (`mergeWeaponWithUnit`): a unit reroll replaces
+  the weapon's only when it covers strictly more dice (ones < ones and twos <
+  failed = non-critical). Between failed and non-critical, the weapon's
+  choice stands because they are alternative strategies.
+- **`expectedDamage`** counts wounds the defender actually lost: points
+  ignored by FNP and excess damage wasted on a dying model are excluded.
 - Per-attack overkill is capped at the model boundary (excess damage from
   one attack does not spill to the next model). The simulator stops when
   the unit is wiped — leftover attacks are discarded (intentional, simpler

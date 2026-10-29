@@ -43,14 +43,15 @@ src/
 │   └── dice/                    # PURE LOGIC — see 03-dice-library.md
 │       ├── index.js            # Barrel export
 │       ├── constants.js        # DEFAULT_SIMULATIONS, Z_95, REROLL_VALUES
-│       ├── probability.js      # D6 success / crit math
+│       ├── probability.js      # Closed-form D6 success / crit math (test reference)
 │       ├── aos.js              # AoS 4E exact damage math + Monte Carlo
 │       ├── binomial.js         # binomialProbability + buildDistribution
-│       ├── woundDistribution.js# WoundSuccessCalculator-specific dist
-│       ├── simulation.js       # Monte Carlo kill simulation (single-weapon)
+│       ├── woundPool.js        # Exact wound distribution (Wound Success Calculator)
+│       ├── d6Rerolls.js        # Shared D6 evaluation and reroll policies
+│       ├── chargeProbability.js# 2D6/3D6 charge tables (Cheat Sheet)
 │       ├── attackSimulation.js # Full unit-vs-unit Monte Carlo (Attack Simulator)
+│       ├── unitBuffMerge.js    # Weapon/unit and target/unit buff merging
 │       ├── diceExpression.js   # Parse/roll dice expressions (4, D6, D3+3, 2D6-1)
-│       ├── killProbability.js  # Thin wrapper that parses form strings
 │       ├── options.js          # react-select option arrays
 │       └── __tests__/          # Vitest unit tests for the pure logic
 ├── components/
@@ -166,6 +167,9 @@ The Attack Simulator persists two reusable Profile libraries to
 |---|---|---|
 | `attackSim:attackerProfiles` | `{ [name]: { weapons, unitBuffs } }` | Reusable attacker Profiles. |
 | `attackSim:defenderProfiles` | `{ [name]: { targets, defenderUnitBuffs } }` | Reusable defender Profiles. |
+| `attackSim_lang` | `'en'` or `'zh'` | 40K UI language (owned by `components/attackSim/lang.jsx`). |
+
+About > Clear storage removes all three keys plus the Tactical Board keys.
 
 Each side exports and imports independently. An import merges the file into
 the existing library and overwrites same-name Profiles without prompting;
@@ -200,21 +204,24 @@ storage failure explicitly.
 
 ## Macro Battleplan persistence (`src/macro-battleplan/store/board11eStore.js`)
 
-The Macro Battleplan keeps live bases, drawings, selection, undo history,
-setup, and scoreboard state in one Zustand store. Setup and scoreboard values
-persist automatically in two small `localStorage` entries:
+The Macro Battleplan keeps live bases, drawings, selection, undo history
+(50 steps), setup, mission plan, and scoreboard state in one Zustand store.
+Setup, mission plan, and scoreboard values persist automatically in small
+`localStorage` entries:
 
 | Key | Owner | Values | Purpose |
 |---|---|---|---|
 | `macroBattleplan11e:setup` | `board11eStore.js` | `{ mine, theirs, layout }` | Last selected Force Dispositions and terrain layout. |
-| `macroBattleplan11e:scoreboard` | `board11eStore.js` | Player names and five rounds of scores | Restores the scoring panel across reloads. |
+| `macroBattleplan11e:scoreboard` | `board11eStore.js` | Player names and five rounds of scores | Legacy recorded scores, kept for exports. |
+| `macroBattleplan11e:missionPlan` | `board11eStore.js` | Primary/secondary planning per side | Restores the Missions & VP planner. |
 
-Bases and drawings stay in memory until the user exports them. The sidebar
-exchanges one complete JSON format:
+Bases and drawings stay in memory until the user exports them;
+`MacroBattleplan11e` registers a `beforeunload` warning while any exist. The
+sidebar exchanges one complete JSON format:
 
 | Mechanism | Shape | Purpose |
 |---|---|---|
-| Full board JSON import/export | `{ schema: 'fishpond-mathhammer-battleplan-11e/v1', setup, bases, drawings, scoreboard }` | Download or restore the complete editable state layered over an official map. |
+| Full board JSON import/export | `{ schema: 'fishpond-mathhammer-battleplan-11e/v1', setup, bases, drawings, scoreboard, missionPlan }` | Download or restore the complete editable state layered over an official map. |
 
 Base and drawing coordinates are serialized as inches from the top-left of the
 44×60-inch board, so exports stay readable and independent of canvas pixels.

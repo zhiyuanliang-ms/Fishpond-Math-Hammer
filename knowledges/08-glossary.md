@@ -46,11 +46,11 @@ For each attack:
 |---|---|---|
 | **Crit (hit / wound)** | `critHit`, `critWound`, `criticalValue` | Roll value that triggers crit effects. Default `6`, sometimes `5` ("crits on 5+"). Crits are **always evaluated on the unmodified D6.** |
 | **Critical Hit on x+** | `critHitEnabled` + `critHit` | Per-weapon override of the hit-roll crit threshold. |
-| **+1 to Hit** | `plusOneHit` | -1 to the hit threshold (capped at ±1 per 10e). |
+| **+1 to Hit** | `plusOneHit` | -1 to the hit threshold (subject to the ±1 roll-modifier cap). |
 | **Sustained Hits X** | `sustainedHits` | Each crit hit generates X extra hits. |
 | **Lethal Hits** | `lethalHits`, `lethalHit` | Each crit hit auto-wounds (skips the wound roll). |
 | **Devastating Wounds** | `devastatingWounds` | Each crit wound becomes mortal wounds (bypasses saves). |
-| **Anti-X N+** | `antiBuff`, `antiEnabled` + `antiValue` | Wound roll uses N+ (or better) against the keyword (e.g. Anti-Vehicle 4+). |
+| **Anti-X N+** | `antiBuff`, `antiEnabled` + `antiValue` | An unmodified wound roll of N+ is a Critical Wound and always succeeds (e.g. Anti-Vehicle 4+). Wound modifiers still apply to the normal S vs T threshold, not to N. |
 | **Lance** | `lance` | +1 to the wound roll (treated as the bearer charging). Floored at 2+ by `clampThreshold`. |
 | **Blast X** | `blast` + `blastValue` | +`X × floor(target_models / 5)` attacks per weapon instance. X is an integer from 1 to 5, default 1. Mutually exclusive with Cleave; takes precedence in conflicting legacy profiles. Snapshotted at trial start, not live. |
 | **Cleave X** | `cleaveEnabled` + `cleaveValue` | +`X × floor(target_models / 5)` attacks per weapon instance (single target only — always true in this sim). X is an integer from 1 to 5, default 1. Mutually exclusive with Blast. Snapshotted at trial start, like Blast. |
@@ -69,20 +69,22 @@ For each attack:
 | S < T   | 5+ |
 | S ×2 ≤ T| 6+ |
 
-ANTI-X overrides this when the buff is better.
+ANTI-X does not change this table: an unmodified roll of X+ simply always
+succeeds as a Critical Wound.
 
 ## Statistical terms in the UI
-- **σ (sigma)** — standard deviation of a binomial expectation. Shown via
-  KaTeX in `StatCard`.
-- **95% CI** — 95% confidence interval. Computed via normal approximation
-  (`Z_95 = 1.96`) for both closed-form binomial expectations and Monte Carlo
-  proportions.
+- **σ (sigma)** — standard deviation of the outcome (how much results vary
+  from attack to attack).
+- **95% range** — mean ± 1.96σ (`Z_95`), roughly where 95% of outcomes fall.
+  Used for hits, wounds, kills and damage. It is **not** a confidence
+  interval.
+- **SE / 95% CI** — standard error and confidence interval of a simulated
+  estimate. Used only for the wipe chance, because it is a proportion
+  estimated from the Monte Carlo trials.
 - **Expected X** — the mean of the distribution (n·p for binomial).
 
 ## Sources of "randomness" in the code
 - `WoundSuccessCalculator` is **fully closed-form** — no RNG.
-- `KillProbabilityCalculator` is **Monte Carlo**, default 10 000 trials in
-  `simulateKillProbability`. Increasing trials tightens the CI.
 - `AttackSimulator` is **Monte Carlo** via `simulateAttack`. Defaults to
   1 000 trials for snappy iteration; the "High precision" toggle bumps it
   to 10 000.

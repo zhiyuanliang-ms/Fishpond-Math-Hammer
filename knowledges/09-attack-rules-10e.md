@@ -1,4 +1,4 @@
-# Warhammer 40k 10e — Attack-Dice Rules Reference
+# Warhammer 40k Attack-Dice Rules Reference (10e quotes, 11e simulator)
 
 > **11e simulator overrides (verified 21 October 2026).** Saving throws now use
 > the 11e sequence in sections 05.03-05.04 (page 19), and Blast/Cleave use the
@@ -169,27 +169,28 @@ Same ±1 cap as hit rolls.
 > the keyword after the word 'Anti-', an unmodified Wound roll of 'x+'
 > scores a Critical Wound."*
 
-Two effects against a matching target:
+One effect against a matching target: **an unmodified Wound roll of X+ is a
+Critical Wound** (used for Devastating Wounds — see §3.5). Because a
+Critical Wound is *"always successful"*, every natural X+ wounds.
 
-1. **Crit Wound threshold is lowered to X+** (used for Devastating
-   Wounds detection — see §3.5).
-2. **The wound succeeds at X+ too**, if X+ is better than the base S vs T
-   threshold. (RAW: a Critical Wound is *"always successful"*, so any
-   crit also wounds. Anti only widens the success range when X+ is lower
-   than the S/T threshold.)
+Anti does **not** change the threshold that wound modifiers apply to. The
+roll still needs the S vs T value after modifiers, unless it is a natural
+X+:
 
 ```js
 // In code:
 if (weapon.antiEnabled && weapon.antiValue) {
-  critWoundThr = weapon.antiValue
-  baseThr = Math.min(baseThr, weapon.antiValue)   // wound succeeds if you would crit
+  critWoundThr = Math.min(critWoundThr, weapon.antiValue)
 }
+const woundThr = clampThreshold(baseThr + mod) // baseThr from S vs T only
+// evaluateD6: success = natural >= critWoundThr || natural >= woundThr
 ```
 
-The ±1 cap **still applies** to the (effective) wound threshold after
-Anti, because Anti changes the threshold, not the modifier. (Anti-2+
-weapons therefore cap at "wound on 2+, nat 1 always fails", giving 5/6
-hit→wound under torrent.)
+Example: S4 vs T5 (5+), Anti-4+, +1 to Wound (Lance). A natural 3 becomes 4,
+still short of 5+, and is not a critical wound, so it fails. The wound rate
+is 3/6, not 4/6. (Before 29 Oct 2026 the code lowered `baseThr` to the Anti
+value and applied +1 on top, giving 4/6.) Anti-2+ still wounds on every
+natural 2+ (5/6 under Torrent), because those rolls are all critical.
 
 ### 3.4 Lance
 
@@ -284,20 +285,19 @@ saving-throw re-roll buffs.
 
 ### 4.2 Benefit of Cover
 
+**Current simulator (11e):** Benefit of Cover worsens the attacking weapon's
+BS by 1 at the **hit** step. It does not modify saving throws. Because it is
+a characteristic modifier, it stacks on top of the ±1-capped hit-roll
+modifier. It applies only when the target has `benefitOfCover` and the
+weapon does not have Ignores Cover, and it has no effect on Torrent.
+
+Historical 10e wording, no longer implemented:
+
 > *"Each time a ranged attack is allocated to a model that has the Benefit
 > of Cover, add 1 to the saving throw made for that attack (excluding
 > invulnerable saving throws). Models with a Save characteristic of 3+ or
 > better cannot have the Benefit of Cover against attacks with an Armour
 > Penetration characteristic of 0."*
-
-Three conditions for cover to actually fire:
-
-1. Target has Benefit of Cover (`target.benefitOfCover === true`).
-2. Weapon does **not** have Ignores Cover (`!weapon.ignoresCover`).
-3. **Not** the (Sv ≤ 3 AND AP === 0) corner case.
-
-The +1 stacks with no other save modifiers in this app, so the
-"never improved by more than +1" cap is structurally satisfied.
 
 ---
 
@@ -439,6 +439,20 @@ and a 1 rerolled into another failure cannot spend a unit use.
 The shared uses go to the first eligible failures in weapon order.
 Torrent and Lethal Hits skip their respective rolls without spending a use.
 
+**Weapon × unit rerolls.** When both the weapon and the unit grant a
+hit or wound reroll, the unit's replaces the weapon's only if it covers
+strictly more dice (Ones < Ones and Twos < Failed = Non-Critical). Failed vs
+Non-Critical is a strategy choice, so the weapon's choice stands.
+
+**Random Attacks / Damage rerolls** (`reroll-1-2-3`, labelled "Reroll ≤3
+(D3: 1s)"). Each die below its average is rerolled once: 1-3 on a D6, only
+1s on a D3 (rerolling a D3's 2 is neutral and its 3 is a loss). Scope "One"
+means one die per weapon card: the lowest Attacks die across every
+`modelsFiring` instance, or the first qualifying Damage roll on the card
+(normal or Devastating Wounds). Open question: 10e re-rolls a summed roll
+such as 2D6 as a whole, but the simulator rerolls each die. Confirm the 11e
+wording before changing it.
+
 ---
 
 ## 7. Concrete worked example (sanity check)
@@ -487,7 +501,7 @@ unless explicitly requested:
 | **Precision** (re-allocate to CHARACTER) | Character-allocation modeling out of scope. |
 | **Heroic Intervention, Charge bonus, Fights First ordering** | Phase-level, not per-attack. |
 | **Multiple invuln saves on one model** | Pick best is correct trivially; defender picks a single save. |
-| **Save modifiers other than Cover** (e.g. Armor of Contempt -1 AP) | Could be modeled by adjusting AP at the call site; app doesn't expose a UI. |
+| **Save-roll modifiers** (e.g. +1 to saving throws) | Not modeled. Worsening AP (Armour of Contempt) **is** supported via `minusOneAp`. |
 | **FNP modifiers / Multiple FNP** | One FNP value, plus optional separate mortal-FNP. RAW says you can only use one per wound anyway. |
 
 ---
@@ -507,8 +521,9 @@ When modifying `attackSimulation.js`, verify each of these still holds:
 - [ ] Blast X / Cleave X: mutually exclusive, X * floor(snapshot_size / 5), X defaults to 1 and is limited to 1–5; one snapshot per shooting unit (i.e. per trial in our model).
 - [ ] Lethal Hits applies only to the original crit, not Sustained extras.
 - [ ] Sustained Hits adds N auto-hits per crit; extras don't trigger Lethal or further Sustained.
-- [ ] Anti-X+: crit wound threshold = X; wound succeeds at X+ if better than S/T.
-- [ ] FNP: one D6 per wound, not per attack; DW uses the best eligible general/mortal-only threshold, without stacking.
+- [ ] Anti-X+: crit wound threshold = X (natural X+ always wounds); modifiers apply to the S/T threshold only, never on top of X.
+- [ ] FNP: one D6 per wound, not per attack; DW uses the best eligible general/mortal-only threshold, without stacking. `expectedDamage` excludes FNP-ignored points.
+- [ ] Random Attacks/Damage rerolls: per-die face limit `rerollFaceLimit` (D6 ≤3, D3 1); scope "One" = one die per weapon card.
 - [ ] Re-rolls: at most once per die; happen before modifiers; honor the four policies.
 - [ ] Each weapon-instance (`modelsFiring`) rolls its `attacks` expression independently.
 

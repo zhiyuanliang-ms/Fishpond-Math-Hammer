@@ -17,7 +17,7 @@
 | `app.css` | App shell layout (`.app`, `.main-wrapper`, `.main-content`, `.page h1`). Imports `uiShared.css`. |
 | `uiShared.css` | Shared UI primitives: `.tabs`, `.tab-button`, `.calculator-form`, `.form-row`, `.form-group`, `.result-stats`, `.stat-card`, `.chart-container`. |
 | `sidebar.css` | Sidebar nav. |
-| `diceCalculator.css` | Calculator page layout: `.wound-success-container`, `.kill-probability-container`, `.form-side`, `.result-side`, `.simulation-note`. |
+| `diceCalculator.css` | Calculator page layout: `.wound-success-container`, `.form-side`, `.result-side`, `.simulation-note`. |
 | `formCard.css` | Shared compact card primitives: `.stat-line`, `.stat-cell`, `.reroll-row`, `.reroll-cell`, `.buff-row`, `.buff-chip*`. |
 | `attackSimulator.css` | Attack Simulator-specific layout and controls: title badge, language toggle, `.profile-card`, `.precision-toggle`, etc. Same dark/amber palette as the rest. |
 | `attackSimulatorProfiles.css` | Profile summaries, unit-buff panels, and buff-dialog layout for the Attack Simulator. |

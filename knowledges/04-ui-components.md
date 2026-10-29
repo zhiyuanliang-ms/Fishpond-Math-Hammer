@@ -43,7 +43,7 @@ variants or separate navigation styles are needed.
 Two-column form/result layout used by every calculator.
 ```jsx
 <CalculatorLayout
-  className="wound-success-container" // or "kill-probability-container"
+  className="wound-success-container"
   form={<>…form JSX…</>}
   result={<>…result JSX…</>}
 />
@@ -68,9 +68,14 @@ Renders:
   />
 </StatGrid>
 ```
-`StatCard` conditionally renders the σ row and CI row only when those props
-are present. `valueSuffix` / `ciSuffix` are appended to the numbers (used by
-"Chance to Kill All" with `'%'`). The shared `.result-stats`, `.stat-card`,
+`StatCard` conditionally renders the ± row and interval row only when those
+props are present. `valueSuffix` / `ciSuffix` are appended to the numbers
+(used by "Chance to Wipe Unit" with `'%'`). The interval row is labelled
+`rangeLabel`, default `'95% range'` (where ~95% of outcomes fall); pass
+`rangeLabel="95% CI"` only for a confidence interval of an estimate, such as
+a simulated wipe chance, together with `stdDevLabel="SE"` because that ± is a
+standard error rather than a spread of outcomes. σ is a plain character; the
+app no longer uses KaTeX. The shared `.result-stats`, `.stat-card`,
 `.stat-label`, `.stat-value`, and `.stat-range` classes also live in
 `src/styles/uiShared.css`.
 

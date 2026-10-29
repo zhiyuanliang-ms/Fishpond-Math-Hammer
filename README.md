@@ -1,4 +1,32 @@
-# React + Vite
+# Fishpond Math Hammer
+
+Dice-math tools for Warhammer 40,000 (11th edition) and Age of Sigmar (4th
+edition) players. It is a client-only React + Vite app with no backend.
+Saved Profiles and board settings live in the browser's `localStorage`.
+
+- **40K Attack Simulator**: Monte Carlo unit-vs-unit attacks with multiple
+  attacking units, multi-profile defenders, unit buffs, a saved Profile
+  Library and Profile Comparison.
+- **Dice Calculator**: exact 40K wound distribution and AoS damage math.
+- **AoS Attack Simulator**, **Dice Roller** and **Cheat Sheet**.
+- **40K Tactical Board**: the 45 official 11e battleplans with bases,
+  drawings, a ruler, mission cards and VP planning.
+
+## Getting started
+
+Requires Node 20+.
+
+```sh
+npm install
+npm run dev      # http://localhost:5173
+npm test         # Vitest
+npm run lint
+npm run build    # production build in dist/
+```
+
+Pushes to `master` run the tests in GitHub Actions and then deploy to Azure
+Static Web Apps. Developer and agent documentation lives in
+[`knowledges/`](knowledges/README.md).
 
 ## 40K Attack Simulator
 
@@ -139,23 +167,8 @@ The updated map IDs are 02, 03, 07, 08, 09, 10, 12, 14, 16, 17, 18, 19, 20, 22,
 
 For subsequent PDF revisions, use the
 [map-update AI skill](.github/skills/update-11e-maps/SKILL.md) and the
-[prepare/apply/verify pipeline](../tools/CLEAN_MAP_PIPELINE.md) in the parent
-Warhammer workspace. It archives the applied PDF, stages only changed layouts,
+prepare/apply/verify pipeline (`tools/CLEAN_MAP_PIPELINE.md` in the parent
+Warhammer workspace; it is not part of this repository). It archives the applied PDF, stages only changed layouts,
 checks complete and centrally symmetric terrain, updates both image variants
 and cache revisions, and preserves unchanged files. Deployment is a separate,
 explicitly authorized step.
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
