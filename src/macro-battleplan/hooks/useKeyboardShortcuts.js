@@ -8,9 +8,16 @@ import { useBoard11eStore } from '../store/board11eStore'
  *  Q / E               rotate selection ±1°
  *  Arrow keys          nudge selection by 1 px
  *  Delete / Backspace  remove selected piece
- *  Ctrl/Cmd + Z        undo (last 3 ops)
+ *  Ctrl/Cmd + Z        undo (last 50 ops)
  *  Ctrl/Cmd + C / V    copy / paste selection
+ *
+ * Single-key shortcuts ignore Ctrl/Cmd/Alt, so browser shortcuts such as
+ * Cmd+F (find) or Cmd+S keep working. Ctrl/Cmd+C copies page text as usual
+ * unless bases are selected and no text is selected.
  */
+const hasTextSelection = () =>
+  typeof window !== 'undefined' && !!window.getSelection?.()?.toString()
+
 export function useKeyboardShortcuts(enabled = true) {
   const commitMoveSelected = useBoard11eStore((s) => s.commitMoveSelected)
   const rotateSelected = useBoard11eStore((s) => s.rotateSelected)
@@ -40,6 +47,8 @@ export function useKeyboardShortcuts(enabled = true) {
         return
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+        // Leave normal text copying alone unless bases are selected.
+        if (useBoard11eStore.getState().selectedIds.length === 0 || hasTextSelection()) return
         e.preventDefault()
         copySelected()
         return
@@ -49,6 +58,9 @@ export function useKeyboardShortcuts(enabled = true) {
         pasteCopied()
         return
       }
+
+      // Everything below is a single-key shortcut.
+      if (e.ctrlKey || e.metaKey || e.altKey) return
 
       if (e.key === 'Escape' || e.key === 'a' || e.key === 'A') {
         setActiveTool('cursor')
@@ -64,16 +76,16 @@ export function useKeyboardShortcuts(enabled = true) {
         rotateSelected(-1)
       } else if (e.key === 'e' || e.key === 'E') {
         rotateSelected(1)
-      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowUp') {
+      } else if (e.key === 'ArrowUp') {
         commitMoveSelected(0, -1)
         e.preventDefault()
-      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowDown') {
+      } else if (e.key === 'ArrowDown') {
         commitMoveSelected(0, 1)
         e.preventDefault()
-      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft') {
         commitMoveSelected(-1, 0)
         e.preventDefault()
-      } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight') {
         commitMoveSelected(1, 0)
         e.preventDefault()
       } else if (e.key === 'Delete' || e.key === 'Backspace') {

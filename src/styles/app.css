@@ -113,3 +113,9 @@ body.app-nav-hidden .main-wrapper {
     font-size: 24px;
   }
 }
+
+/* Fallback shown while a lazily loaded route (Tactical Board) downloads. */
+.route-loading {
+  color: #9ca3af;
+  padding: 24px 0;
+}

@@ -11,8 +11,8 @@ function About() {
   const handleClearStorage = () => {
     const msg =
       'Clear ALL Fishpond Math Hammer data from this browser?\n\n' +
-      'This deletes every saved Attack Simulator Profile ' +
-      'and every saved 40K Tactical Board and scoreboard. ' +
+      'This deletes every saved Attack Simulator Profile, the 40K Tactical ' +
+      'Board setup, mission plan and scores, and your language preference. ' +
       'On-screen state is kept until you reload.'
     if (!window.confirm(msg)) return
     try {
@@ -28,7 +28,7 @@ function About() {
     <Page>
       <div className="about-container">
         <div className="fishpond-logo">
-          <img src="/the-fishpond.png" alt="The Fishpond" />
+          <img src="/the-fishpond.webp" alt="The Fishpond" width="800" height="800" />
         </div>
         
         <div className="about-main">

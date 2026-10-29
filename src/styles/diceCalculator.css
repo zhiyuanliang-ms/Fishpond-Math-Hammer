@@ -1,6 +1,6 @@
 /* ============================================================
  * Dice Calculator pages — wrapper layout for the Wound Success
- * and Kill Probability calculators.
+ * and AoS Damage calculators.
  *
  * Form-card primitives (.stat-line, .stat-cell, .reroll-row,
  * .reroll-cell, .buff-row, .buff-chip*, .form-section-header)
@@ -38,12 +38,6 @@
   margin-top: 16px;
 }
 
-.kill-probability-container {
-  display: flex;
-  gap: 32px;
-  align-items: flex-start;
-}
-
 .simulation-note {
   font-size: 0.8rem;
   color: #9ca3af;
@@ -62,8 +56,7 @@
 }
 
 @media (max-width: 1024px) {
-  .wound-success-container,
-  .kill-probability-container {
+  .wound-success-container {
     flex-direction: column;
     gap: 20px;
   }
@@ -76,8 +69,7 @@
 }
 
 @media (max-width: 768px) {
-  .wound-success-container,
-  .kill-probability-container {
+  .wound-success-container {
     flex-direction: column;
     gap: 20px;
   }

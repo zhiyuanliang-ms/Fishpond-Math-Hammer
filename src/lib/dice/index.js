@@ -2,6 +2,8 @@
 
 export { REROLL_VALUES, Z_95, DEFAULT_SIMULATIONS } from './constants'
 
+// Closed-form single-roll probabilities; also the independent reference that
+// woundPool tests check the exact calculator against.
 export {
   calculateSuccessProbability,
   calculateHitProbability,
@@ -11,13 +13,9 @@ export {
 } from './probability'
 
 export { binomialProbability, buildDistribution } from './binomial'
-export { buildWoundDistribution } from './woundDistribution'
 export { calculateWoundPool } from './woundPool'
 export { normalizeFailedRerollCount } from './d6Rerolls'
 export { calculateChargeProbabilities } from './chargeProbability'
-
-export { simulateKillProbability } from './simulation'
-export { calculateKillProbability } from './killProbability'
 
 export { simulateAttack, simulateMultiUnitAttack } from './attackSimulation'
 export {

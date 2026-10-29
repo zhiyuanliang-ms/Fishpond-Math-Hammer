@@ -21,7 +21,7 @@ import {
 
 export const EXPORT_11E_SCHEMA = 'fishpond-mathhammer-battleplan-11e/v1'
 
-const HISTORY_LIMIT = 3
+const HISTORY_LIMIT = 50
 const PASTE_OFFSET_PX = 18
 const SETUP_STORAGE_KEY = 'macroBattleplan11e:setup'
 const SCOREBOARD_STORAGE_KEY = 'macroBattleplan11e:scoreboard'

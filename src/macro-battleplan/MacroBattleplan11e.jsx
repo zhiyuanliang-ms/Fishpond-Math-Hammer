@@ -3,7 +3,7 @@
 // drawing / ruler tools on top. Terrain, objectives and deployment zones are
 // part of the printed layout and are not user-editable.
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Tabs } from '../components/ui'
 import { BattleplanSetup } from './board11e/BattleplanSetup'
 import { Board11eCanvas } from './board11e/Board11eCanvas'
@@ -25,6 +25,20 @@ export default function MacroBattleplan11e() {
   const [activeTab, setActiveTab] = useState('battlefield')
   const [planningSide, setPlanningSide] = useState('player')
   const setup = useBoard11eStore((s) => s.setup)
+  // Bases and drawings live only in memory until exported, so warn before
+  // a reload or tab close would discard them.
+  const hasUnsavedBoard = useBoard11eStore(
+    (s) => s.pieces.length > 0 || s.drawings.length > 0
+  )
+  useEffect(() => {
+    if (!hasUnsavedBoard) return undefined
+    const warn = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [hasUnsavedBoard])
   const battleplan = findBattleplan(setup.mine, setup.theirs, setup.layout)
   const showBattlefield = activeTab === 'battlefield'
 

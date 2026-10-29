@@ -88,12 +88,6 @@ export const critOptions = [
   { value: '5', label: '5+' }
 ]
 
-export const saveRerollOptions = [
-  { value: 'no-reroll', label: 'No Reroll' },
-  { value: 'reroll-one', label: 'Reroll One' },
-  { value: 'reroll-fail', label: 'Reroll Fails' }
-]
-
 // Reroll options for random Attacks / Damage dice. "Reroll low" rerolls every
 // result below the die's average, which maximizes the expected value: 1-3 on a
 // D6 and only 1s on a D3 (see rerollFaceLimit in diceExpression.js).

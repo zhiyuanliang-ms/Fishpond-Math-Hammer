@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import './styles/app.css'
 import Sidebar from './components/Sidebar'
@@ -11,7 +12,9 @@ import DiceRoller from './components/DiceRoller'
 import Cheatsheet from './components/Cheatsheet'
 import About from './components/About'
 import Footer from './components/Footer'
-import MacroBattleplan from './macro-battleplan/MacroBattleplan'
+
+// The Tactical Board pulls in Konva, so load it only when that route opens.
+const MacroBattleplan = lazy(() => import('./macro-battleplan/MacroBattleplan'))
 
 function AppContent() {
   const navigate = useNavigate()
@@ -75,7 +78,14 @@ function AppContent() {
         <main className={`main-content ${isMacroBattleplan ? 'main-content--macro-battleplan' : ''}`}>
           <Routes>
             <Route path="/dice-calculator" element={<DiceCalculator />} />
-            <Route path="/macro-battleplan" element={<MacroBattleplan />} />
+            <Route
+              path="/macro-battleplan"
+              element={(
+                <Suspense fallback={<p className="route-loading">Loading Tactical Board…</p>}>
+                  <MacroBattleplan />
+                </Suspense>
+              )}
+            />
             <Route path="/attack-simulator" element={<AttackSimulatorLayout />}>
               <Route index element={<AttackSimulator />} />
               <Route path="profiles" element={<ProfileLibrary />} />
@@ -86,6 +96,7 @@ function AppContent() {
             <Route path="/cheat-sheet" element={<Cheatsheet />} />
             <Route path="/about" element={<About />} />
             <Route path="/" element={<Navigate to="/attack-simulator" replace />} />
+            <Route path="*" element={<Navigate to="/attack-simulator" replace />} />
           </Routes>
         </main>
         <Footer onCopyrightClick={() => navigate('/about')} />

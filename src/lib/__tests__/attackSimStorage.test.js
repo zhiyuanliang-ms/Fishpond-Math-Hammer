@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  clearAllAttackSimStorage,
   listSavedTargetSets,
   listSavedWeaponSets,
   loadNamedTargetSet,
@@ -130,5 +131,19 @@ describe.each(sides)('$name Profile library imports', (side) => {
 
     expect(() => side.save('Existing', side.payload(5))).toThrow(StorageQuotaError)
     expect(side.load('Existing')).toEqual(side.payload(4))
+  })
+})
+
+describe('clearAllAttackSimStorage', () => {
+  it('removes both Profile libraries and the language preference', () => {
+    const removed = []
+    vi.stubGlobal('localStorage', { removeItem: (key) => removed.push(key) })
+    clearAllAttackSimStorage()
+    expect(removed).toEqual([
+      'attackSim:attackerProfiles',
+      'attackSim:defenderProfiles',
+      'attackSim_lang',
+    ])
+    vi.unstubAllGlobals()
   })
 })

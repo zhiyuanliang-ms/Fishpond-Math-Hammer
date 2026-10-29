@@ -1,7 +1,10 @@
 const KEY_WEAPON_SETS = 'attackSim:attackerProfiles'
 const KEY_TARGET_SETS = 'attackSim:defenderProfiles'
 
-const STORAGE_KEYS = [KEY_WEAPON_SETS, KEY_TARGET_SETS]
+// The 40K pages' language preference (owned by components/attackSim/lang.jsx).
+const KEY_LANGUAGE = 'attackSim_lang'
+
+const STORAGE_KEYS = [KEY_WEAPON_SETS, KEY_TARGET_SETS, KEY_LANGUAGE]
 
 export class StorageQuotaError extends Error {
   constructor(message = 'Browser storage quota exceeded.') {
