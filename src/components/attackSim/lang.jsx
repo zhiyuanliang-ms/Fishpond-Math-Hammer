@@ -213,12 +213,12 @@ const translations = {
     rerollOne: 'Reroll One',
 
     // Random-value reroll labels (Attacks / Damage)
-    rerollLow123: 'Reroll ≤3',
+    rerollLow123: 'Reroll ≤3 (D3: 1s)',
 
     // Reroll scope toggle
     rerollScopeAll: 'All',
     rerollScopeSingle: 'One',
-    rerollScopeTooltip: 'All dice: every qualifying die gets one reroll. One die: only a single die may be rerolled.',
+    rerollScopeTooltip: 'All dice: every qualifying die gets one reroll. One die: only a single die may be rerolled for this weapon card.',
 
     // Torrent
     torrent: 'Torrent',
@@ -429,12 +429,12 @@ const translations = {
     rerollOne: '重投一',
 
     // Random-value reroll labels (Attacks / Damage)
-    rerollLow123: '重投 ≤3',
+    rerollLow123: '重投 ≤3（D3：仅 1）',
 
     // Reroll scope toggle
     rerollScopeAll: '全部',
     rerollScopeSingle: '一颗',
-    rerollScopeTooltip: '全部：每个符合条件的骰子重投一次。一颗：仅一颗骰子可以重投。',
+    rerollScopeTooltip: '全部：每个符合条件的骰子重投一次。一颗：此武器面板仅一颗骰子可以重投。',
 
     // Torrent
     torrent: '洪流',

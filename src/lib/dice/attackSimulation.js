@@ -20,7 +20,12 @@
 // wounds when that critical wound destroys its one allocated model.
 
 import { DEFAULT_SIMULATIONS, Z_95, REROLL_SCOPE, randomRerollThreshold } from './constants'
-import { parseDiceExpression, rollDiceExpr, rollDiceExprWithReroll } from './diceExpression'
+import {
+  parseDiceExpression,
+  rerollFaceLimit,
+  rollDiceExpr,
+  rollDiceExprWithReroll,
+} from './diceExpression'
 import { makeUnitBuffs, mergeWeaponWithUnit } from './unitBuffMerge'
 import { evaluateD6, shouldRerollD6 } from './d6Rerolls'
 import { normalizeAttackBonusValue } from './weaponProfile'
@@ -88,11 +93,11 @@ const fnpRoll = (fnpThreshold) => {
 // Deal `damage` points to the unit's currently-active model, applying
 // per-point FNP. Mutates `unitState.profiles` in place. `mortal` controls
 // whether mortal-only FNP is also eligible alongside general FNP.
-// Returns the number of damage points actually consumed from this attack
-// (i.e. delivered before the model died and the rest was wasted, or before
-// the unit was wiped). FNP-blocked points still count as consumed.
+// Returns the number of wounds the defender actually lost from this attack.
+// Points ignored by FNP, and excess points wasted when the model dies, are
+// not counted, so "damage dealt" reflects FNP.
 const applyDamageToUnit = (unitState, damage, mortal) => {
-  let consumed = 0
+  let woundsLost = 0
   while (damage > 0 && unitState.activeProfile < unitState.profiles.length) {
     const prof = unitState.profiles[unitState.activeProfile]
     if (prof.modelsRemaining <= 0) {
@@ -107,8 +112,8 @@ const applyDamageToUnit = (unitState, damage, mortal) => {
     while (damage > 0) {
       const blocked = fnpRoll(fnpUsed)
       damage--
-      consumed++
       if (!blocked) {
+        woundsLost++
         prof.currentModelWounds--
         if (prof.currentModelWounds <= 0) {
           prof.modelsRemaining--
@@ -118,12 +123,12 @@ const applyDamageToUnit = (unitState, damage, mortal) => {
           if (prof.modelsRemaining <= 0) unitState.activeProfile++
           // Excess damage from a single attack does NOT carry over.
           // One DW critical can damage at most one model; discard its excess.
-          return consumed
+          return woundsLost
         }
       }
     }
   }
-  return consumed
+  return woundsLost
 }
 
 // Modify D before normal damage or conversion into mortal wounds.
@@ -162,11 +167,18 @@ const resolveWeaponAgainstUnit = (
   // this weapon's attacks; otherwise it is effectively unlimited.
   const hitBudget = makeRerollBudget(weapon.hitRerollScope)
   const woundBudget = makeRerollBudget(weapon.woundRerollScope)
-  // Random-value rerolls (Attacks / Damage)
-  const attackRerollT = randomRerollThreshold(weapon.attackReroll)
+  // Random-value rerolls (Attacks / Damage). The face limit depends on the
+  // die size: "reroll <=3" rerolls 1-3 on a D6 but only 1s on a D3.
+  const attackRerollT = rerollFaceLimit(randomRerollThreshold(weapon.attackReroll), attacksParsed.sides)
   const damageRerollT = randomRerollThreshold(weapon.damageReroll)
   const attackScope = weapon.attackRerollScope === REROLL_SCOPE.SINGLE ? REROLL_SCOPE.SINGLE : REROLL_SCOPE.ALL
   const damageScope = weapon.damageRerollScope === REROLL_SCOPE.SINGLE ? REROLL_SCOPE.SINGLE : REROLL_SCOPE.ALL
+  // With 'single' scope, one Damage die may be rerolled for this whole card
+  // (normal and Devastating Wounds rolls alike): the first qualifying roll.
+  const damageRerollBudget = { remaining: 1 }
+  const rollDamage = () => rollDiceExprWithReroll(
+    damageParsed, damageRerollT, damageScope, damageRerollBudget
+  )
 
   // Blast X and Cleave X are mutually exclusive; legacy conflicts prefer Blast.
   // Either adds X attack dice per five target models.
@@ -281,7 +293,7 @@ const resolveWeaponAgainstUnit = (
       if (atk.lethalAuto) {
         // auto-wound, no crit, no anti, no dev-wounds
       } else {
-        let baseThr = woundThresholdFromST(weapon.strength, t.toughness)
+        const baseThr = woundThresholdFromST(weapon.strength, t.toughness)
         let mod = 0
         if (t.minusOneToWound) mod += 1
         if (t.minusOneToWoundIfStronger && weapon.strength > t.toughness) mod += 1
@@ -292,11 +304,12 @@ const resolveWeaponAgainstUnit = (
         if (mod > 1) mod = 1
         if (mod < -1) mod = -1
         let critWoundThr = weapon.critWound || 6
-        // Anti-X+: critical wound on natural X+. Successful wounds also count
-        // at X+ if that's better than the base threshold (per 11e rules).
+        // Anti-X+: an unmodified Wound roll of X+ is a Critical Wound, and
+        // critical wounds always succeed (handled by evaluateD6). Anti does
+        // NOT move the threshold that wound modifiers apply to: with Anti-4+
+        // and +1 to Wound against a 5+ wound roll, a natural 3 still fails.
         if (weapon.antiEnabled && weapon.antiValue) {
-          critWoundThr = weapon.antiValue
-          baseThr = Math.min(baseThr, weapon.antiValue)
+          critWoundThr = Math.min(critWoundThr, weapon.antiValue)
         }
         const woundThr = clampThreshold(baseThr + mod)
         const wr = rollD6WithReroll(
@@ -310,7 +323,7 @@ const resolveWeaponAgainstUnit = (
       // Keep each critical's Damage roll separate until this card's normal
       // damage resolves; modify D before converting it into mortal wounds.
       if (woundIsCrit && weapon.devastatingWounds) {
-        deferredDevWounds.push(rollDiceExprWithReroll(damageParsed, damageRerollT, damageScope))
+        deferredDevWounds.push(rollDamage())
         continue
       }
 
@@ -331,9 +344,7 @@ const resolveWeaponAgainstUnit = (
     const target = unitState.profiles[unitState.activeProfile]
     if (saveRolls && saveRolls[index] >= saveThresholds[unitState.activeProfile]) continue
 
-    const rawDmg = damageRerollT > 0
-      ? rollDiceExprWithReroll(damageParsed, damageRerollT, damageScope)
-      : rollDiceExpr(damageParsed)
+    const rawDmg = rollDamage()
     const dmg = modifyDamage(rawDmg, target.halfDamage, target.minusOneDamage, target.damageOne)
     damageDealt += applyDamageToUnit(unitState, dmg, false)
   }

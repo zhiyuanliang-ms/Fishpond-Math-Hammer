@@ -172,9 +172,11 @@ export default function ProfileComparison() {
               slotNumber: selectedAttackers[index].slotNumber,
             }))
             .sort(
+              // Damage breaks ties, e.g. against a large model nobody kills.
               (left, right) =>
                 right.result.expectedKills - left.result.expectedKills ||
-                right.result.wipeProbability - left.result.wipeProbability
+                right.result.wipeProbability - left.result.wipeProbability ||
+                right.result.expectedDamage - left.result.expectedDamage
             )
         )
       } catch (comparisonError) {

@@ -44,24 +44,42 @@ export function rollDiceExpr(parsed) {
   return total
 }
 
+// Highest face worth rerolling on a die with `sides` faces, capped by the
+// requested threshold: only results below the die's average gain from a
+// reroll. "Reroll <=3" therefore rerolls 1-3 on a D6 but only 1s on a D3
+// (rerolling a D3's 2 is neutral and its 3 is a loss).
+export function rerollFaceLimit(threshold, sides) {
+  if (!(threshold > 0) || !(sides > 0)) return 0
+  return Math.min(threshold, Math.floor(sides / 2))
+}
+
 // Roll a parsed dice expression with an optional "reroll low values" rule.
 //
 //   threshold: highest face that triggers a reroll (1, 2, 3). 0 disables.
+//              Capped per die size by `rerollFaceLimit`.
 //   scope:     'all'    → every die that came up <= threshold is rerolled once
 //              'single' → only ONE die (the lowest qualifying) is rerolled once
+//   budget:    optional shared `{ remaining }` counter for 'single' scope.
+//              When given, the single reroll is shared by every call that
+//              receives the same budget (e.g. all Damage rolls of one weapon
+//              card); without it, each call may reroll one die.
 //
 // Flat numeric expressions (e.g. "4") have no dice to reroll, so the result
 // is the same as `rollDiceExpr`.
-export function rollDiceExprWithReroll(parsed, threshold = 0, scope = 'all') {
+export function rollDiceExprWithReroll(parsed, threshold = 0, scope = 'all', budget = null) {
   if (!parsed) return 0
-  if (parsed.count <= 0 || threshold <= 0) return rollDiceExpr(parsed)
+  const limit = rerollFaceLimit(threshold, parsed.sides)
+  if (parsed.count <= 0 || limit <= 0) return rollDiceExpr(parsed)
+  threshold = limit
 
   const rolls = []
   for (let i = 0; i < parsed.count; i++) {
     rolls.push(Math.floor(Math.random() * parsed.sides) + 1)
   }
 
-  if (scope === 'single') {
+  if (scope === 'single' && budget && budget.remaining <= 0) {
+    // The shared single reroll has already been spent.
+  } else if (scope === 'single') {
     let idx = -1
     let min = Infinity
     for (let i = 0; i < rolls.length; i++) {
@@ -72,6 +90,7 @@ export function rollDiceExprWithReroll(parsed, threshold = 0, scope = 'all') {
     }
     if (idx >= 0) {
       rolls[idx] = Math.floor(Math.random() * parsed.sides) + 1
+      if (budget) budget.remaining -= 1
     }
   } else {
     for (let i = 0; i < rolls.length; i++) {

@@ -94,13 +94,12 @@ export const saveRerollOptions = [
   { value: 'reroll-fail', label: 'Reroll Fails' }
 ]
 
-// Reroll options for random Attacks / Damage dice. Only the "reroll 1-3s"
-// threshold is exposed because it is the only one that yields a positive
-// expected-value gain on a fair d6 (rerolling 1s or 1-2s is neutral or
-// negative on average).
+// Reroll options for random Attacks / Damage dice. "Reroll low" rerolls every
+// result below the die's average, which maximizes the expected value: 1-3 on a
+// D6 and only 1s on a D3 (see rerollFaceLimit in diceExpression.js).
 export const randomRerollOptions = [
   { value: 'no-reroll', label: 'No Reroll' },
-  { value: 'reroll-1-2-3', label: 'Reroll ≤3' }
+  { value: 'reroll-1-2-3', label: 'Reroll ≤3 (D3: 1s)' }
 ]
 
 // Scope toggle shared by every reroll select in the Attack Simulator.

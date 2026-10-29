@@ -10,10 +10,10 @@ export const REROLL_VALUES = {
 }
 
 // Reroll modes for "random value" rolls — i.e. the dice expressions used for
-// random Attacks counts and random Damage values. Only the "reroll 1-3"
-// threshold is offered: it is the only one that yields a positive
-// expected-value gain on a fair d6. (A flat numeric value like "4" is
-// unaffected since there is no die to reroll.)
+// random Attacks counts and random Damage values. The "reroll 1-3" threshold
+// is the expected-value-maximizing choice on a D6; rerollFaceLimit caps it
+// at 1 on a D3. (A flat numeric value like "4" is unaffected since there is
+// no die to reroll.)
 export const RANDOM_REROLL_VALUES = {
   NO_REROLL: 'no-reroll',
   REROLL_ONE_TWO_THREE: 'reroll-1-2-3'

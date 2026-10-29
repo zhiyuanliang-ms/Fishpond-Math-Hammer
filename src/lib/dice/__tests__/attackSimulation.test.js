@@ -416,7 +416,8 @@ describe('simulateAttack — saving throws', () => {
     )
 
     expect(result.perProfile.map((profile) => profile.expectedKills)).toEqual([1, 0])
-    expect(result.expectedDamage).toBe(3)
+    // FNP ignores the first point (4) and the W2 model loses exactly 2 wounds.
+    expect(result.expectedDamage).toBe(2)
     expect(random).toHaveBeenCalledTimes(9)
   })
 
@@ -1864,3 +1865,73 @@ describe('simulateAttack — reroll never fires when not needed', () => {
     expect(all.expectedDamage).toBeGreaterThan(single.expectedDamage + 1)
   })
 })
+
+describe('simulateAttack — review regressions (2026-10-29)', () => {
+  // One W10 model with no possible save: no saving dice are rolled.
+  const soak = (overrides = {}) => baseTarget({ models: 1, wounds: 10, save: 7, ...overrides })
+
+  it('does not apply +1 to Wound on top of the ANTI value', () => {
+    // S4 vs T5 wounds on 5+. ANTI-4+ and +1 to Wound: a natural 3 becomes 4,
+    // still short of 5+, and is not a critical wound.
+    const weapon = baseWeapon({
+      attacks: '1', torrent: true, strength: 4, antiEnabled: true, antiValue: 4, plusOneWound: true,
+    })
+    let random = mockD6Faces(3)
+    expect(simulateAttack([weapon], [soak({ toughness: 5 })], 1).expectedDamage).toBe(0)
+    expect(random).toHaveBeenCalledTimes(1)
+
+    random = mockD6Faces(4)
+    expect(simulateAttack([weapon], [soak({ toughness: 5 })], 1).expectedDamage).toBe(1)
+    expect(random).toHaveBeenCalledTimes(1)
+  })
+
+  it('matches the RAW wound rate for ANTI with +1 to Wound', () => {
+    const weapon = baseWeapon({
+      attacks: '60', torrent: true, strength: 4, antiEnabled: true, antiValue: 4, plusOneWound: true,
+    })
+    const result = simulateAttack([weapon], [baseTarget({ models: 1, wounds: 1000, save: 7, toughness: 5 })], 500)
+    // 60 x 3/6 = 30 wounds on average.
+    expect(result.expectedDamage).toBeGreaterThan(29)
+    expect(result.expectedDamage).toBeLessThan(31)
+  })
+
+  it('excludes damage ignored by Feel No Pain from damage dealt', () => {
+    // Wound roll 6, then FNP 4+ rolls 5 (ignored), 1 (lost), 4 (ignored).
+    const random = mockD6Faces(6, 5, 1, 4)
+    const result = simulateAttack(
+      [baseWeapon({ attacks: '1', torrent: true, strength: 8, damage: '3' })],
+      [soak({ fnp: 4 })],
+      1
+    )
+    expect(result.expectedDamage).toBe(1)
+    expect(random).toHaveBeenCalledTimes(4)
+  })
+
+  it('does not reroll a D3 Damage result of 3 with Reroll <=3', () => {
+    // Wound roll 6, then the D3 damage die shows 3 (mock face 5 -> 0.75).
+    const random = mockD6Faces(6, 5)
+    const result = simulateAttack(
+      [baseWeapon({ attacks: '1', torrent: true, strength: 8, damage: 'D3', damageReroll: 'reroll-1-2-3' })],
+      [soak()],
+      1
+    )
+    expect(result.expectedDamage).toBe(3)
+    expect(random).toHaveBeenCalledTimes(2)
+  })
+
+  it('shares a single-scope Damage reroll across the whole weapon card', () => {
+    // Two wound rolls (6, 6), then damage 1 -> rerolled to 6, then 2 kept.
+    const random = mockD6Faces(6, 6, 1, 6, 2)
+    const result = simulateAttack(
+      [baseWeapon({
+        attacks: '2', torrent: true, strength: 8, damage: 'D6',
+        damageReroll: 'reroll-1-2-3', damageRerollScope: 'single',
+      })],
+      [baseTarget({ models: 1, wounds: 100, save: 7 })],
+      1
+    )
+    expect(result.expectedDamage).toBe(8)
+    expect(random).toHaveBeenCalledTimes(5)
+  })
+})
+

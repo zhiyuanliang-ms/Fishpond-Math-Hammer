@@ -4,7 +4,8 @@ import {
   isValidDiceExpression,
   expectedDiceExpr,
   rollDiceExpr,
-  rollDiceExprWithReroll
+  rollDiceExprWithReroll,
+  rerollFaceLimit
 } from '../diceExpression'
 
 describe('parseDiceExpression', () => {
@@ -194,5 +195,53 @@ describe('rollDiceExprWithReroll', () => {
     Math.random = seq.next
     expect(rollDiceExprWithReroll(parseDiceExpression('D6'), 3, 'all')).toBe(1)
     expect(seq.consumed()).toBe(2)
+  })
+})
+
+describe('rerollFaceLimit', () => {
+  it('only rerolls results below the die average', () => {
+    expect(rerollFaceLimit(3, 6)).toBe(3)
+    expect(rerollFaceLimit(3, 3)).toBe(1)
+    expect(rerollFaceLimit(0, 6)).toBe(0)
+    expect(rerollFaceLimit(3, 0)).toBe(0)
+  })
+})
+
+describe('rollDiceExprWithReroll — die size and shared budget', () => {
+  let originalRandom
+  beforeEach(() => {
+    originalRandom = Math.random
+  })
+  afterEach(() => {
+    Math.random = originalRandom
+  })
+
+  it('keeps a D3 result of 2 or 3 and rerolls only a 1', () => {
+    // D3: value = floor(r * 3) + 1, so 0.5 -> 2, 0.9 -> 3, 0.1 -> 1
+    let seq = useRandomSequence([0.9])
+    Math.random = seq.next
+    expect(rollDiceExprWithReroll(parseDiceExpression('D3'), 3, 'all')).toBe(3)
+    expect(seq.consumed()).toBe(1)
+
+    seq = useRandomSequence([0.5])
+    Math.random = seq.next
+    expect(rollDiceExprWithReroll(parseDiceExpression('D3'), 3, 'all')).toBe(2)
+    expect(seq.consumed()).toBe(1)
+
+    seq = useRandomSequence([0.1, 0.9])
+    Math.random = seq.next
+    expect(rollDiceExprWithReroll(parseDiceExpression('D3'), 3, 'all')).toBe(3)
+    expect(seq.consumed()).toBe(2)
+  })
+
+  it('spends one shared single-scope reroll across separate rolls', () => {
+    const budget = { remaining: 1 }
+    const seq = useRandomSequence([0, 5 / 6, 1 / 6]) // 1 -> rerolled to 6, then 2 kept
+    Math.random = seq.next
+    const parsed = parseDiceExpression('D6')
+    expect(rollDiceExprWithReroll(parsed, 3, 'single', budget)).toBe(6)
+    expect(rollDiceExprWithReroll(parsed, 3, 'single', budget)).toBe(2)
+    expect(budget.remaining).toBe(0)
+    expect(seq.consumed()).toBe(3)
   })
 })

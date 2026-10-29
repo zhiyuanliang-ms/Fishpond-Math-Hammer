@@ -11,12 +11,11 @@
 // `mergeWeaponWithUnit` produces the effective per-weapon profile that the
 // Monte Carlo simulator should consume.
 
-// Reroll buffs are special: "better" is strategy-dependent — re-roll
-// Failed Hits and re-roll Non-Critical Hits can each be the right choice
-// depending on lethal-hits / sustained-hits setup, target toughness, and
-// the rest of the kit. So the merge does NOT promote rerolls automatically:
-// a weapon's intrinsic reroll always wins over a unit-wide reroll. The
-// unit reroll is adopted only when the weapon has none.
+// Reroll buffs are special: re-roll Failed and re-roll Non-Critical can each
+// be the right choice depending on lethal-hits / sustained-hits setup, so
+// between those two the weapon's intrinsic choice wins. Narrower rerolls are
+// strictly dominated, though: re-roll Failed covers every die re-roll Ones
+// (or Ones and Twos) would touch, so a broader unit reroll replaces them.
 // Limited failed-hit/wound rerolls stay on the unit; their budgets are
 // shared across all weapons by the simulator, not copied into each profile.
 
@@ -99,20 +98,29 @@ export const isUnitBuffsEmpty = (u) => {
   )
 }
 
-// Reroll merge rule: keep the weapon's reroll if it has one (strategy is
-// not strictly comparable across modes). Only adopt the unit reroll when
-// the weapon has none.
-const pickReroll = (weaponMode, unitMode) => {
-  if (weaponMode && weaponMode !== 'no-reroll') return weaponMode
-  return unitMode && unitMode !== 'no-reroll' ? unitMode : (weaponMode || 'no-reroll')
-}
-
+// Coverage rank of each reroll mode. Failed and non-critical share a rank:
+// they are alternative strategies rather than one dominating the other.
 const UNIT_REROLL_RANK = {
   'no-reroll': 0,
   'reroll-one': 1,
   'reroll-one-two': 2,
   'reroll-fail': 3,
   'reroll-non-critical': 3,
+}
+
+// Reroll merge rule: keep the primary (weapon or saved) reroll if it has
+// one. Only adopt the secondary reroll when the primary has none.
+const pickReroll = (weaponMode, unitMode) => {
+  if (weaponMode && weaponMode !== 'no-reroll') return weaponMode
+  return unitMode && unitMode !== 'no-reroll' ? unitMode : (weaponMode || 'no-reroll')
+}
+
+// Weapon x unit merge: the unit reroll replaces the weapon's only when it
+// has strictly broader coverage; ties keep the weapon's strategy.
+const pickWeaponReroll = (weaponMode, unitMode) => {
+  const weaponRank = UNIT_REROLL_RANK[weaponMode || 'no-reroll'] ?? 0
+  const unitRank = UNIT_REROLL_RANK[unitMode || 'no-reroll'] ?? 0
+  return unitRank > weaponRank ? unitMode : (weaponMode || 'no-reroll')
 }
 
 const mergeUnitReroll = (saved, additional) => {
@@ -137,9 +145,9 @@ export const mergeUnitBuffs = (saved, additional) => {
     if (typeof defaults[key] === 'boolean') {
       merged[key] = !!(base[key] || extra[key])
     }
-    merged.rerollFailedHit = Math.max(base.rerollFailedHit, extra.rerollFailedHit)
-    merged.rerollFailedWound = Math.max(base.rerollFailedWound, extra.rerollFailedWound)
   }
+  merged.rerollFailedHit = Math.max(base.rerollFailedHit, extra.rerollFailedHit)
+  merged.rerollFailedWound = Math.max(base.rerollFailedWound, extra.rerollFailedWound)
   merged.hitReroll = mergeUnitReroll(base.hitReroll, extra.hitReroll)
   merged.woundReroll = mergeUnitReroll(base.woundReroll, extra.woundReroll)
   merged.sustainedHits = bestSustained(base.sustainedHits || 'off', extra.sustainedHits || 'off')
@@ -160,7 +168,7 @@ export const mergeWeaponWithUnit = (weapon, unit) => {
 
   // Hit reroll is meaningless under Torrent (auto-hits), so don't promote.
   if (!weapon.torrent) {
-    const next = pickReroll(weapon.hitReroll, unit.hitReroll)
+    const next = pickWeaponReroll(weapon.hitReroll, unit.hitReroll)
     if (next !== weapon.hitReroll) {
       merged.hitReroll = next
       // Unit-granted rerolls implicitly apply to every die.
@@ -169,7 +177,7 @@ export const mergeWeaponWithUnit = (weapon, unit) => {
   }
 
   {
-    const next = pickReroll(weapon.woundReroll, unit.woundReroll)
+    const next = pickWeaponReroll(weapon.woundReroll, unit.woundReroll)
     if (next !== weapon.woundReroll) {
       merged.woundReroll = next
       merged.woundRerollScope = 'all'

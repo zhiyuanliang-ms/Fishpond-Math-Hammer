@@ -155,21 +155,47 @@ describe('mergeWeaponWithUnit', () => {
     expect(m.lethalHits).toBe(true)
   })
 
-  it('keeps the weapon hit reroll when both layers are set (strategy-aware)', () => {
-    // Re-roll Failed vs Re-roll Non-Critical is strategy-dependent, so the
-    // weapon's intrinsic choice always wins. Same direction either way.
+  it('upgrades a dominated weapon reroll to a broader unit reroll', () => {
+    // Re-roll Failed covers every die Re-roll Ones would touch.
+    const upgraded = mergeWeaponWithUnit(
+      weapon({ hitReroll: 'reroll-one', hitRerollScope: 'single' }),
+      makeUnitBuffs({ hitReroll: 'reroll-fail' })
+    )
+    expect(upgraded.hitReroll).toBe('reroll-fail')
+    expect(upgraded.hitRerollScope).toBe('all')
+    expect(describeUpgrades(
+      weapon({ hitReroll: 'reroll-one' }),
+      makeUnitBuffs({ hitReroll: 'reroll-fail' })
+    ).hitReroll).toBe(true)
+
     expect(
       mergeWeaponWithUnit(
-        weapon({ hitReroll: 'reroll-one' }),
-        makeUnitBuffs({ hitReroll: 'reroll-fail' })
-      ).hitReroll
-    ).toBe('reroll-one')
+        weapon({ woundReroll: 'reroll-one-two' }),
+        makeUnitBuffs({ woundReroll: 'reroll-non-critical' })
+      ).woundReroll
+    ).toBe('reroll-non-critical')
 
     expect(
       mergeWeaponWithUnit(
         weapon({ hitReroll: 'reroll-fail' }),
         makeUnitBuffs({ hitReroll: 'reroll-one' })
       ).hitReroll
+    ).toBe('reroll-fail')
+  })
+
+  it('keeps the weapon choice between failed and non-critical rerolls (strategy-aware)', () => {
+    expect(
+      mergeWeaponWithUnit(
+        weapon({ hitReroll: 'reroll-non-critical' }),
+        makeUnitBuffs({ hitReroll: 'reroll-fail' })
+      ).hitReroll
+    ).toBe('reroll-non-critical')
+
+    expect(
+      mergeWeaponWithUnit(
+        weapon({ woundReroll: 'reroll-fail' }),
+        makeUnitBuffs({ woundReroll: 'reroll-non-critical' })
+      ).woundReroll
     ).toBe('reroll-fail')
   })
 
