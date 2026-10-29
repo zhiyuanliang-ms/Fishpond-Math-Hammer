@@ -2,6 +2,30 @@
 
 Reviewed at commit `d3ffb7d` (master, matches origin). ~26k lines of JS/JSX/CSS.
 
+## Status after fixes (29 Oct 2026)
+
+Fixed in the commits that follow this review:
+
+| Finding | Status |
+|---|---|
+| 1 Anti-X + “+1 to Wound” | Fixed. ANTI no longer moves the S/T threshold. |
+| 2 Damage dealt ignores FNP | Fixed. `expectedDamage` counts wounds actually lost. |
+| 3 “Reroll ≤3” on a D3 | Fixed. A D3 rerolls only 1s; a D6 still rerolls 1-3. |
+| 4 Damage “One” scope | Fixed. One Damage die per weapon card. |
+| 5 Weapon reroll vs broader unit reroll | Fixed. A strictly broader unit reroll wins; Failed vs Non-Critical still keeps the weapon's choice. |
+| 6 2D6 rerolled per die | **Not changed.** Depends on the 11e wording; noted in `knowledges/09`. |
+| 7 “95% CI” labels | Fixed. Kills, damage, hits and wounds show a “95% range”; wipe chance keeps “SE” and “95% CI”. |
+| 8 Comparison ignores damage | Partly fixed. Damage breaks kill/wipe ties; the slots still use independent trials. |
+| Board shortcuts with Cmd/Ctrl, Ctrl+C hijack | Fixed. |
+| Board work lost on reload, 3-step undo | Mitigated. Unload warning and 50-step undo; bases are still not persisted. |
+| No catch-all route | Fixed. Unknown URLs go to the Attack Simulator. |
+| Clear storage misses language / wrong text | Fixed. The coffee button is unchanged. |
+| CI deploys without tests | Fixed. Tests gate deploys; lint runs but does not block yet. |
+| Dead code | Fixed for `KillProbabilityCalculator.jsx`, `simulation.js`, `killProbability.js` and `woundDistribution.js`. **Correction:** `chargeProbability.js` (Cheat Sheet) and `probability.js` (closed-form reference for the wound-pool tests) are in use, so they were kept. |
+| KaTeX for one σ, Konva on first load, 1.6 MB logo | Fixed. KaTeX removed, the board route is lazy-loaded, and the logo is a 97 KB WebP. |
+| Docs drift, README boilerplate, stale TODO | Fixed. |
+| Main thread simulation, duplicate `main` branch, commit messages, GW assets | Not code changes; left for you. |
+
 ## What the project is
 
 A client-only React 19 + Vite SPA for Warhammer players, deployed to Azure Static Web Apps:
@@ -44,7 +68,7 @@ Architecture: pure math in `src/lib/dice/` (no React), presentational primitives
 ## Engineering hygiene
 
 - **CI deploys to production on every push to master without running tests or lint.** Add an `npm ci && npm run lint && npm test` job and make deploy depend on it.
-- **Dead code** is still exported and documented as live: `KillProbabilityCalculator.jsx` (no route), `simulation.js`, `killProbability.js`, `probability.js`, `woundDistribution.js`, `chargeProbability.js`.
+- **Dead code** is still exported and documented as live: `KillProbabilityCalculator.jsx` (no route), `simulation.js`, `killProbability.js`, `woundDistribution.js`. (Originally this list also named `probability.js` and `chargeProbability.js`; both are in use, see the status table.)
 - **Bundle:** there is no route-level code splitting, so Konva (needed only by the board), Recharts and KaTeX all load on the landing page. KaTeX and its CSS and fonts are loaded only to draw the “σ” glyph; a Unicode σ would do. `the-fishpond.png` is 1.6 MB.
 - The remote has both `main` and `master`. CI tracks master; the docs say main.
 - 53 of 111 commits are titled “update”, which makes bisecting the rules engine harder.
