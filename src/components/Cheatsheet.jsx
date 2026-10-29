@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import 'katex/dist/katex.min.css'
 import { calculateChargeProbabilities } from '../lib/dice'
 import { Page, Tabs } from './ui'
 import '../styles/cheatsheet.css'

@@ -212,7 +212,7 @@ export const buildMultiUnitAttackSimReport = (
       lines.push(
         `- ${t('reportExpectedDamage')}: ` +
           `${result.expectedDamage.toFixed(2)} ` +
-          `(±${result.expectedDamageStdDev.toFixed(2)}, 95% CI ` +
+          `(±${result.expectedDamageStdDev.toFixed(2)}, 95% range ` +
           `${result.expectedDamageCILow.toFixed(2)}–` +
           `${result.expectedDamageCIHigh.toFixed(2)})`
       )
@@ -220,7 +220,7 @@ export const buildMultiUnitAttackSimReport = (
       lines.push(
         `- ${t('reportExpectedKills')}: ` +
           `${result.expectedKills.toFixed(2)} ` +
-          `(±${result.expectedKillsStdDev.toFixed(2)}, 95% CI ` +
+          `(±${result.expectedKillsStdDev.toFixed(2)}, 95% range ` +
           `${result.expectedKillsCILow.toFixed(2)}–` +
           `${result.expectedKillsCIHigh.toFixed(2)})`
       )
@@ -228,7 +228,7 @@ export const buildMultiUnitAttackSimReport = (
     lines.push(
       `- ${t('reportWipeChance')}: ` +
         `${result.wipeProbability.toFixed(2)}% ` +
-        `(±${result.wipeProbabilityStdDev.toFixed(2)}%, 95% CI ` +
+        `(SE ±${result.wipeProbabilityStdDev.toFixed(2)}%, 95% CI ` +
         `${result.wipeProbabilityCILow.toFixed(2)}–` +
         `${result.wipeProbabilityCIHigh.toFixed(2)}%)`
     )

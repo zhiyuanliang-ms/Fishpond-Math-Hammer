@@ -433,7 +433,7 @@ export function ComparisonResults({ results }) {
                   <span className="comparison-metric-value">
                     <strong>{result.expectedKills.toFixed(2)}</strong>
                     <small>
-                      95% CI {result.expectedKillsCILow.toFixed(2)}–
+                      95% range {result.expectedKillsCILow.toFixed(2)}–
                       {result.expectedKillsCIHigh.toFixed(2)}
                     </small>
                   </span>

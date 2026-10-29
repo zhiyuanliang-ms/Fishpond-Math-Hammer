@@ -361,9 +361,11 @@ function AttackSimulator() {
               value={result.wipeProbability.toFixed(2)}
               valueSuffix="%"
               stdDev={result.wipeProbabilityStdDev.toFixed(2)}
+              stdDevLabel="SE"
               ciLow={result.wipeProbabilityCILow.toFixed(2)}
               ciHigh={result.wipeProbabilityCIHigh.toFixed(2)}
               ciSuffix="%"
+              rangeLabel="95% CI"
             />
           </StatGrid>
 
