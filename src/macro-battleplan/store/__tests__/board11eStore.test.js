@@ -220,4 +220,18 @@ describe('11e mission plan persistence and board compatibility', () => {
     expect(store.getState().importBoard({ schema: 'unknown', missionPlan: createMissionPlan() })).toBe(false)
     expect(store.getState().missionPlan).toEqual(plan)
   })
+
+  it('round-trips a base max move through export/import and drops invalid values', () => {
+    store.getState().addBase(32)
+    const id = store.getState().selectedIds[0]
+    store.getState().commitPieceUpdate(id, { maxMoveIn: 12 })
+    const exported = JSON.parse(store.getState().exportBoard())
+    expect(exported.bases[0].maxMoveIn).toBe(12)
+
+    exported.bases.push({ ...exported.bases[0], maxMoveIn: -1 })
+    expect(store.getState().importBoard(exported)).toBe(true)
+    const [kept, dropped] = store.getState().pieces
+    expect(kept.maxMoveIn).toBe(12)
+    expect(dropped).not.toHaveProperty('maxMoveIn')
+  })
 })

@@ -23,9 +23,11 @@ export function BaseToken({ piece }) {
   const selected = useBoard11eStore((s) => s.selectedIds.includes(piece.id))
   const selectedIds = useBoard11eStore((s) => s.selectedIds)
   const showMoveDistance = useBoard11eStore((s) => s.showMoveDistance)
+  const maxMovePx = showMoveDistance && piece.maxMoveIn ? piece.maxMoveIn * PX_PER_INCH : null
 
   const dragStartRef = useRef(null)
   const [dragPos, setDragPos] = useState(null)
+  const [dragStart, setDragStart] = useState(null)
   const { onGroupDragStart, onGroupDragMove, onGroupDragEnd } = useGroupDragMove({
     pieceId: piece.id,
     selected,
@@ -46,15 +48,12 @@ export function BaseToken({ piece }) {
 
   const showDistance =
     showMoveDistance &&
-    dragStartRef.current !== null &&
+    dragStart !== null &&
     dragPos !== null &&
-    (dragPos.x !== dragStartRef.current.x || dragPos.y !== dragStartRef.current.y)
+    (dragPos.x !== dragStart.x || dragPos.y !== dragStart.y)
 
   const distancePx = showDistance
-    ? Math.hypot(
-        dragPos.x - dragStartRef.current.x,
-        dragPos.y - dragStartRef.current.y,
-      )
+    ? Math.hypot(dragPos.x - dragStart.x, dragPos.y - dragStart.y)
     : 0
   const distanceIn = distancePx / PX_PER_INCH
 
@@ -71,16 +70,30 @@ export function BaseToken({ piece }) {
         onTouchStart={handleSelect}
         onDragStart={(e) => {
           dragStartRef.current = { x: piece.x, y: piece.y }
+          setDragStart(dragStartRef.current)
           setDragPos({ x: piece.x, y: piece.y })
           onGroupDragStart(e)
         }}
         onDragMove={(e) => {
+          const start = dragStartRef.current
+          if (maxMovePx && start) {
+            // Pin the base to the edge of its move range so a finger over the
+            // label can't overshoot it.
+            const dx = e.target.x() - start.x
+            const dy = e.target.y() - start.y
+            const dist = Math.hypot(dx, dy)
+            if (dist > maxMovePx) {
+              const k = maxMovePx / dist
+              e.target.position({ x: start.x + dx * k, y: start.y + dy * k })
+            }
+          }
           setDragPos({ x: e.target.x(), y: e.target.y() })
           onGroupDragMove(e)
         }}
         onDragEnd={(e) => {
           const start = dragStartRef.current
           dragStartRef.current = null
+          setDragStart(null)
           setDragPos(null)
           onGroupDragEnd()
           const newX = e.target.x()
@@ -170,8 +183,8 @@ export function BaseToken({ piece }) {
         <Group listening={false}>
           <Line
             points={[
-              dragStartRef.current.x,
-              dragStartRef.current.y,
+              dragStart.x,
+              dragStart.y,
               dragPos.x,
               dragPos.y,
             ]}
@@ -180,15 +193,15 @@ export function BaseToken({ piece }) {
             dash={[6, 4]}
           />
           <Circle
-            x={dragStartRef.current.x}
-            y={dragStartRef.current.y}
+            x={dragStart.x}
+            y={dragStart.y}
             radius={3}
             fill="#fbbf24"
           />
           <Text
-            x={(dragStartRef.current.x + dragPos.x) / 2 + 6}
-            y={(dragStartRef.current.y + dragPos.y) / 2 - 14}
-            text={`${distanceIn.toFixed(2)}″`}
+            x={(dragStart.x + dragPos.x) / 2 + 6}
+            y={(dragStart.y + dragPos.y) / 2 - 14}
+            text={`${distanceIn.toFixed(2)}″${maxMovePx ? ` / ${piece.maxMoveIn}″` : ''}`}
             fontSize={13}
             fontStyle="600"
             fill="#fbbf24"

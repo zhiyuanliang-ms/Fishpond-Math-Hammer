@@ -397,6 +397,7 @@ export const useBoard11eStore = create((set, get) => {
               ...(p.heightMm ? { heightMm: p.heightMm } : {}),
               ...(p.color ? { color: p.color } : {}),
               ...(p.auraIn ? { auraIn: p.auraIn } : {}),
+              ...(p.maxMoveIn ? { maxMoveIn: p.maxMoveIn } : {}),
             })),
           drawings: s.drawings.map((d) => ({
             kind: d.kind,
@@ -429,6 +430,7 @@ export const useBoard11eStore = create((set, get) => {
           ...(num(b.heightMm) !== null ? { heightMm: b.heightMm } : {}),
           ...(typeof b.color === 'string' ? { color: b.color } : {}),
           ...(num(b.auraIn) !== null ? { auraIn: b.auraIn } : {}),
+          ...(num(b.maxMoveIn) > 0 ? { maxMoveIn: b.maxMoveIn } : {}),
         }))
 
       const drawings = (Array.isArray(data.drawings) ? data.drawings : [])

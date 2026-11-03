@@ -219,6 +219,12 @@ export function SelectionSection() {
     : (aura > 0 ? String(aura) : '6')
   const setAuraText = (value) => setAuraDraft({ pieceId: piece?.id ?? null, value })
 
+  const maxMove = piece?.maxMoveIn ?? 0
+  const [maxMoveDraft, setMaxMoveDraft] = useState({ pieceId: null, value: '' })
+  const maxMoveText = maxMoveDraft.pieceId === piece?.id
+    ? maxMoveDraft.value
+    : (maxMove > 0 ? String(maxMove) : '')
+
   if (selectedIds.length > 1) {
     return (
       <Section
@@ -252,6 +258,14 @@ export function SelectionSection() {
     const clamped = Math.min(24, Math.max(1, Math.round(value)))
     updatePiece(piece.id, { auraIn: clamped })
     setAuraText(String(clamped))
+  }
+
+  // Empty, zero, or invalid means no limit.
+  const commitMaxMove = (raw) => {
+    const value = Number(raw)
+    const next = raw !== '' && Number.isFinite(value) && value > 0 ? value : undefined
+    if (next !== piece.maxMoveIn) updatePiece(piece.id, { maxMoveIn: next })
+    setMaxMoveDraft({ pieceId: piece.id, value: next ? String(next) : '' })
   }
 
   return (
@@ -325,6 +339,31 @@ export function SelectionSection() {
               Remove
             </Chip>
           )}
+        </div>
+
+        <div className="mbp-sublabel">Max Move</div>
+        <div
+          className="mbp-aura-row"
+          title="Stops this base at this distance while Show Movement Distance is on; leave empty for no limit"
+        >
+          <input
+            type="number"
+            min={0}
+            step={0.5}
+            inputMode="decimal"
+            placeholder="∞"
+            value={maxMoveText}
+            onChange={(event) => setMaxMoveDraft({ pieceId: piece.id, value: event.target.value })}
+            onBlur={(event) => commitMaxMove(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                commitMaxMove(event.target.value)
+                event.target.blur()
+              }
+            }}
+            aria-label="Max movement distance in inches"
+          />
+          <span>inch</span>
         </div>
       </div>
     </Section>
