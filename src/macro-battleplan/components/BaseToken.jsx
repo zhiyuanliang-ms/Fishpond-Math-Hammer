@@ -25,7 +25,10 @@ export function BaseToken({ piece }) {
   const selectedIds = useBoard11eStore((s) => s.selectedIds)
   const showMoveDistance = useBoard11eStore((s) => s.showMoveDistance)
   const setLiveMeasure = useBoard11eStore((s) => s.setLiveMeasure)
-  const maxMovePx = showMoveDistance && piece.maxMoveIn ? piece.maxMoveIn * PX_PER_INCH : null
+  const maxMovePx =
+    showMoveDistance && piece.maxMoveEnabled && piece.maxMoveIn
+      ? piece.maxMoveIn * PX_PER_INCH
+      : null
 
   const dragStartRef = useRef(null)
   const cancelledRef = useRef(false)

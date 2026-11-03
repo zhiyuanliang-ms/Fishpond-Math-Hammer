@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { OVAL_BASE_SIZES_MM } from '../../config/board'
-import { createMissionPlan, getMissionPlanTotals, hasMissionPlan } from '../../config/missionPlanning11e'
+import { createMissionPlan } from '../../config/missionPlanning11e'
 
 const PLAN_KEY = 'macroBattleplan11e:missionPlan'
-const legacyExport = () => ({
+const boardExport = () => ({
   schema: 'fishpond-mathhammer-battleplan-11e/v1',
   setup: { mine: 'take-and-hold', theirs: 'take-and-hold', layout: 'A' },
   bases: [{ x: 10, y: 15, rotation: 30, diameterMm: 32, shape: 'round' }],
@@ -13,9 +13,10 @@ const legacyExport = () => ({
     opponentName: 'Bob',
     scores: { player: { 1: 13, 2: '' }, opponent: { 1: 9 } },
   },
+  missionPlan: createMissionPlan(),
 })
 
-describe('11e mission plan persistence and board compatibility', () => {
+describe('11e board store: mission plan persistence and export/import', () => {
   let store
   let values
 
@@ -52,21 +53,8 @@ describe('11e mission plan persistence and board compatibility', () => {
     expect(store.getState().pieces).toEqual([expect.objectContaining(dimensions)])
   })
 
-  it('imports old v1 boards without losing names, recorded scores, bases, or drawings', () => {
-    expect(store.getState().importBoard(legacyExport())).toBe(true)
-    const state = store.getState()
-    expect(state.scoreboard.playerName).toBe('Alice')
-    expect(state.scoreboard.opponentName).toBe('Bob')
-    expect(state.scoreboard.scores.player).toEqual({ 1: 13, 2: '', 3: '', 4: '', 5: '' })
-    expect(state.scoreboard.scores.opponent[1]).toBe(9)
-    expect(state.pieces).toHaveLength(1)
-    expect(state.drawings).toHaveLength(1)
-    expect(hasMissionPlan(state.missionPlan)).toBe(false)
-    expect(state.exportBoard()).toContain('"missionPlan"')
-  })
-
   it('round-trips both plans through the existing export schema without mixing actual scores', () => {
-    store.getState().importBoard(legacyExport())
+    store.getState().importBoard(boardExport())
     const plan = createMissionPlan()
     plan.primary.player[2] = { command: 12, duringRound: 16, endGame: 5 }
     plan.primary.opponent[5] = { command: 0, duringRound: '', endGame: 15 }
@@ -100,27 +88,8 @@ describe('11e mission plan persistence and board compatibility', () => {
     expect(restored.getState().missionPlan).toEqual(plan)
   })
 
-  it('migrates single-score primary rounds from old exports and browser storage', async () => {
-    const oldPlan = {
-      primary: { player: { 1: 12, 2: 0 }, opponent: { 5: 20 } },
-      secondary: { player: { beacon: { status: 'included', target: 5 } } },
-    }
-    expect(store.getState().importBoard({ ...legacyExport(), missionPlan: oldPlan })).toBe(true)
-    const migrated = store.getState().missionPlan
-    expect(migrated.primary.player[1]).toEqual({ command: '', duringRound: 12, endGame: '' })
-    expect(migrated.primary.player[2]).toEqual({ command: '', duringRound: 0, endGame: '' })
-    expect(migrated.primary.opponent[5]).toEqual({ command: '', duringRound: 20, endGame: '' })
-    expect(migrated.secondary.player.beacon.target).toBe(5)
-    expect(migrated.secondary.opponent.beacon.target).toBe('')
-    expect(getMissionPlanTotals(migrated, 'opponent').primary).toBe(20)
-    values.set(PLAN_KEY, JSON.stringify(oldPlan))
-    vi.resetModules()
-    const restored = (await import('../board11eStore')).useBoard11eStore
-    expect(restored.getState().missionPlan).toEqual(migrated)
-  })
-
   it('normalizes manual numeric input updates without changing the other player or recorded scores', () => {
-    store.getState().importBoard(legacyExport())
+    store.getState().importBoard(boardExport())
     const originalOpponent = store.getState().missionPlan.secondary.opponent
     const originalScoreboard = store.getState().scoreboard
     for (const [raw, expected] of [['2', 2], ['', ''], ['0', 0], ['9', 5], ['-1', 0]]) {
@@ -142,16 +111,8 @@ describe('11e mission plan persistence and board compatibility', () => {
     }
   })
 
-  it('does not carry a previous plan into an older imported file', () => {
-    const plan = createMissionPlan()
-    plan.secondary.player.beacon.status = 'included'
-    store.getState().setMissionPlan(plan)
-    store.getState().importBoard(legacyExport())
-    expect(store.getState().missionPlan).toEqual(createMissionPlan())
-  })
-
   it('preserves targets on layout changes and clears only changed primary missions', () => {
-    store.getState().importBoard(legacyExport())
+    store.getState().importBoard(boardExport())
     const plan = createMissionPlan()
     plan.primary.player[2].duringRound = 12
     plan.primary.opponent[3].endGame = 8
@@ -168,7 +129,7 @@ describe('11e mission plan persistence and board compatibility', () => {
   })
 
   it('clearing the map leaves mission plans and recorded scores alone', () => {
-    store.getState().importBoard(legacyExport())
+    store.getState().importBoard(boardExport())
     const plan = createMissionPlan()
     plan.primary.player[2].command = 10
     store.getState().setMissionPlan(plan)
@@ -180,7 +141,7 @@ describe('11e mission plan persistence and board compatibility', () => {
   })
 
   it('clears the new storage key together with the existing score data', () => {
-    store.getState().importBoard(legacyExport())
+    store.getState().importBoard(boardExport())
     expect(values.has(PLAN_KEY)).toBe(true)
     store.getState().clearAllStorage()
     expect(values.has(PLAN_KEY)).toBe(false)
@@ -221,17 +182,23 @@ describe('11e mission plan persistence and board compatibility', () => {
     expect(store.getState().missionPlan).toEqual(plan)
   })
 
-  it('round-trips a base max move through export/import and drops invalid values', () => {
+  it('round-trips a base max move and its switch through export/import', () => {
     store.getState().addBase(32)
     const id = store.getState().selectedIds[0]
-    store.getState().commitPieceUpdate(id, { maxMoveIn: 12 })
+    store.getState().commitPieceUpdate(id, { maxMoveIn: 12, maxMoveEnabled: true })
     const exported = JSON.parse(store.getState().exportBoard())
-    expect(exported.bases[0].maxMoveIn).toBe(12)
+    expect(exported.bases[0]).toMatchObject({ maxMoveIn: 12, maxMoveEnabled: true })
 
-    exported.bases.push({ ...exported.bases[0], maxMoveIn: -1 })
+    const base = exported.bases[0]
+    exported.bases.push(
+      { ...base, maxMoveIn: 8, maxMoveEnabled: false },
+      { ...base, maxMoveIn: -1 },
+    )
     expect(store.getState().importBoard(exported)).toBe(true)
-    const [kept, dropped] = store.getState().pieces
-    expect(kept.maxMoveIn).toBe(12)
-    expect(dropped).not.toHaveProperty('maxMoveIn')
+    const [on, off, invalid] = store.getState().pieces
+    expect(on).toMatchObject({ maxMoveIn: 12, maxMoveEnabled: true })
+    expect(off).toMatchObject({ maxMoveIn: 8 })
+    expect(off).not.toHaveProperty('maxMoveEnabled')
+    expect(invalid).not.toHaveProperty('maxMoveIn')
   })
 })

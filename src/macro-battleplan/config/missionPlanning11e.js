@@ -61,7 +61,7 @@ function normalizePrimaryRound(raw) {
   return Object.fromEntries(
     PRIMARY_SCORE_PHASES.map(({ id }) => [
       id,
-      normalizePrimaryTarget(staged ? raw[id] : id === 'duringRound' ? raw : undefined),
+      normalizePrimaryTarget(staged ? raw[id] : undefined),
     ]),
   )
 }

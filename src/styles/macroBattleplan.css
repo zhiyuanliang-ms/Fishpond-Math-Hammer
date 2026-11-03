@@ -1061,6 +1061,20 @@
   margin-top: 4px;
 }
 
+.mbp-sublabel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mbp-sublabel-row .mbp-sublabel {
+  margin-top: 0;
+}
+
 .mbp-aura-row {
   display: flex;
   align-items: center;

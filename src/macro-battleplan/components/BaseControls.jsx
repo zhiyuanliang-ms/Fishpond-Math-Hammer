@@ -9,6 +9,9 @@ import {
   MM_PER_INCH,
 } from '../config/board'
 
+// Distance filled in the first time Max Move is switched on for a base.
+const DEFAULT_MAX_MOVE_IN = 6
+
 const RECT_PRESETS = [
   { id: 'rhino', label: 'Rhino', lengthIn: 4.5, widthIn: 3 },
 ]
@@ -260,12 +263,23 @@ export function SelectionSection() {
     setAuraText(String(clamped))
   }
 
-  // Empty, zero, or invalid means no limit.
+  // The switch turns the limit on and off; an empty or invalid entry keeps
+  // the current distance.
   const commitMaxMove = (raw) => {
     const value = Number(raw)
-    const next = raw !== '' && Number.isFinite(value) && value > 0 ? value : undefined
+    const next = raw !== '' && Number.isFinite(value) && value > 0 ? value : piece.maxMoveIn
     if (next !== piece.maxMoveIn) updatePiece(piece.id, { maxMoveIn: next })
-    setMaxMoveDraft({ pieceId: piece.id, value: next ? String(next) : '' })
+    setMaxMoveDraft({ pieceId: piece.id, value: String(next) })
+  }
+
+  const toggleMaxMove = () => {
+    if (piece.maxMoveEnabled) {
+      updatePiece(piece.id, { maxMoveEnabled: false })
+      return
+    }
+    const maxMoveIn = piece.maxMoveIn ?? DEFAULT_MAX_MOVE_IN
+    updatePiece(piece.id, { maxMoveEnabled: true, maxMoveIn })
+    setMaxMoveDraft({ pieceId: piece.id, value: String(maxMoveIn) })
   }
 
   return (
@@ -341,30 +355,44 @@ export function SelectionSection() {
           )}
         </div>
 
-        <div className="mbp-sublabel">Max Move</div>
-        <div
-          className="mbp-aura-row"
-          title="Stops this base at this distance while Show Movement Distance is on; leave empty for no limit"
+        <label
+          className="mbp-sublabel-row"
+          title="Stop this base at a set distance while Show Movement Distance is on"
         >
-          <input
-            type="number"
-            min={0}
-            step={0.5}
-            inputMode="decimal"
-            placeholder="∞"
-            value={maxMoveText}
-            onChange={(event) => setMaxMoveDraft({ pieceId: piece.id, value: event.target.value })}
-            onBlur={(event) => commitMaxMove(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                commitMaxMove(event.target.value)
-                event.target.blur()
-              }
-            }}
-            aria-label="Max movement distance in inches"
-          />
-          <span>inch</span>
-        </div>
+          <span className="mbp-sublabel">Max Move</span>
+          <span className={`mbp-switch ${piece.maxMoveEnabled ? 'is-on' : ''}`}>
+            <input
+              type="checkbox"
+              checked={!!piece.maxMoveEnabled}
+              onChange={toggleMaxMove}
+              aria-label="Limit max movement"
+            />
+            <span className="mbp-switch__track" aria-hidden="true">
+              <span className="mbp-switch__thumb" />
+            </span>
+          </span>
+        </label>
+        {piece.maxMoveEnabled && (
+          <div className="mbp-aura-row">
+            <input
+              type="number"
+              min={0}
+              step={0.5}
+              inputMode="decimal"
+              value={maxMoveText}
+              onChange={(event) => setMaxMoveDraft({ pieceId: piece.id, value: event.target.value })}
+              onBlur={(event) => commitMaxMove(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  commitMaxMove(event.target.value)
+                  event.target.blur()
+                }
+              }}
+              aria-label="Max movement distance in inches"
+            />
+            <span>inch</span>
+          </div>
+        )}
       </div>
     </Section>
   )

@@ -402,6 +402,7 @@ export const useBoard11eStore = create((set, get) => {
               ...(p.color ? { color: p.color } : {}),
               ...(p.auraIn ? { auraIn: p.auraIn } : {}),
               ...(p.maxMoveIn ? { maxMoveIn: p.maxMoveIn } : {}),
+              ...(p.maxMoveEnabled ? { maxMoveEnabled: true } : {}),
             })),
           drawings: s.drawings.map((d) => ({
             kind: d.kind,
@@ -435,6 +436,7 @@ export const useBoard11eStore = create((set, get) => {
           ...(typeof b.color === 'string' ? { color: b.color } : {}),
           ...(num(b.auraIn) !== null ? { auraIn: b.auraIn } : {}),
           ...(num(b.maxMoveIn) > 0 ? { maxMoveIn: b.maxMoveIn } : {}),
+          ...(b.maxMoveEnabled === true ? { maxMoveEnabled: true } : {}),
         }))
 
       const drawings = (Array.isArray(data.drawings) ? data.drawings : [])

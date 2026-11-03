@@ -108,7 +108,15 @@ describe('mission planning state', () => {
 
   it('whitelists valid cards and verdicts while preserving manual scores without notes or secondary rounds', () => {
     const plan = sanitizeMissionPlan({
-      primary: { player: { 1: '9', 2: 30, 3: -1, 4: 'bad', 6: 12 } },
+      primary: {
+        player: {
+          1: { duringRound: '9' },
+          2: { duringRound: 30 },
+          3: { duringRound: -1 },
+          4: { duringRound: 'bad' },
+          6: { duringRound: 12 },
+        },
+      },
       secondary: {
         player: {
           'no-prisoners': { status: 'included', target: 4, round: 3, notes: 'Not stored' },
@@ -141,7 +149,7 @@ describe('mission planning state', () => {
           1: { command: '12', duringRound: '20', endGame: '3', unknown: 9 },
           2: { command: -1, duringRound: '', endGame: 'invalid' },
         },
-        opponent: { 5: 18 },
+        opponent: { 5: { duringRound: 18 } },
       },
     })
 
