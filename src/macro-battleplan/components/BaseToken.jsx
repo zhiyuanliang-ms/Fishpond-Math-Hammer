@@ -3,6 +3,7 @@ import { Circle, Ellipse, Group, Line, Rect, Text } from 'react-konva'
 import { useBoard11eStore } from '../store/board11eStore'
 import { PX_PER_INCH, MM_PER_INCH, DEFAULT_BASE_COLOR, baseRadiusPx } from '../config/board'
 import { useGroupDragMove } from '../hooks/useGroupDragMove'
+import { onCancelInteractions } from '../hooks/interactionCancel'
 
 const mmToPx = (mm) => (mm / MM_PER_INCH) * PX_PER_INCH
 
@@ -23,12 +24,15 @@ export function BaseToken({ piece }) {
   const selected = useBoard11eStore((s) => s.selectedIds.includes(piece.id))
   const selectedIds = useBoard11eStore((s) => s.selectedIds)
   const showMoveDistance = useBoard11eStore((s) => s.showMoveDistance)
+  const setLiveMeasure = useBoard11eStore((s) => s.setLiveMeasure)
   const maxMovePx = showMoveDistance && piece.maxMoveIn ? piece.maxMoveIn * PX_PER_INCH : null
 
   const dragStartRef = useRef(null)
+  const cancelledRef = useRef(false)
+  const stopCancelRef = useRef(null)
   const [dragPos, setDragPos] = useState(null)
   const [dragStart, setDragStart] = useState(null)
-  const { onGroupDragStart, onGroupDragMove, onGroupDragEnd } = useGroupDragMove({
+  const { onGroupDragStart, onGroupDragMove, onGroupDragEnd, onGroupDragCancel } = useGroupDragMove({
     pieceId: piece.id,
     selected,
     selectedIds,
@@ -73,6 +77,14 @@ export function BaseToken({ piece }) {
           setDragStart(dragStartRef.current)
           setDragPos({ x: piece.x, y: piece.y })
           onGroupDragStart(e)
+          // A second finger turns the drag into a pinch: put everything back.
+          const node = e.target
+          const start = dragStartRef.current
+          stopCancelRef.current = onCancelInteractions(() => {
+            cancelledRef.current = true
+            onGroupDragCancel(node, start)
+            node.stopDrag()
+          })
         }}
         onDragMove={(e) => {
           const start = dragStartRef.current
@@ -88,6 +100,13 @@ export function BaseToken({ piece }) {
             }
           }
           setDragPos({ x: e.target.x(), y: e.target.y() })
+          if (showMoveDistance && start) {
+            const movedIn = Math.hypot(e.target.x() - start.x, e.target.y() - start.y) / PX_PER_INCH
+            setLiveMeasure({
+              text: `Move ${movedIn.toFixed(2)}″${maxMovePx ? ` / ${piece.maxMoveIn}″` : ''}`,
+              capped: !!maxMovePx && movedIn >= piece.maxMoveIn - 0.005,
+            })
+          }
           onGroupDragMove(e)
         }}
         onDragEnd={(e) => {
@@ -95,7 +114,14 @@ export function BaseToken({ piece }) {
           dragStartRef.current = null
           setDragStart(null)
           setDragPos(null)
+          setLiveMeasure(null)
+          stopCancelRef.current?.()
+          stopCancelRef.current = null
           onGroupDragEnd()
+          if (cancelledRef.current) {
+            cancelledRef.current = false
+            return
+          }
           const newX = e.target.x()
           const newY = e.target.y()
           if (selected && selectedIds.length > 1 && start) {

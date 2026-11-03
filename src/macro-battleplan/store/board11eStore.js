@@ -136,6 +136,8 @@ export const useBoard11eStore = create((set, get) => {
     selectedIds: [],
     selectedId: null,
     showMoveDistance: false,
+    // Live distance readout for the HUD while dragging or measuring: { text, capped }.
+    liveMeasure: null,
     activeTool: 'cursor',
     drawings: [],
     drawColor: DEFAULT_DRAW_COLOR,
@@ -290,6 +292,8 @@ export const useBoard11eStore = create((set, get) => {
       }),
 
     toggleShowMoveDistance: () => set((s) => ({ showMoveDistance: !s.showMoveDistance })),
+
+    setLiveMeasure: (liveMeasure) => set({ liveMeasure }),
 
     setActiveTool: (tool) =>
       set((s) => ({

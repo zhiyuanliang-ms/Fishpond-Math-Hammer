@@ -41,5 +41,29 @@ export function useGroupDragMove({ pieceId, selected, selectedIds }) {
     lastRef.current = null
   }
 
-  return { onGroupDragStart: onDragStart, onGroupDragMove: onDragMove, onGroupDragEnd: onDragEnd }
+  // Moves the dragged node and its followers back to where the drag began.
+  const onDragCancel = (node, start) => {
+    const dx = start.x - node.x()
+    const dy = start.y - node.y()
+    node.position(start)
+    const stage = node.getStage()
+    if (stage && selected && selectedIds.length > 1) {
+      for (const id of selectedIds) {
+        if (id === pieceId) continue
+        const other = stage.findOne(`#${id}`)
+        if (!other) continue
+        other.x(other.x() + dx)
+        other.y(other.y() + dy)
+      }
+    }
+    lastRef.current = null
+    stage?.batchDraw()
+  }
+
+  return {
+    onGroupDragStart: onDragStart,
+    onGroupDragMove: onDragMove,
+    onGroupDragEnd: onDragEnd,
+    onGroupDragCancel: onDragCancel,
+  }
 }

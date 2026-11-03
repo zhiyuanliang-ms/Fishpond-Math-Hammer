@@ -2,14 +2,21 @@ import { useEffect, useRef, useState } from 'react'
 import { Layer, Line, Rect, Text } from 'react-konva'
 import { useBoard11eStore } from '../store/board11eStore'
 import { PX_PER_INCH } from '../config/board'
+import { onCancelInteractions } from '../hooks/interactionCancel'
 
 const X_MARK_TTL_MS = 2000
 const DRAG_THRESHOLD_PX = 4
 
 let nextId = 1
 
+const distLabel = (a, b) => {
+  const inches = Math.hypot(b.x - a.x, b.y - a.y) / PX_PER_INCH
+  return `${inches.toFixed(2)}″`
+}
+
 export function RulerOverlay({ stageRef }) {
   const activeTool = useBoard11eStore((s) => s.activeTool)
+  const setLiveMeasure = useBoard11eStore((s) => s.setLiveMeasure)
   const active = activeTool === 'ruler'
 
   const [drag, setDrag] = useState(null)
@@ -41,6 +48,13 @@ export function RulerOverlay({ stageRef }) {
       const p = getPos()
       if (!p) return
       setDrag({ start: dragStartRef.current, end: p })
+      setLiveMeasure({ text: `Ruler ${distLabel(dragStartRef.current, p)}` })
+    }
+
+    const cancel = () => {
+      dragStartRef.current = null
+      setDrag(null)
+      setLiveMeasure(null)
     }
 
     const finish = () => {
@@ -50,6 +64,7 @@ export function RulerOverlay({ stageRef }) {
       const end = endPos ?? start
       dragStartRef.current = null
       setDrag(null)
+      setLiveMeasure(null)
 
       const distPx = Math.hypot(end.x - start.x, end.y - start.y)
       if (distPx < DRAG_THRESHOLD_PX) {
@@ -61,6 +76,7 @@ export function RulerOverlay({ stageRef }) {
       }
     }
 
+    const stopCancel = onCancelInteractions(cancel)
     stage.on('mousedown.ruler touchstart.ruler', onDown)
     stage.on('mousemove.ruler touchmove.ruler', onMove)
     stage.on('mouseup.ruler touchend.ruler', finish)
@@ -75,6 +91,7 @@ export function RulerOverlay({ stageRef }) {
     }
 
     return () => {
+      stopCancel()
       stage.off(
         'mousedown.ruler touchstart.ruler mousemove.ruler touchmove.ruler mouseup.ruler touchend.ruler mouseleave.ruler touchcancel.ruler',
       )
@@ -83,13 +100,9 @@ export function RulerOverlay({ stageRef }) {
         container.style.touchAction = prevTouchAction
       }
       dragStartRef.current = null
+      setLiveMeasure(null)
     }
-  }, [active, stageRef])
-
-  const distLabel = (a, b) => {
-    const inches = Math.hypot(b.x - a.x, b.y - a.y) / PX_PER_INCH
-    return `${inches.toFixed(2)}″`
-  }
+  }, [active, stageRef, setLiveMeasure])
 
   const renderXMark = (m) => {
     const r = 8

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Circle, Layer, Line, Rect, Text } from 'react-konva'
 import { useBoard11eStore } from '../store/board11eStore'
 import { PX_PER_INCH } from '../config/board'
+import { onCancelInteractions } from '../hooks/interactionCancel'
 
 const STROKE_WIDTH = 2.5
 const FREEDRAW_MIN_DIST = 2.5
@@ -39,6 +40,7 @@ export function DrawingOverlay({ stageRef }) {
   const addDrawing = useBoard11eStore((s) => s.addDrawing)
   const removeDrawing = useBoard11eStore((s) => s.removeDrawing)
   const drawColor = useBoard11eStore((s) => s.drawColor)
+  const setLiveMeasure = useBoard11eStore((s) => s.setLiveMeasure)
 
   const drawActive = activeTool === 'draw'
   const lineActive = activeTool === 'line'
@@ -100,6 +102,7 @@ export function DrawingOverlay({ stageRef }) {
       activePointerId = null
       setLinePreview(null)
       setFreePreview(null)
+      setLiveMeasure(null)
     }
 
     const onDown = (ev) => {
@@ -135,6 +138,8 @@ export function DrawingOverlay({ stageRef }) {
       if (!p) return
       if (lineActive) {
         setLinePreview({ start, end: p })
+        const inches = Math.hypot(p.x - start.x, p.y - start.y) / PX_PER_INCH
+        setLiveMeasure({ text: `Line ${inches.toFixed(2)}″` })
       } else {
         const last = lastPtRef.current
         if (last) {
@@ -192,19 +197,22 @@ export function DrawingOverlay({ stageRef }) {
       reset()
     }
 
+    // A second finger means pinch: drop the whole stroke.
+    const stopCancel = onCancelInteractions(reset)
     container.addEventListener('pointerdown', onDown)
     container.addEventListener('pointermove', onMove)
     container.addEventListener('pointerup', onUp)
     container.addEventListener('pointercancel', onCancel)
 
     return () => {
+      stopCancel()
       container.removeEventListener('pointerdown', onDown)
       container.removeEventListener('pointermove', onMove)
       container.removeEventListener('pointerup', onUp)
       container.removeEventListener('pointercancel', onCancel)
       reset()
     }
-  }, [captureActive, lineActive, stageRef, addDrawing, drawColor])
+  }, [captureActive, lineActive, stageRef, addDrawing, drawColor, setLiveMeasure])
 
   // Circle eraser: press & drag removes any line inside the cursor radius.
   useEffect(() => {
@@ -280,12 +288,14 @@ export function DrawingOverlay({ stageRef }) {
       setTouchEraserPos(null)
     }
 
+    const stopCancel = onCancelInteractions(onCancel)
     container.addEventListener('pointerdown', onDown)
     container.addEventListener('pointermove', onMove)
     container.addEventListener('pointerup', onUp)
     container.addEventListener('pointercancel', onCancel)
 
     return () => {
+      stopCancel()
       container.removeEventListener('pointerdown', onDown)
       container.removeEventListener('pointermove', onMove)
       container.removeEventListener('pointerup', onUp)
