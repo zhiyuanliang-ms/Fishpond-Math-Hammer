@@ -24,6 +24,9 @@ npm run lint
 npm run build    # production build in dist/
 ```
 
+The site is an installable PWA: on iPhone, open it in Safari and choose
+Share → Add to Home Screen to run it full-screen and offline.
+
 Pushes to `master` run the tests in GitHub Actions and then deploy to Azure
 Static Web Apps. Developer and agent documentation lives in
 [`knowledges/`](knowledges/README.md).

@@ -87,6 +87,29 @@ The app is deployed as an **Azure Static Web App** (`gentle-coast-01db79f0f`).
 If you add a new page route in `App.jsx`, no extra config is needed — the
 `navigationFallback` catch-all already covers it.
 
+## PWA (installable app)
+
+`vite-plugin-pwa` (configured in `vite.config.js`) makes the site installable:
+on iPhone, open it in Safari → Share → **Add to Home Screen**. It then runs
+full-screen with its own icon and works offline.
+
+- **Manifest and icons:** the manifest is generated at build time
+  (`dist/manifest.webmanifest`). Icons in `public/` (`pwa-192x192.png`,
+  `pwa-512x512.png`, `maskable-icon-512x512.png`,
+  `apple-touch-icon-180x180.png`) were generated from `the-fishpond.webp`
+  with `@vite-pwa/assets-generator`. The iOS meta tags are in `index.html`.
+- **Service worker:** `generateSW` with `registerType: 'autoUpdate'`. It
+  precaches the app shell (JS, CSS, HTML, root images), so a new deploy reaches
+  installed users the next time they open the app. `battleplans-11e/` images
+  (~21 MB) are **not** precached; they are cached on first view
+  (`battleplan-images`, CacheFirst). Google Fonts use StaleWhileRevalidate.
+- **Testing it:** the service worker is only built by `npm run build`, not by
+  `npm run dev`. Use `npm run build && npm run preview` and check DevTools →
+  Application. Unregister the worker afterwards, or localhost keeps serving
+  the cached build.
+- **iOS storage caveat:** Safari can evict an installed PWA's storage after
+  long disuse, which would drop saved Profiles and boards in `localStorage`.
+
 ## Git
 - Work on `master`: CI deploys from it. The remote's `main` branch holds only
   GitHub's initial commit and is unrelated to `master`'s history.
