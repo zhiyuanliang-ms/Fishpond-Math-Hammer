@@ -75,12 +75,15 @@ The app is deployed as an **Azure Static Web App** (`gentle-coast-01db79f0f`).
   the previous version. `npm run lint` also runs there but is
   `continue-on-error` until it is confirmed clean — then drop that line.
 - **Build:** `Azure/static-web-apps-deploy@v1` builds at `/` and deploys `dist/`.
-- **SPA fallback routing:** `staticwebapp.config.json` at the repo root
+- **SPA fallback routing:** `public/staticwebapp.config.json` (copied into `dist/`)
   configures `navigationFallback` to rewrite all paths to `/index.html`
   (excluding `/assets/*`). This is **required** so that direct navigation to
   any client-side route (e.g. `/macro-battleplan`, `/dice-calculator`,
   `/attack-simulator`, `/dice-roller`, `/cheat-sheet`, `/about`) works instead
   of returning a 404 from the CDN.
+- **MIME types:** the same file maps `.webmanifest` to
+  `application/manifest+json`; Azure otherwise serves it as
+  `application/octet-stream`.
 - **Deploy token secret:** `AZURE_STATIC_WEB_APPS_API_TOKEN_GENTLE_COAST_01DB79F0F`
   stored in GitHub repo secrets.
 
