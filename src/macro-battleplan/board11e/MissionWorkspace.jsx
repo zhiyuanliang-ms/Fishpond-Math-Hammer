@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import { getDisposition } from '../config/battleplans11e'
 import {
@@ -13,6 +13,7 @@ import {
 import { useBoard11eStore } from '../store/board11eStore'
 import { MissionCardDialog, MissionCardImage } from './MissionCardDialog'
 import { MissionCardsButton } from './MissionCardsButton'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
 
 function MissionSideLabel({ side }) {
   return (
@@ -63,6 +64,14 @@ export function MissionWorkspace({ battleplan, activeSide, onSideChange }) {
   const setMissionPlan = useBoard11eStore((s) => s.setMissionPlan)
   const storageError = useBoard11eStore((s) => s.missionPlanStorageError)
   const [viewedMission, setViewedMission] = useState(null)
+  // Typing "12" into one field is one VP edit, not two: only a change to a
+  // different field than the last one edited counts as a new RecordVP.
+  const lastVpFieldRef = useRef(null)
+  const trackVpEdit = (field) => {
+    if (lastVpFieldRef.current === field) return
+    lastVpFieldRef.current = field
+    trackEvent(TELEMETRY_EVENTS.RecordVP)
+  }
 
   if (!battleplan) {
     return <p role="alert">Select a valid battleplan on the Battlefield tab to plan your missions.</p>
@@ -76,6 +85,7 @@ export function MissionWorkspace({ battleplan, activeSide, onSideChange }) {
   const activeTotals = getMissionPlanTotals(plan, activeSide)
 
   const setPrimaryTarget = (round, phase, raw) => {
+    trackVpEdit(`primary:${activeSide}:${round}:${phase}`)
     setMissionPlan((current) => ({
       ...current,
       primary: {
@@ -89,6 +99,7 @@ export function MissionWorkspace({ battleplan, activeSide, onSideChange }) {
   }
 
   const setSecondary = (missionId, patch) => {
+    trackVpEdit(`secondary:${activeSide}:${missionId}:${Object.keys(patch).join(',')}`)
     setMissionPlan((current) => ({
       ...current,
       secondary: {

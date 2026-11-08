@@ -43,6 +43,7 @@ import {
 import { Tabs } from '../ui'
 import { useT } from '../attackSim/lang'
 import ProfileNameDialog from './ProfileNameDialog'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
 import {
   AttackerProfileWorkspace,
   DefenderProfileWorkspace,
@@ -137,6 +138,8 @@ export default function ProfileLibrary() {
     setToast({ kind: 'error', message })
   }
 
+  const trackProfile = (action) => trackEvent(TELEMETRY_EVENTS.Profile, { action })
+
   const handleSideChange = (nextSide) => {
     if (nextSide === side || !confirmDiscard()) return
     setSide(nextSide)
@@ -157,6 +160,7 @@ export default function ProfileLibrary() {
     setSelectedName(name)
     setDraft(api.hydrate(stored))
     setDirty(false)
+    trackProfile('view')
   }
 
   const openNameDialog = (action) => {
@@ -173,6 +177,7 @@ export default function ProfileLibrary() {
     setSelectedName(name)
     setDraft(nextDraft)
     setDirty(false)
+    trackProfile('new')
   }
 
   const handleSave = () => {
@@ -182,6 +187,7 @@ export default function ProfileLibrary() {
         throw new Error(t('storageUnavailable'))
       }
       setDirty(false)
+      trackProfile('save')
     } catch (error) {
       showStorageError(error)
     }
@@ -205,6 +211,7 @@ export default function ProfileLibrary() {
     setNames(api.list())
     setDraft(api.hydrate(stored))
     setDirty(false)
+    trackProfile('rename')
     setToast({ kind: 'success', message: t('profileRenamed', name) })
   }
 
@@ -216,6 +223,7 @@ export default function ProfileLibrary() {
     setSelectedName(name)
     setDraft(api.hydrate(api.load(name)))
     setDirty(false)
+    trackProfile('duplicate')
   }
 
   const handleDelete = () => {
@@ -229,6 +237,7 @@ export default function ProfileLibrary() {
       setSelectedName('')
       setDraft(null)
       setDirty(false)
+      trackProfile('delete')
     } catch (error) {
       showStorageError(error)
     }
@@ -241,6 +250,7 @@ export default function ProfileLibrary() {
         throw new Error(t('noProfilesToExport'))
       }
       downloadJson(api.buildExport(profiles), api.filename)
+      trackProfile('export')
       setToast({
         kind: 'success',
         message: t('profilesExported', Object.keys(profiles).length),
@@ -276,6 +286,7 @@ export default function ProfileLibrary() {
       setSelectedName('')
       setDraft(null)
       setDirty(false)
+      trackProfile('import')
       setToast({
         kind: 'success',
         message: t('profilesImported', importedNames.length, importedNames.length - updated, updated),

@@ -28,6 +28,7 @@ import {
   serializeDefenderProfile,
 } from '../lib/attackSimProfiles'
 import { buildMultiUnitAttackSimReport } from '../lib/attackSimReport'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 import { StatCard, StatGrid, DistributionChart } from './ui'
 import SavedSetControls from './ui/SavedSetControls'
 import ProfileNameDialog from './attackSimulator/ProfileNameDialog'
@@ -90,6 +91,7 @@ function AttackSimulator() {
       throw new Error(t('storageUnavailable'))
     }
     refreshWeaponSets()
+    trackEvent(TELEMETRY_EVENTS.Profile, { action: 'save' })
     setAttackerUnits((current) =>
       current.map((entry) => entry.id === unitId ? { ...entry, name } : entry)
     )
@@ -115,6 +117,7 @@ function AttackSimulator() {
     }
     const hydrated = hydrateAttackerProfile(data)
     updateAttackerUnit(unitId, { ...hydrated, name })
+    trackEvent(TELEMETRY_EVENTS.Profile, { action: 'load' })
     setToast({ kind: 'success', message: t('profileLoaded', t('attackerProfile'), name) })
   }
 
@@ -125,6 +128,7 @@ function AttackSimulator() {
       throw new Error(t('storageUnavailable'))
     }
     refreshTargetSets()
+    trackEvent(TELEMETRY_EVENTS.Profile, { action: 'save' })
     setSelectedTargetSet(name)
     setToast({ kind: 'success', message: t('profileSaved', t('defenderProfile'), name) })
   }
@@ -147,6 +151,7 @@ function AttackSimulator() {
     const hydrated = hydrateDefenderProfile(data)
     setTargets(hydrated.targets)
     setDefenderUnitBuffs(hydrated.defenderUnitBuffs)
+    trackEvent(TELEMETRY_EVENTS.Profile, { action: 'load' })
     setResult(null)
     setError(null)
     setToast({ kind: 'success', message: t('profileLoaded', t('defenderProfile'), name) })
@@ -178,6 +183,7 @@ function AttackSimulator() {
       setError(t('needTargetProfile'))
       return
     }
+    trackEvent(TELEMETRY_EVENTS.Run40KSimulation)
     setRunning(true)
     const iterations = highPrecision ? 10000 : 1000
     const effectiveTargets = targets.map((tg) => mergeTargetWithUnit(tg, defenderUnitBuffs))
@@ -202,6 +208,7 @@ function AttackSimulator() {
       result,
       t
     )
+    trackEvent(TELEMETRY_EVENTS.CopyReport, { page: '40k-simulator' })
     try {
       await navigator.clipboard.writeText(text)
       setToast({ kind: 'success', message: t('reportCopied') })

@@ -13,6 +13,7 @@ import { MissionWorkspace } from './board11e/MissionWorkspace'
 import { MacroToolBar } from './components/MacroToolBar'
 import { TipsButton } from './components/TipsButton'
 import { useBoard11eStore } from './store/board11eStore'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 import {
   findBattleplan,
   getDisposition,
@@ -41,6 +42,12 @@ export default function MacroBattleplan11e() {
   }, [hasUnsavedBoard])
   const battleplan = findBattleplan(setup.mine, setup.theirs, setup.layout)
   const showBattlefield = activeTab === 'battlefield'
+  const mapId = battleplan?.map ?? 'none'
+
+  // One TacticalBoard event when the board opens, and one per map change.
+  useEffect(() => {
+    trackEvent(TELEMETRY_EVENTS.TacticalBoard, { map: mapId })
+  }, [mapId])
 
   const referenceTitle = battleplan
     ? `${getDisposition(battleplan.mine.disposition)?.label} vs ${

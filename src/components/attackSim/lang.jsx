@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react'
+import { LANG_STORAGE_KEY, readStoredLang } from '../../lib/langStorage'
 
 // ---------------------------------------------------------------------------
 // Attack Simulator – EN / ZH translation dictionary
@@ -446,24 +447,15 @@ const translations = {
 // React Context + hook
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'attackSim_lang'
-
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k })
 
 export function LangProvider({ children }) {
-  const [lang, setLangRaw] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      return stored === 'zh' ? 'zh' : 'en'
-    } catch {
-      return 'en'
-    }
-  })
+  const [lang, setLangRaw] = useState(readStoredLang)
 
   const setLang = (next) => {
     setLangRaw(next)
     try {
-      localStorage.setItem(STORAGE_KEY, next)
+      localStorage.setItem(LANG_STORAGE_KEY, next)
     } catch {
       /* quota exceeded — ignore */
     }

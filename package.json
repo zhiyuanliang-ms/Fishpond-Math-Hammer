@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@microsoft/applicationinsights-web": "^3.4.5",
     "konva": "^9.3.22",
     "lucide-react": "^1.14.0",
     "react": "^19.2.0",

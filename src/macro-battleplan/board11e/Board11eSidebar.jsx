@@ -4,6 +4,9 @@ import { BasesSection, SelectionSection } from '../components/BaseControls'
 import { useBoard11eStore } from '../store/board11eStore'
 import { LAYOUTS } from '../config/battleplans11e'
 import { hasMissionPlan } from '../config/missionPlanning11e'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
+
+const trackAddBase = (shape) => trackEvent(TELEMETRY_EVENTS.AddBase, { shape })
 
 function LayoutSection() {
   const setup = useBoard11eStore((s) => s.setup)
@@ -146,9 +149,21 @@ function BoardSection() {
 }
 
 export function Board11eSidebar() {
-  const addBase = useBoard11eStore((s) => s.addBase)
-  const addOvalBase = useBoard11eStore((s) => s.addOvalBase)
-  const addRectBase = useBoard11eStore((s) => s.addRectBase)
+  const addRoundBase = useBoard11eStore((s) => s.addBase)
+  const addOvalBaseToBoard = useBoard11eStore((s) => s.addOvalBase)
+  const addRectBaseToBoard = useBoard11eStore((s) => s.addRectBase)
+  const addBase = (...args) => {
+    addRoundBase(...args)
+    trackAddBase('round')
+  }
+  const addOvalBase = (...args) => {
+    addOvalBaseToBoard(...args)
+    trackAddBase('oval')
+  }
+  const addRectBase = (...args) => {
+    addRectBaseToBoard(...args)
+    trackAddBase('rect')
+  }
 
   return (
     <aside className="mbp-tools">

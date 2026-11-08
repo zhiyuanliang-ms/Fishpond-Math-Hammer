@@ -3,6 +3,7 @@ import { Layer, Line, Rect, Text } from 'react-konva'
 import { useBoard11eStore } from '../store/board11eStore'
 import { PX_PER_INCH } from '../config/board'
 import { onCancelInteractions } from '../hooks/interactionCancel'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
 
 const X_MARK_TTL_MS = 2000
 const DRAG_THRESHOLD_PX = 4
@@ -73,6 +74,8 @@ export function RulerOverlay({ stageRef }) {
         window.setTimeout(() => {
           setMarks((m) => m.filter((mk) => mk.id !== id))
         }, X_MARK_TTL_MS)
+      } else {
+        trackEvent(TELEMETRY_EVENTS.BoardTools, { tool: 'ruler' })
       }
     }
 

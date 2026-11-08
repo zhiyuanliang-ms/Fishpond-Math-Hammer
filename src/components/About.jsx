@@ -43,6 +43,13 @@ function About() {
               Charles
             </p>
             
+            <h3>Usage Statistics</h3>
+            <p>
+              This site collects anonymous usage statistics (which features are
+              used and how often) to help improve it. No personal information
+              or saved content is collected.
+            </p>
+
             <h3>Copyright</h3>
             <p>
               © 2025 Fishpond Math Hammer. All rights reserved.

@@ -3,6 +3,7 @@ import { Page } from './ui'
 import { DICE_FACES, rollD6 } from '../lib/dice'
 import DieFace from './DieFace'
 import '../styles/diceRoller.css'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 
 const MAX_POOL = 100
 const DEFAULT_POOL_SIZE = 5
@@ -74,6 +75,7 @@ function DiceRoller() {
 
   const handleRollPool = () => {
     if (pool.length === 0) return
+    trackEvent(TELEMETRY_EVENTS.DiceRoller, { action: 'roll' })
     setPool((prev) =>
       prev.map((d) => ({ ...d, face: rollD6(), version: d.version + 1 }))
     )
@@ -82,6 +84,7 @@ function DiceRoller() {
 
   const handleRerollSelected = () => {
     if (selectedDiceCount === 0) return
+    trackEvent(TELEMETRY_EVENTS.DiceRoller, { action: 'reroll' })
     setPool((prev) =>
       prev.map((d) =>
         d.face !== null && selectedIds.has(d.id)

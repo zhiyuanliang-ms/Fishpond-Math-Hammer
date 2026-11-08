@@ -20,6 +20,7 @@ import { FormSelect } from '../ui'
 import DefenderUnitBuffsPanel from './DefenderUnitBuffsPanel'
 import UnitBuffsPanel from './UnitBuffsPanel'
 import { buildComparisonProfileName } from './profileSummaries'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
 import {
   AttackerProfilePreview,
   DefenderProfilePreview,
@@ -154,6 +155,7 @@ export default function ProfileComparison() {
       return
     }
 
+    trackEvent(TELEMETRY_EVENTS.Comparison)
     setRunning(true)
     setError(null)
     setTimeout(() => {

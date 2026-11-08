@@ -10,6 +10,7 @@ import {
   toWoundOptions,
 } from '../lib/dice'
 import IntInput from './attackSim/IntInput'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 import {
   CalculatorLayout,
   FormSelect,
@@ -35,6 +36,7 @@ function AoSDamageCalculator() {
   const handleCalculate = (event) => {
     event.preventDefault()
     setError(null)
+    trackEvent(TELEMETRY_EVENTS.DiceCalculator, { calculator: 'aos-damage' })
 
     try {
       const calculation = calculateAoSDamage(

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { calculateWoundPool } from '../lib/dice'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 import {
   toHitOptions,
   toWoundOptions,
@@ -79,6 +80,7 @@ function WoundSuccessCalculator() {
   const handleCalculate = (e) => {
     e.preventDefault()
     setError(null)
+    trackEvent(TELEMETRY_EVENTS.DiceCalculator, { calculator: '40k-wound' })
 
     try {
       showResult(calculateWoundPool({

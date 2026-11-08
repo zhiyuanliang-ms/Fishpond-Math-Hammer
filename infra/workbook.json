@@ -1,0 +1,237 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Fishpond Math Hammer usage\nAnonymous usage from the production site. A *visitor* is one browser (anonymous cookie ID)."
+      },
+      "name": "title"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "5b0d7c2e-6a51-4e4a-9a0f-3c1f2d9e7a10",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let ev = customEvents;\nlet visits = toscalar(ev | where name == \"AppOpen\" | count);\nlet visitors = toscalar(ev | where name == \"AppOpen\" | summarize dcount(user_Id));\nlet uses = toscalar(ev | where name != \"AppOpen\" | count);\nlet users = toscalar(ev | summarize dcount(user_Id));\nlet zhUsers = toscalar(ev | where tostring(customDimensions.language) == \"zh\" | summarize dcount(user_Id));\ndatatable(Order:int, Metric:string, Value:real)[\n 1, \"Visits\", real(null), 2, \"Visitors\", real(null), 3, \"Feature uses\", real(null), 4, \"Chinese users %\", real(null)]\n| extend Value = case(Order == 1, todouble(visits), Order == 2, todouble(visitors), Order == 3, todouble(uses),\n    iff(users == 0, 0.0, round(100.0 * zhUsers / users, 1)))\n| order by Order asc\n| project Metric, Value",
+        "size": 4,
+        "title": "Overview",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Metric",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto"
+            },
+            "numberFormat": {
+              "unit": 0,
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 1
+              }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "name": "overview"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "customEvents\n| where name == \"AppOpen\"\n| summarize Visits = count(), Visitors = dcount(user_Id) by bin(timestamp, 1d)\n| order by timestamp asc",
+        "size": 0,
+        "title": "Visits and visitors per day",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "linechart"
+      },
+      "name": "trend"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let labels = datatable(name:string, Feature:string)[\n \"Run40KSimulation\",\"Run 40K Simulation\",\n \"Profile\",\"Profile\",\n \"Comparison\",\"Comparison\",\n \"CopyReport\",\"Copy Report\",\n \"RunAoSSimulation\",\"Run AoS Simulation\",\n \"DiceCalculator\",\"Dice Calculator\",\n \"DiceRoller\",\"Dice Roller\",\n \"CheatSheet\",\"Cheat Sheet\",\n \"TacticalBoard\",\"Tactical Board\",\n \"BoardTools\",\"Board Tools\",\n \"AddBase\",\"Add Base\",\n \"MissionCard\",\"Mission Card\",\n \"RecordVP\",\"Record VP\"];\ncustomEvents\n| where name != \"AppOpen\"\n| summarize Users = dcount(user_Id) by name\n| join kind=rightouter labels on name\n| project Feature, Users = coalesce(Users, 0)\n| order by Users desc",
+        "size": 0,
+        "title": "Users per feature",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "barchart"
+      },
+      "name": "featureChart",
+      "customWidth": "50"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let labels = datatable(name:string, Feature:string)[\n \"Run40KSimulation\",\"Run 40K Simulation\",\n \"Profile\",\"Profile\",\n \"Comparison\",\"Comparison\",\n \"CopyReport\",\"Copy Report\",\n \"RunAoSSimulation\",\"Run AoS Simulation\",\n \"DiceCalculator\",\"Dice Calculator\",\n \"DiceRoller\",\"Dice Roller\",\n \"CheatSheet\",\"Cheat Sheet\",\n \"TacticalBoard\",\"Tactical Board\",\n \"BoardTools\",\"Board Tools\",\n \"AddBase\",\"Add Base\",\n \"MissionCard\",\"Mission Card\",\n \"RecordVP\",\"Record VP\"];\nlet visitors = toscalar(customEvents | where name == \"AppOpen\" | summarize dcount(user_Id));\ncustomEvents\n| where name != \"AppOpen\"\n| summarize Uses = count(), Users = dcount(user_Id) by name\n| join kind=rightouter labels on name\n| project Feature, Uses = coalesce(Uses, 0), Users = coalesce(Users, 0)\n| extend [\"Usage rate %\"] = iff(visitors == 0, 0.0, round(100.0 * Users / visitors, 1))\n| order by Users desc",
+        "size": 0,
+        "title": "Feature usage",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "featureTable",
+      "customWidth": "50"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "customEvents\n| where name == \"TacticalBoard\"\n| summarize Uses = count(), Users = dcount(user_Id) by Map = tostring(customDimensions.map)\n| order by Uses desc",
+        "size": 0,
+        "title": "Tactical Board maps",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "maps",
+      "customWidth": "33"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "customEvents\n| where name == \"BoardTools\"\n| summarize Uses = count(), Users = dcount(user_Id) by Tool = tostring(customDimensions.tool)\n| order by Uses desc",
+        "size": 0,
+        "title": "Board tools",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "tools",
+      "customWidth": "33"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "customEvents\n| where name == \"Profile\"\n| summarize Uses = count(), Users = dcount(user_Id) by Action = tostring(customDimensions.action)\n| order by Uses desc",
+        "size": 0,
+        "title": "Profile actions",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "profileActions",
+      "customWidth": "33"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "customEvents\n| summarize Users = dcount(user_Id) by Language = tostring(customDimensions.language)",
+        "size": 0,
+        "title": "Users by language",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "piechart"
+      },
+      "name": "language",
+      "customWidth": "50"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let labels = datatable(name:string, Feature:string)[\n \"Run40KSimulation\",\"Run 40K Simulation\",\n \"Profile\",\"Profile\",\n \"Comparison\",\"Comparison\",\n \"CopyReport\",\"Copy Report\",\n \"RunAoSSimulation\",\"Run AoS Simulation\",\n \"DiceCalculator\",\"Dice Calculator\",\n \"DiceRoller\",\"Dice Roller\",\n \"CheatSheet\",\"Cheat Sheet\",\n \"TacticalBoard\",\"Tactical Board\",\n \"BoardTools\",\"Board Tools\",\n \"AddBase\",\"Add Base\",\n \"MissionCard\",\"Mission Card\",\n \"RecordVP\",\"Record VP\"];\ncustomEvents\n| where name != \"AppOpen\"\n| summarize Users = dcount(user_Id) by name, Language = tostring(customDimensions.language)\n| join kind=inner labels on name\n| project Feature, Language, Users\n| evaluate pivot(Language, sum(Users))",
+        "size": 0,
+        "title": "Feature users by language",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "languageFeatures",
+      "customWidth": "50"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/d1dd1095-c1f2-4b65-ac28-001b1b806f43/resourceGroups/fishpond-math-hammer/providers/microsoft.insights/components/fishpond-math-hammer"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

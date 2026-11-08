@@ -21,6 +21,7 @@ import {
   StatGrid,
 } from './ui'
 import '../styles/attackSimulator.css'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 
 let nextProfileId = 0
 const profileId = () => ++nextProfileId
@@ -252,6 +253,7 @@ function AoSAttackSimulator() {
       }
     }
 
+    trackEvent(TELEMETRY_EVENTS.RunAoSSimulation)
     setRunning(true)
     setResult(null)
     const iterations = highPrecision ? 10000 : 1000
@@ -285,6 +287,7 @@ function AoSAttackSimulator() {
       return
     }
 
+    trackEvent(TELEMETRY_EVENTS.CopyReport, { page: 'aos-simulator' })
     try {
       if (!navigator.clipboard?.writeText)
         throw new Error('Clipboard API is unavailable')

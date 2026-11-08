@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { calculateChargeProbabilities } from '../lib/dice'
 import { Page, Tabs } from './ui'
 import '../styles/cheatsheet.css'
+import { trackEvent, TELEMETRY_EVENTS } from '../lib/telemetry'
 
 const CHEATSHEET_TABS = [
   { value: 'd6', label: 'D6' },
@@ -33,6 +34,10 @@ const probabilityClass = (p) =>
   p >= 80 ? 'healthy' : p >= 50 ? 'medium' : p >= 33 ? 'risky' : p >= 10 ? 'extremely-risky' : 'suicide'
 
 function Cheatsheet() {
+  useEffect(() => {
+    trackEvent(TELEMETRY_EVENTS.CheatSheet)
+  }, [])
+
   const [activeTab, setActiveTab] = useState('d6')
 
   const d6Probabilities = calculateD6Probabilities()

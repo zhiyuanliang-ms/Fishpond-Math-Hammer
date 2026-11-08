@@ -3,6 +3,7 @@ import { Circle, Layer, Line, Rect, Text } from 'react-konva'
 import { useBoard11eStore } from '../store/board11eStore'
 import { PX_PER_INCH } from '../config/board'
 import { onCancelInteractions } from '../hooks/interactionCancel'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
 
 const STROKE_WIDTH = 2.5
 const FREEDRAW_MIN_DIST = 2.5
@@ -174,6 +175,7 @@ export function DrawingOverlay({ stageRef }) {
             color: drawColor,
             strokeWidth: STROKE_WIDTH,
           })
+          trackEvent(TELEMETRY_EVENTS.BoardTools, { tool: 'line' })
         }
       } else {
         const buf = freeBufRef.current
@@ -184,6 +186,7 @@ export function DrawingOverlay({ stageRef }) {
             color: drawColor,
             strokeWidth: STROKE_WIDTH,
           })
+          trackEvent(TELEMETRY_EVENTS.BoardTools, { tool: 'draw' })
         }
       }
       reset()
@@ -226,6 +229,7 @@ export function DrawingOverlay({ stageRef }) {
     if (!container) return
 
     let activePointerId = null
+    let erasedThisStroke = false
 
     const setPointerFromEvent = (ev) => {
       stage.setPointersPositions(ev)
@@ -250,6 +254,7 @@ export function DrawingOverlay({ stageRef }) {
         }
       }
       for (const id of toRemove) removeDrawing(id)
+      if (toRemove.length > 0) erasedThisStroke = true
     }
 
     const onDown = (ev) => {
@@ -282,6 +287,8 @@ export function DrawingOverlay({ stageRef }) {
       if (activePointerId !== null && ev.pointerId !== activePointerId) return
       activePointerId = null
       setTouchEraserPos(null)
+      if (erasedThisStroke) trackEvent(TELEMETRY_EVENTS.BoardTools, { tool: 'eraser' })
+      erasedThisStroke = false
     }
     const onCancel = () => {
       activePointerId = null

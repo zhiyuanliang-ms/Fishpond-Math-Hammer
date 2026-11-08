@@ -1,9 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { X } from 'lucide-react'
+import { trackEvent, TELEMETRY_EVENTS } from '../../lib/telemetry'
 
 export function MissionCardDialog({ title, onClose, children }) {
   const dialogRef = useRef(null)
   const titleId = useId()
+
+  useEffect(() => {
+    trackEvent(TELEMETRY_EVENTS.MissionCard)
+  }, [])
 
   useEffect(() => {
     const dialog = dialogRef.current
