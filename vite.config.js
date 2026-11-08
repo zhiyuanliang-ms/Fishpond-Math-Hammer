@@ -6,9 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    // Installable PWA ("Add to Home Screen" on iOS). The app shell is
-    // precached so it opens offline; battleplan images (~21 MB) are cached on
-    // first view instead of up front.
+    // Installable PWA ("Add to Home Screen" on iOS). The app shell and every
+    // battleplan map and mission card (~21 MB) are precached on install, so
+    // the tactical board can switch to any battleplan offline.
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['apple-touch-icon-180x180.png'],
@@ -29,17 +29,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,webp}'],
-        globIgnores: ['battleplans-11e/**', 'imperial-aquila.png'],
+        globIgnores: ['imperial-aquila.png'],
+        // Map URLs carry a `?v=` cache-buster; match them to the precached
+        // file regardless (the precache revision already tracks content).
+        ignoreURLParametersMatching: [/^v$/],
         navigateFallback: '/index.html',
         runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/battleplans-11e/'),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'battleplan-images',
-              expiration: { maxEntries: 200 },
-            },
-          },
           {
             urlPattern: ({ url }) =>
               url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',

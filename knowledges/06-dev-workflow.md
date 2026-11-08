@@ -102,10 +102,14 @@ full-screen with its own icon and works offline.
   `apple-touch-icon-180x180.png`) were generated from `the-fishpond.webp`
   with `@vite-pwa/assets-generator`. The iOS meta tags are in `index.html`.
 - **Service worker:** `generateSW` with `registerType: 'autoUpdate'`. It
-  precaches the app shell (JS, CSS, HTML, root images), so a new deploy reaches
-  installed users the next time they open the app. `battleplans-11e/` images
-  (~21 MB) are **not** precached; they are cached on first view
-  (`battleplan-images`, CacheFirst). Google Fonts use StaleWhileRevalidate.
+  precaches the app shell (JS, CSS, HTML, root images) **and** every
+  `battleplans-11e/` map, reference map and mission card (~21 MB in all), so
+  the tactical board can switch to any battleplan offline. A new deploy
+  reaches installed users the next time they open the app; only changed files
+  are downloaded again. `ignoreURLParametersMatching: [/^v$/]` lets the
+  `?v=` cache-buster on map URLs hit the precache. Google Fonts use
+  StaleWhileRevalidate. If a map still fails to load (e.g. before the first
+  install finished), the board shows a message instead of the previous map.
 - **Testing it:** the service worker is only built by `npm run build`, not by
   `npm run dev`. Use `npm run build && npm run preview` and check DevTools →
   Application. Unregister the worker afterwards, or localhost keeps serving

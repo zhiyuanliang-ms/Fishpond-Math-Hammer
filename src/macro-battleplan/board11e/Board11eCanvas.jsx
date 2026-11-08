@@ -2,7 +2,7 @@
 // background, with the shared base / drawing / ruler tools layered on top.
 
 import { useEffect, useRef, useState } from 'react'
-import { Image as KonvaImage, Layer, Rect, Stage } from 'react-konva'
+import { Image as KonvaImage, Layer, Rect, Stage, Text } from 'react-konva'
 import { Shrink } from 'lucide-react'
 import { BaseToken } from '../components/BaseToken'
 import { SelectionLayer } from '../components/SelectionLayer'
@@ -21,27 +21,32 @@ const BOARD_CONTENT = {
   height: MAP_11E_H + BOARD_PAD * 2,
 }
 
+// Returns the loaded image for `src` (null while loading) and whether it
+// failed. Results are keyed by `src`, so switching maps never keeps showing
+// the previous battleplan's image.
 function useMapImage(src) {
-  const [image, setImage] = useState(null)
+  const [result, setResult] = useState({ src: null, image: null, failed: false })
 
   useEffect(() => {
-    if (!src) {
-      setImage(null)
-      return
-    }
+    if (!src) return
     let cancelled = false
     const img = new window.Image()
     img.onload = () => {
-      if (!cancelled) setImage(img)
+      if (!cancelled) setResult({ src, image: img, failed: false })
+    }
+    img.onerror = () => {
+      if (!cancelled) setResult({ src, image: null, failed: true })
     }
     img.src = src
     return () => {
       cancelled = true
       img.onload = null
+      img.onerror = null
     }
   }, [src])
 
-  return image
+  if (!src || result.src !== src) return { image: null, failed: false }
+  return result
 }
 
 export function Board11eCanvas({ containerRef, mapSrc, active = true }) {
@@ -52,7 +57,7 @@ export function Board11eCanvas({ containerRef, mapSrc, active = true }) {
   const selectMany = useBoard11eStore((s) => s.selectMany)
   const activeTool = useBoard11eStore((s) => s.activeTool)
   const liveMeasure = useBoard11eStore((s) => s.liveMeasure)
-  const mapImage = useMapImage(mapSrc)
+  const { image: mapImage, failed: mapFailed } = useMapImage(mapSrc)
 
   const [rubber, setRubber] = useState(null)
   const rubberStartRef = useRef(null)
@@ -192,6 +197,18 @@ export function Board11eCanvas({ containerRef, mapSrc, active = true }) {
               y={MAP_11E_Y}
               width={MAP_11E_W}
               height={MAP_11E_H}
+            />
+          )}
+          {mapFailed && (
+            <Text
+              x={MAP_11E_X}
+              y={MAP_11E_Y + MAP_11E_H / 2 - 30}
+              width={MAP_11E_W}
+              align="center"
+              text={'Map image could not be loaded.\nCheck your connection and reopen this battleplan.'}
+              fontSize={22}
+              lineHeight={1.4}
+              fill="#555"
             />
           )}
         </Layer>
