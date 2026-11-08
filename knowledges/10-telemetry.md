@@ -66,6 +66,20 @@ To add an event: add it to `TELEMETRY_EVENTS`, call `trackEvent(...)` at the
 user action (not inside a store or `lib/dice`), and update this table and the
 workbook.
 
+## Local live dashboard
+
+```sh
+az login          # once; the dashboard uses this login
+npm run usage     # http://localhost:5180
+```
+
+`tools/usage-dashboard/` is a zero-dependency Node server (`server.mjs`) plus
+one HTML page. The server gets a token from the Azure CLI, runs a fixed set of
+KQL queries against the Application Insights query API, and serves the page,
+which refreshes every 30 s. It binds to 127.0.0.1, only answers GETs with a
+`localhost` Host header, and never accepts KQL from the browser. It is a local
+tool, not part of the site build.
+
 ## Queries
 
 Run in the Azure portal → Application Insights `fishpond-math-hammer` → Logs,
@@ -94,13 +108,6 @@ customEvents
 | summarize Uses = count(), Users = dcount(user_Id) by name
 | extend UsageRate = round(100.0 * Users / visitors, 1)
 | order by Users desc
-```
-
-Chinese vs English users:
-
-```kusto
-customEvents
-| summarize Users = dcount(user_Id) by Language = tostring(customDimensions.language)
 ```
 
 Breakdowns (swap the event and property):

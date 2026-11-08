@@ -52,7 +52,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let ev = customEvents;\nlet visits = toscalar(ev | where name == \"AppOpen\" | count);\nlet visitors = toscalar(ev | where name == \"AppOpen\" | summarize dcount(user_Id));\nlet uses = toscalar(ev | where name != \"AppOpen\" | count);\nlet users = toscalar(ev | summarize dcount(user_Id));\nlet zhUsers = toscalar(ev | where tostring(customDimensions.language) == \"zh\" | summarize dcount(user_Id));\ndatatable(Order:int, Metric:string, Value:real)[\n 1, \"Visits\", real(null), 2, \"Visitors\", real(null), 3, \"Feature uses\", real(null), 4, \"Chinese users %\", real(null)]\n| extend Value = case(Order == 1, todouble(visits), Order == 2, todouble(visitors), Order == 3, todouble(uses),\n    iff(users == 0, 0.0, round(100.0 * zhUsers / users, 1)))\n| order by Order asc\n| project Metric, Value",
+        "query": "let ev = customEvents;\nlet visits = toscalar(ev | where name == \"AppOpen\" | count);\nlet visitors = toscalar(ev | where name == \"AppOpen\" | summarize dcount(user_Id));\nlet uses = toscalar(ev | where name != \"AppOpen\" | count);\ndatatable(Order:int, Metric:string)[1, \"Visits\", 2, \"Visitors\", 3, \"Feature uses\"]\n| extend Value = case(Order == 1, visits, Order == 2, visitors, uses)\n| order by Order asc\n| project Metric, Value",
         "size": 4,
         "title": "Overview",
         "timeContext": {
@@ -137,96 +137,6 @@
         "visualization": "table"
       },
       "name": "featureTable",
-      "customWidth": "50"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "customEvents\n| where name == \"TacticalBoard\"\n| summarize Uses = count(), Users = dcount(user_Id) by Map = tostring(customDimensions.map)\n| order by Uses desc",
-        "size": 0,
-        "title": "Tactical Board maps",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.insights/components",
-        "visualization": "table"
-      },
-      "name": "maps",
-      "customWidth": "33"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "customEvents\n| where name == \"BoardTools\"\n| summarize Uses = count(), Users = dcount(user_Id) by Tool = tostring(customDimensions.tool)\n| order by Uses desc",
-        "size": 0,
-        "title": "Board tools",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.insights/components",
-        "visualization": "table"
-      },
-      "name": "tools",
-      "customWidth": "33"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "customEvents\n| where name == \"Profile\"\n| summarize Uses = count(), Users = dcount(user_Id) by Action = tostring(customDimensions.action)\n| order by Uses desc",
-        "size": 0,
-        "title": "Profile actions",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.insights/components",
-        "visualization": "table"
-      },
-      "name": "profileActions",
-      "customWidth": "33"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "customEvents\n| summarize Users = dcount(user_Id) by Language = tostring(customDimensions.language)",
-        "size": 0,
-        "title": "Users by language",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.insights/components",
-        "visualization": "piechart"
-      },
-      "name": "language",
-      "customWidth": "50"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "let labels = datatable(name:string, Feature:string)[\n \"Run40KSimulation\",\"Run 40K Simulation\",\n \"Profile\",\"Profile\",\n \"Comparison\",\"Comparison\",\n \"CopyReport\",\"Copy Report\",\n \"RunAoSSimulation\",\"Run AoS Simulation\",\n \"DiceCalculator\",\"Dice Calculator\",\n \"DiceRoller\",\"Dice Roller\",\n \"CheatSheet\",\"Cheat Sheet\",\n \"TacticalBoard\",\"Tactical Board\",\n \"BoardTools\",\"Board Tools\",\n \"AddBase\",\"Add Base\",\n \"MissionCard\",\"Mission Card\",\n \"RecordVP\",\"Record VP\"];\ncustomEvents\n| where name != \"AppOpen\"\n| summarize Users = dcount(user_Id) by name, Language = tostring(customDimensions.language)\n| join kind=inner labels on name\n| project Feature, Language, Users\n| evaluate pivot(Language, sum(Users))",
-        "size": 0,
-        "title": "Feature users by language",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.insights/components",
-        "visualization": "table"
-      },
-      "name": "languageFeatures",
       "customWidth": "50"
     }
   ],

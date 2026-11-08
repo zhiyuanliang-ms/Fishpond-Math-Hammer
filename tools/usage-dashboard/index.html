@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fishpond Usage</title>
+<style>
+  :root {
+    --bg: #1f1f1f; --panel: #2a2a2a; --line: #3d3d3d; --text: #e6e6e6;
+    --muted: #9a9a9a; --accent: #fbbf24; --accent2: #60a5fa; --bad: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
+    padding: 16px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0;
+    background: var(--bg); z-index: 1; }
+  h1 { margin: 0; font-size: 18px; }
+  .pills { display: flex; gap: 4px; background: var(--panel); padding: 3px; border-radius: 8px; }
+  .pills button { background: none; border: 0; color: var(--muted); padding: 5px 10px;
+    border-radius: 6px; cursor: pointer; font: inherit; }
+  .pills button.on { background: var(--accent); color: #1a1a1a; font-weight: 600; }
+  .status { margin-left: auto; color: var(--muted); font-size: 12px; display: flex; gap: 10px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block; }
+  .dot.loading { background: var(--accent); }
+  .dot.error { background: var(--bad); }
+  label.auto { display: flex; gap: 4px; align-items: center; cursor: pointer; }
+  main { padding: 20px; display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); max-width: 1400px; margin: 0 auto; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+  .panel h2 { margin: 0 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .span3 { grid-column: span 3; } .span4 { grid-column: span 4; } .span6 { grid-column: span 6; }
+  .span8 { grid-column: span 8; } .span12 { grid-column: span 12; }
+  @media (max-width: 900px) { .span3 { grid-column: span 6; } .span4, .span6, .span8 { grid-column: span 12; } }
+  @media (max-width: 520px) { main { padding: 12px; } .span3 { grid-column: span 12; } .status { margin-left: 0; } }
+  .kpi .v { font-size: 32px; font-weight: 700; }
+  .kpi .l { color: var(--muted); font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  td.bar { width: 40%; }
+  .bar i { display: block; height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
+  .zero td { color: #666; }
+  .zero .bar i { display: none; }
+  .scroll { overflow-x: auto; }
+  .empty { color: var(--muted); padding: 8px 0; }
+  .error { grid-column: span 12; background: #3a1f1f; border: 1px solid #7f2d2d; color: #fecaca;
+    border-radius: 10px; padding: 12px 16px; white-space: pre-wrap; }
+  svg text { fill: var(--muted); font-size: 11px; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .legend b { display: inline-block; width: 10px; height: 3px; margin-right: 5px; vertical-align: middle; }
+  .feed td { font-size: 12px; }
+  .tag { background: #3a3a3a; padding: 1px 6px; border-radius: 4px; }
+  .note { grid-column: span 12; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fishpond Usage</h1>
+  <div class="pills" id="ranges"></div>
+  <div class="status">
+    <label class="auto"><input type="checkbox" id="auto" checked /> Auto-refresh 30s</label>
+    <span><span class="dot loading" id="dot"></span> <span id="updated">Loading…</span></span>
+  </div>
+</header>
+<main id="main"></main>
+
+<script>
+const RANGES = [['1h', '1 hour'], ['24h', '24 hours'], ['7d', '7 days'], ['30d', '30 days'], ['90d', '90 days']]
+const REFRESH_MS = 30_000
+let range = localGet('range') || '24h'
+let timer = null
+let inFlight = false
+
+function localGet(k) { try { return localStorage.getItem('fpu.' + k) } catch { return null } }
+function localSet(k, v) { try { localStorage.setItem('fpu.' + k, v) } catch { /* ignore */ } }
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+const fmt = (n) => Number(n ?? 0).toLocaleString()
+
+function renderRanges() {
+  document.getElementById('ranges').innerHTML = RANGES.map(([k, label]) =>
+    `<button data-k="${k}" class="${k === range ? 'on' : ''}">${label}</button>`).join('')
+}
+document.getElementById('ranges').addEventListener('click', (e) => {
+  const k = e.target.dataset?.k
+  if (!k || k === range) return
+  range = k; localSet('range', k); renderRanges(); load()
+})
+
+function kpi(label, value) {
+  return `<section class="panel kpi span4"><div class="v">${value}</div><div class="l">${label}</div></section>`
+}
+
+function barTable(title, rows, cols, span) {
+  const max = Math.max(1, ...rows.map((r) => r[cols.bar]))
+  const body = rows.length === 0
+    ? `<div class="empty">No data in this range.</div>`
+    : `<div class="scroll"><table><thead><tr>${cols.head.map((h, i) =>
+        `<th class="${i ? 'n' : ''}">${h}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map((r) =>
+        `<tr class="${r[cols.bar] ? '' : 'zero'}">${cols.keys.map((k, i) =>
+          `<td class="${i ? 'n' : ''}">${i ? fmt(r[k]) + (k === 'Rate' ? '%' : '') : esc(r[k] || '(none)')}</td>`).join('')}
+          <td class="bar"><i style="width:${(100 * r[cols.bar]) / max}%"></i></td></tr>`).join('')}</tbody></table></div>`
+  return `<section class="panel ${span}"><h2>${title}</h2>${body}</section>`
+}
+
+// Drawn at the container's real pixel width so text and lines never stretch.
+function lineChart(points, width) {
+  const W = Math.max(280, Math.round(width)), H = 220, P = { l: 34, r: 30, t: 10, b: 24 }
+  if (points.length === 0) return '<div class="empty">No data.</div>'
+  const max = Math.max(1, ...points.map((p) => Math.max(p.Visits, p.Visitors)))
+  const x = (i) => P.l + (points.length === 1 ? 0 : (i * (W - P.l - P.r)) / (points.length - 1))
+  const y = (v) => H - P.b - (v * (H - P.t - P.b)) / max
+  const path = (k) => points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[k]).toFixed(1)}`).join('')
+  const short = range === '1h' || range === '24h'
+  const label = (t) => new Date(t).toLocaleString([], short ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' })
+  const every = Math.max(1, Math.ceil(points.length / Math.max(2, Math.floor(W / 90))))
+  const ticks = [0, 0.5, 1].map((f) => Math.round(max * f))
+  return `<div class="legend"><span><b style="background:var(--accent)"></b>Visits</span><span><b style="background:var(--accent2)"></b>Visitors</span></div>
+  <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="display:block">
+    ${[...new Set(ticks)].map((v) => `<line x1="${P.l}" x2="${W - P.r}" y1="${y(v)}" y2="${y(v)}" stroke="#3d3d3d"/><text x="${P.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('')}
+    ${points.map((p, i) => i % every ? '' : `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${label(p.timestamp)}</text>`).join('')}
+    <path d="${path('Visits')}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+    <path d="${path('Visitors')}" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linejoin="round"/>
+  </svg>`
+}
+
+function feed(rows) {
+  if (rows.length === 0) return '<div class="empty">No events in this range.</div>'
+  return `<div class="scroll"><table class="feed"><thead><tr><th>Time</th><th>Event</th><th>Details</th><th>User</th><th>Country</th><th>Browser</th></tr></thead><tbody>${
+    rows.map((r) => {
+      let details = ''
+      try { details = Object.entries(JSON.parse(r.Details || '{}')).map(([k, v]) => `${k}: ${v}`).join(', ') } catch { details = r.Details }
+      return `<tr><td>${esc(new Date(r.timestamp).toLocaleString())}</td><td><span class="tag">${esc(r.name)}</span></td>
+        <td>${esc(details)}</td><td>${esc(r.User)}</td><td>${esc(r.Country)}</td><td>${esc(r.Browser)}</td></tr>`
+    }).join('')}</tbody></table></div>`
+}
+
+let lastTrend = []
+function drawTrend() {
+  const el = document.getElementById('trend')
+  if (el) el.innerHTML = lineChart(lastTrend, el.clientWidth)
+}
+let resizeFrame = 0
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(resizeFrame)
+  resizeFrame = requestAnimationFrame(drawTrend)
+})
+
+function render(d) {
+  lastTrend = d.trend
+  const o = d.overview[0] || {}
+  document.getElementById('main').innerHTML = [
+    kpi('Visits (AppOpen)', fmt(o.Visits)),
+    kpi('Visitors', fmt(o.Visitors)),
+    kpi('Feature uses', fmt(o.FeatureUses)),
+    `<section class="panel span12"><h2>Visits and visitors</h2><div id="trend"></div></section>`,
+    barTable('Features — uses, users, % of visitors', d.features,
+      { head: ['Feature', 'Uses', 'Users', 'Rate'], keys: ['Feature', 'Uses', 'Users', 'Rate'], bar: 'Users' }, 'span12'),
+    `<section class="panel span12"><h2>Latest events</h2>${feed(d.recent)}</section>`,
+    `<p class="note">Events take 1–3 minutes to arrive in Application Insights. A visitor is one browser (anonymous cookie ID).</p>`,
+  ].join('')
+  drawTrend()
+}
+
+async function load() {
+  if (inFlight) return
+  inFlight = true
+  const dot = document.getElementById('dot')
+  dot.className = 'dot loading'
+  try {
+    const res = await fetch(`/api/dashboard?range=${range}`)
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || res.statusText)
+    render(data)
+    dot.className = 'dot'
+    document.getElementById('updated').textContent = 'Updated ' + new Date(data.generatedAt).toLocaleTimeString()
+  } catch (err) {
+    dot.className = 'dot error'
+    document.getElementById('updated').textContent = 'Update failed'
+    const main = document.getElementById('main')
+    main.querySelector('.error')?.remove()
+    main.insertAdjacentHTML('afterbegin', `<div class="error">${esc(err.message)}</div>`)
+  } finally {
+    inFlight = false
+  }
+}
+
+function schedule() {
+  clearInterval(timer)
+  if (document.getElementById('auto').checked) timer = setInterval(load, REFRESH_MS)
+}
+const auto = document.getElementById('auto')
+auto.checked = localGet('auto') !== 'off'
+auto.addEventListener('change', () => { localSet('auto', auto.checked ? 'on' : 'off'); schedule() })
+document.addEventListener('visibilitychange', () => { if (!document.hidden && auto.checked) load() })
+
+renderRanges()
+load()
+schedule()
+</script>
+</body>
+</html>
